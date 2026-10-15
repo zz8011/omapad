@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.104"
+image = { version = "0.25.10", default-features = false, features = ["png"] }
 ipadctl = { path = "../.." }
 # ksni 默认特性会拉 tokio + zbus(tokio) —— 违反"无常驻异步运行时"约束。
 # async-io 做执行器 + blocking 出同步 API（零额外依赖的门闸特性），

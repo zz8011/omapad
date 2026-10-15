@@ -5,9 +5,9 @@
 //! 就会被它覆盖回去。
 
 use crate::config::Config;
+use crate::model::{MODELS, Model};
 use crate::paths::{lua_path, monitors_lua_path};
-use crate::model::{Model, MODELS};
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -56,7 +56,7 @@ impl Connector {
             .parse()
             .context("max_brightness 不是数字")?;
         // 向上取整，避免 1% 被算成 0 导致关屏
-        let v = (max * u32::from(pct.min(100)) + 99) / 100;
+        let v = (max * u32::from(pct.min(100))).div_ceil(100);
         let target = bl.join("brightness");
         match std::fs::write(&target, v.to_string()) {
             Ok(()) => return Ok(()),
@@ -65,7 +65,12 @@ impl Connector {
         }
         // 降级：sudo -n。v 是程序算出的数字、target 是程序拼的路径，无注入面。
         let out = Command::new("sudo")
-            .args(["-n", "sh", "-c", &format!("echo {v} > {}", target.display())])
+            .args([
+                "-n",
+                "sh",
+                "-c",
+                &format!("echo {v} > {}", target.display()),
+            ])
             .output()
             .with_context(|| format!("sudo 写 {}", target.display()))?;
         if out.status.success() {
@@ -183,7 +188,14 @@ pub fn monitor_model(m: &HyprMonitor) -> Option<&'static Model> {
 
 /// 一块显示器占用的**逻辑矩形**：transform 1/3（90°/270°）交换宽高，再除以 scale。
 /// 返回 `(x, y, w, h)`。
-pub fn logical_rect(x: i32, y: i32, w: i32, h: i32, transform: u8, scale: f64) -> (f64, f64, f64, f64) {
+pub fn logical_rect(
+    x: i32,
+    y: i32,
+    w: i32,
+    h: i32,
+    transform: u8,
+    scale: f64,
+) -> (f64, f64, f64, f64) {
     let s = if scale > 0.0 { scale } else { 1.0 };
     let (lw, lh) = if matches!(transform, 1 | 3) {
         (h as f64, w as f64)
@@ -285,10 +297,11 @@ fn usb_port_of(connector_dir: &Path) -> Option<String> {
     let link = std::fs::canonicalize(connector_dir.join("device")).ok()?;
     for seg in link.components().rev() {
         let s = seg.as_os_str().to_string_lossy();
-        if let Some((port, _iface)) = s.split_once(':') {
-            if port.contains('-') && port.bytes().next()?.is_ascii_digit() {
-                return Some(port.to_owned());
-            }
+        if let Some((port, _iface)) = s.split_once(':')
+            && port.contains('-')
+            && port.bytes().next()?.is_ascii_digit()
+        {
+            return Some(port.to_owned());
         }
     }
     None
@@ -317,9 +330,7 @@ pub fn split_modes(modes: &[String]) -> Option<(String, String)> {
     if modes.len() < 2 {
         return None;
     }
-    let width_of = |s: &str| -> Option<u32> {
-        s.split('x').next()?.parse().ok()
-    };
+    let width_of = |s: &str| -> Option<u32> { s.split('x').next()?.parse().ok() };
     let mut parsed: Vec<(u32, &String)> = modes
         .iter()
         .filter_map(|m| width_of(m).map(|w| (w, m)))
@@ -341,7 +352,9 @@ pub fn render_lua(cfg: &Config) -> String {
     let mut s = String::new();
     s.push_str("-- 由 ipadctl 生成，**不要手改**。\n");
     s.push_str("-- 改设置请用 `ipadctl config set ...`，然后 `ipadctl config apply` 重新生成。\n");
-    s.push_str("-- 本文件由 ~/.config/hypr/monitors.lua 里的一行 `require(\"hypr.ipadctl\")` 加载。\n");
+    s.push_str(
+        "-- 本文件由 ~/.config/hypr/monitors.lua 里的一行 `require(\"hypr.ipadctl\")` 加载。\n",
+    );
     s.push_str("--\n");
     s.push_str("-- 为什么按 desc: 匹配而不是 USB-N：接口名每次重连都会变，desc 才稳定。\n");
     s.push_str("-- 但 desc 来自 EDID，所以**同型号两台会撞**；Hyprland 里残留的已断开连接器\n");
@@ -406,7 +419,7 @@ mod tests {
     #[test]
     fn 背光写入不超过上限() {
         // 只验证折算公式，不真写设备
-        let f = |max: u32, pct: u8| (max * u32::from(pct.min(100)) + 99) / 100;
+        let f = |max: u32, pct: u8| (max * u32::from(pct.min(100))).div_ceil(100);
         assert_eq!(f(100, 0), 0);
         assert_eq!(f(100, 1), 1);
         assert_eq!(f(100, 100), 100);
@@ -471,7 +484,11 @@ mod tests {
         let p2 = dir.join("monitors2.lua");
         std::fs::write(&p2, "-- TODO: 以后加 hypr.ipadctl 布局\n").unwrap();
         insert_require_into(&p2).unwrap();
-        assert!(std::fs::read_to_string(&p2).unwrap().contains("require(\"hypr.ipadctl\")"));
+        assert!(
+            std::fs::read_to_string(&p2)
+                .unwrap()
+                .contains("require(\"hypr.ipadctl\")")
+        );
 
         std::fs::remove_dir_all(&dir).ok();
     }
@@ -487,7 +504,10 @@ mod tests {
             split_modes(&a),
             Some(("1536x2048@60.00Hz".into(), "768x1024@60.01Hz".into()))
         );
-        let b = vec!["1668x2224@60.00Hz".to_owned(), "834x1112@59.99Hz".to_owned()];
+        let b = vec![
+            "1668x2224@60.00Hz".to_owned(),
+            "834x1112@59.99Hz".to_owned(),
+        ];
         assert_eq!(
             split_modes(&b),
             Some(("1668x2224@60.00Hz".into(), "834x1112@59.99Hz".into()))
@@ -540,8 +560,14 @@ mod tests {
         d.mode = Some("768x1024@60.01Hz".into());
         cfg.devices.insert("a1599".into(), d);
         let lua = render_lua(&cfg);
-        assert!(lua.contains("mode = \"768x1024@60.01Hz\""), "半分辨率档要写进 lua");
-        assert!(lua.contains("mode = \"preferred\""), "未设置的机型仍是 preferred");
+        assert!(
+            lua.contains("mode = \"768x1024@60.01Hz\""),
+            "半分辨率档要写进 lua"
+        );
+        assert!(
+            lua.contains("mode = \"preferred\""),
+            "未设置的机型仍是 preferred"
+        );
         let _: Option<DeviceSettings> = None; // 引用一下类型，避免未使用告警
     }
 }

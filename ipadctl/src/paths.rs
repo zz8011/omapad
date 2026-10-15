@@ -4,7 +4,7 @@
 //! root 家目录去了（实测踩过）。本工具有些操作需要 root（刷机），所以必须显式处理：
 //! 有 `SUDO_USER` 就按它去 `/etc/passwd` 查真正的家目录。
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use std::path::PathBuf;
 
 /// 调用者的家目录（穿透 sudo）。
@@ -71,10 +71,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn 非_sudo_时用_HOME() {
+    fn 非_sudo_时用_home() {
         // 测试进程通常没有 SUDO_USER
         if std::env::var_os("SUDO_USER").is_none() {
-            assert_eq!(home_dir().unwrap(), PathBuf::from(std::env::var("HOME").unwrap()));
+            assert_eq!(
+                home_dir().unwrap(),
+                PathBuf::from(std::env::var("HOME").unwrap())
+            );
         }
     }
 

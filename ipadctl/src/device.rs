@@ -5,8 +5,26 @@
 
 use crate::acm::Acm;
 use crate::model::Model;
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use std::time::Duration;
+
+/// Last raw J207 watchdog write record, including its kernel timestamp.
+/// The GUI compares this with the pre-submit record; a value alone could
+/// describe an old write and must not confirm a new limit request.
+pub fn watchdog_last_write(acm: &mut Acm) -> Result<Option<String>> {
+    let (out, rc) = acm.run(
+        "dmesg | grep 'd2355: write 0x044e' | tail -1",
+        Duration::from_secs(15),
+    )?;
+    if rc != 0 {
+        return Ok(None);
+    }
+    Ok(out
+        .lines()
+        .rev()
+        .find(|line| line.contains("d2355: write 0x044e"))
+        .map(|s| s.trim().to_owned()))
+}
 
 /// 读回**实际生效**的充电限流。
 ///
@@ -104,8 +122,7 @@ pub fn battery_current(acm: &mut Acm, m: &Model) -> Result<Option<i32>> {
     //   `  0x14 平均电流(mA) = 0x0116 (   278)  [5/5]`
     // 取第一行即可。
     let line = out.lines().next().unwrap_or_default().to_owned();
-    let ma = last_paren_int(&line)
-        .with_context(|| format!("电流格式不认识：{line:?}"))?;
+    let ma = last_paren_int(&line).with_context(|| format!("电流格式不认识：{line:?}"))?;
     Ok(Some(ma))
 }
 
@@ -136,7 +153,11 @@ pub fn read_state(acm: &mut Acm, m: &Model) -> DeviceState {
     let battery = match battery_current(acm, m) {
         Ok(Some(ma)) => format!(
             "{ma:>6} mA  {}",
-            if ma > 0 { "充电中" } else { "⚠️ 放电中" }
+            if ma > 0 {
+                "充电中"
+            } else {
+                "⚠️ 放电中"
+            }
         ),
         Ok(None) => "这台没有电量计脚本".to_owned(),
         Err(e) => format!("读取失败：{e:#}"),
@@ -169,7 +190,10 @@ mod tests {
             last_paren_int("  0x14 平均电流(mA) = 0xfc82 (  -894)  [3/5]"),
             Some(-894)
         );
-        assert_eq!(last_paren_int("  0x02 AtRate = 0x001e (    30)  [5/5]"), Some(30));
+        assert_eq!(
+            last_paren_int("  0x02 AtRate = 0x001e (    30)  [5/5]"),
+            Some(30)
+        );
         assert_eq!(last_paren_int("没有括号"), None);
         assert_eq!(last_paren_int("(mA) 只有单位没有数值"), None);
     }

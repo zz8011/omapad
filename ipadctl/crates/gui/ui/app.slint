@@ -1,5 +1,5 @@
-// Omarpad 主窗 —— 设计系统 v2（2026-10-16 顶级重设计）。
-// Recordian DNA（深绿黑 + 洋红 + 橄榄 + 等宽）之上建立完整系统：
+// Omarpad 主窗 —— Recordian 的克制布局，跟随当前 Omarchy 主题。
+// 色彩由 Rust 读取 Omarchy 语义色并在一个 UI 事件中更新；默认值只用于读取失败时。
 //   4px 基栅 / 五级字阶 / 语义间距 / 圆角·描边阶梯 / 状态色条 + chip / 分段控件。
 // 逻辑回调与属性与 P1b 完全一致（零 Rust 改动）。
 //
@@ -34,23 +34,46 @@ export struct CanvasItem {
     transform: int,
 }
 
+export struct ChargeCard {
+    slug: string,
+    name: string,
+    port: string,
+    state: string,
+    state-color: brush,
+    limit-line: string,
+    battery-line: string,
+    proof-line: string,
+    sampled-line: string,
+    option-a: string,
+    option-a-hex: string,
+    option-b: string,
+    option-b-hex: string,
+    option-c: string,
+    option-c-hex: string,
+    active-a: bool,
+    active-b: bool,
+    active-c: bool,
+    can-set: bool,
+}
+
 export global Theme {
-    // ---- 色彩（Recordian DNA）----
-    out property <color> bg-window:   #0D120D;
-    out property <color> bg-inset:    #090D09;   // 分段控件槽/画布（比卡片更深一级）
-    out property <color> bg-card:     #121A12;
-    out property <color> bg-card-hi:  #162116;   // 卡片悬浮层
-    out property <color> bg-callout:  #1A2216;
-    out property <color> bg-accent:   #3A1520;
-    out property <color> border:      #243024;
-    out property <color> border-hi:   #2E3B2E;   // 悬浮/选中描边
-    out property <color> divider:     #1C251C;
-    out property <color> accent:      #FF2E88;
-    out property <color> olive:       #B8C77A;
-    out property <color> text:        #F2F5F0;
-    out property <color> text-2:      #A7B4A6;   // 对比度拉高的次要文字
-    out property <color> text-3:      #7E8B7D;
-    out property <string> mono:       "Noto Sans Mono CJK SC";
+    in-out property <color> bg-window:   #0D120D;
+    in-out property <color> bg-inset:    #090D09;
+    in-out property <color> bg-card:     #121A12;
+    in-out property <color> bg-card-hi:  #162116;
+    in-out property <color> bg-callout:  #1A2216;
+    in-out property <color> bg-accent:   #3A1520;
+    in-out property <color> border:      #243024;
+    in-out property <color> border-hi:   #2E3B2E;
+    in-out property <color> divider:     #1C251C;
+    in-out property <color> accent:      #FF2E88;
+    in-out property <color> accent-text: #FF6AA8;
+    in-out property <color> olive:       #B8C77A;
+    in-out property <color> text:        #F2F5F0;
+    in-out property <color> text-2:      #A7B4A6;
+    in-out property <color> text-3:      #7E8B7D;
+    in-out property <string> mono:       "Noto Sans Mono CJK SC";
+    in-out property <bool> reduce-motion: false;
 
     // ---- 语义间距（4px 基栅）----
     out property <length> sp-1: 4px;
@@ -67,7 +90,7 @@ component Wordmark inherits HorizontalLayout {
     alignment: start;
     Text {
         text: "OMARPAD";
-        color: Theme.accent;
+        color: Theme.accent-text;
         font-size: 13px;
         font-weight: 800;
         font-family: Theme.mono;
@@ -85,13 +108,15 @@ component SectionLabel inherits Text {
 
 component ToggleSwitch inherits Rectangle {
     in property <bool> checked;
+    in property <bool> interactive: true;
     callback toggled(bool);
     height: 22px;
     width: 40px;
     border-radius: 11px;
-    background: root.checked ? Theme.accent : #222D22;
+    background: root.checked ? Theme.accent : Theme.bg-inset;
     border-width: 1px;
-    border-color: root.checked ? Theme.accent : #2A362A;
+    border-color: root.checked ? Theme.accent : Theme.border;
+    animate background { duration: Theme.reduce-motion ? 0ms : 140ms; }
     Rectangle {
         y: 2px;
         width: 16px;
@@ -99,11 +124,12 @@ component ToggleSwitch inherits Rectangle {
         border-radius: 8px;
         background: root.checked ? Theme.bg-window : Theme.text-3;
         x: root.checked ? parent.width - self.width - 3px : 3px;
+        animate x { duration: Theme.reduce-motion ? 0ms : 150ms; easing: ease-out; }
     }
     t := TouchArea {
         mouse-cursor: pointer;
         clicked => {
-            root.toggled(!root.checked);
+            if root.interactive { root.toggled(!root.checked); }
         }
     }
 }
@@ -113,21 +139,25 @@ component Btn inherits Rectangle {
     in property <string> text;
     in property <bool> primary: false;
     in property <bool> compact: false;   // 芯片级：高 22 / 字 10.5
+    in property <bool> enabled: true;
     callback triggered();
     height: root.compact ? 22px : 26px;
     border-radius: 7px;
     border-width: 1px;
-    border-color: root.primary ? Theme.accent : (ma.has-hover ? Theme.border-hi : Theme.border);
-    background: ma.has-hover
-        ? (root.primary ? #4A1A28 : Theme.bg-card-hi)
+    border-color: !root.enabled ? Theme.border : root.primary ? Theme.accent : (ma.has-hover ? Theme.border-hi : Theme.border);
+    background: !root.enabled ? Theme.bg-card : ma.has-hover
+        ? (root.primary ? Theme.bg-callout : Theme.bg-card-hi)
         : (root.primary ? Theme.bg-accent : Theme.bg-card);
+    animate background { duration: Theme.reduce-motion ? 0ms : 140ms; }
+    animate border-color { duration: Theme.reduce-motion ? 0ms : 140ms; }
     HorizontalLayout {
+        height: 100%;
         padding-left: root.compact ? 10px : 13px;
         padding-right: root.compact ? 10px : 13px;
         alignment: center;
         Text {
             text: root.text;
-            color: root.primary ? Theme.accent : (ma.has-hover ? Theme.text : Theme.text-2);
+            color: !root.enabled ? Theme.text-3 : root.primary ? Theme.accent-text : (ma.has-hover ? Theme.text : Theme.text-2);
             font-size: root.compact ? 10.5px : 11.5px;
             font-family: Theme.mono;
             vertical-alignment: center;
@@ -136,7 +166,7 @@ component Btn inherits Rectangle {
     ma := TouchArea {
         mouse-cursor: pointer;
         clicked => {
-            root.triggered();
+            if (root.enabled) { root.triggered(); }
         }
     }
 }
@@ -164,7 +194,7 @@ component Segmented inherits Rectangle {
                 padding-right: 12px;
                 Text {
                     text: root.a-text;
-                    color: !root.b-active ? Theme.accent : Theme.text-2;
+                    color: !root.b-active ? Theme.accent-text : Theme.text-2;
                     font-size: 11px;
                     font-family: Theme.mono;
                     vertical-alignment: center;
@@ -186,7 +216,7 @@ component Segmented inherits Rectangle {
                 padding-right: 12px;
                 Text {
                     text: root.b-text;
-                    color: root.b-active ? Theme.accent : Theme.text-2;
+                    color: root.b-active ? Theme.accent-text : Theme.text-2;
                     font-size: 11px;
                     font-family: Theme.mono;
                     vertical-alignment: center;
@@ -214,7 +244,7 @@ component BrightSlider inherits Rectangle {
         y: 11.5px;
         height: 3px;
         border-radius: 1.5px;
-        background: #222D22;
+        background: Theme.border;
     }
     fill := Rectangle {
         y: 11.5px;
@@ -230,8 +260,9 @@ component BrightSlider inherits Rectangle {
         border-radius: 7px;
         background: Theme.text;
         border-width: 1px;
-        border-color: #0D120D;
+        border-color: Theme.bg-window;
         x: (root.width - self.width) * (ta.pressed ? root.live : root.value) / 100;
+        animate x { duration: Theme.reduce-motion ? 0ms : 120ms; }
     }
     ta := TouchArea {
         property <length> knob-at-press;
@@ -283,11 +314,12 @@ component MonitorRect inherits Rectangle {
         width: 100%;
         height: 100%;
         border-radius: 8px;
-        background: root.is-ipad ? Theme.bg-callout : #0F140F;
+        background: root.is-ipad ? Theme.bg-callout : Theme.bg-card;
         border-width: root.is-ipad ? (root.selected ? 2px : 1px) : 1px;
         border-color: root.is-ipad
             ? (root.selected ? Theme.olive : (ta.has-hover ? Theme.border-hi : Theme.border))
-            : #1A231A;
+            : Theme.border;
+        animate border-color { duration: Theme.reduce-motion ? 0ms : 140ms; }
 
         VerticalLayout {
             padding: 6px;
@@ -356,13 +388,16 @@ component StateChip inherits Rectangle {
 export component OmarpadWindow inherits Window {
     title: "Omarpad";
     background: Theme.bg-window;
-    preferred-width: 460px;
-    preferred-height: 780px;
+    preferred-width: 640px;
+    preferred-height: 850px;
     min-width: 400px;
 
     in-out property <[DeviceCard]> devices;
+    in-out property <[ChargeCard]> charges;
+    in-out property <bool> charge-empty: true;
     in-out property <int> scan-count: 0;
     in-out property <bool> auto-connect: true;
+    in-out property <bool> preview-mode: false;
     in-out property <string> status-line: "";
     in-out property <[CanvasItem]> canvas;
     in-out property <float> canvas-min-x;
@@ -374,63 +409,132 @@ export component OmarpadWindow inherits Window {
     in-out property <int> banner: 0;
     in-out property <int> tab: 0;
     in-out property <bool> canvas-ok: false;
+    in-out property <string> theme-name: "Omarchy";
 
     callback toggle-auto(bool);
     callback retry-flash(string);
     callback canvas-select(string);
-    callback canvas-moved(string, float, float);
-    callback canvas-rotate(string);
+    callback canvas-moved(string, float, float, float);
+    callback canvas-rotate(string, float);
     callback fix-lua();
     callback fix-cancel();
     callback brightness-live(string, float);
     callback brightness-commit(string, float);
     callback mode-set(string, bool);
+    callback tab-changed(bool);
+    callback charge-set(string, string);
+    callback charge-refresh(string);
+    callback close-settings();
 
-    VerticalLayout {
-        padding: 20px;
-        spacing: Theme.sp-3;
-
-        // ── 顶栏：wordmark + 说明 + 总开关（最重要的控件常驻首屏）──
-        Rectangle {
-            height: 44px;
-            background: Theme.bg-card;
-            border-radius: 12px;
-            border-width: 1px;
-            border-color: Theme.border;
-            HorizontalLayout {
-                padding-left: 16px;
-                padding-right: 12px;
-                spacing: Theme.sp-3;
-                VerticalLayout {
-                    alignment: center;
-                    spacing: 2px;
-                    HorizontalLayout {
-                        spacing: Theme.sp-2;
-                        Wordmark {}
-                        Text {
-                            text: "副屏控制台";
-                            color: Theme.text-2;
-                            font-size: 10.5px;
-                            font-family: Theme.mono;
-                            vertical-alignment: center;
-                        }
-                    }
+    // 顶栏贴合窗口边界；内容区可以独立收窄，不带走品牌和关窗位置。
+    Rectangle {
+        x: 20px;
+        y: 20px;
+        width: parent.width - 40px;
+        height: 55px;
+        background: Theme.bg-card;
+        border-radius: 12px;
+        border-width: 1px;
+        border-color: Theme.border;
+        HorizontalLayout {
+            padding-left: 13px;
+            padding-right: 13px;
+            spacing: 13px;
+            Rectangle {
+                width: 34px;
+                height: 100%;
+                Image {
+                    y: (parent.height - self.height) / 2;
+                    source: @image-url("../assets/omarpad-app-icon-64.png");
+                    width: 34px;
+                    height: 34px;
+                    image-fit: contain;
+                }
+            }
+            VerticalLayout {
+                alignment: center;
+                spacing: 2px;
+                HorizontalLayout {
+                    spacing: Theme.sp-2;
+                    Wordmark {}
                     Text {
-                        text: root.auto-connect ? "DFU 自动投放已启用" : "自动投放已关闭";
-                        color: Theme.text-3;
-                        font-size: 10px;
+                        text: "副屏控制台";
+                        color: Theme.text-2;
+                        font-size: 10.5px;
                         font-family: Theme.mono;
+                        vertical-alignment: center;
                     }
                 }
-                Rectangle {}
+                Text {
+                    text: root.preview-mode ? "预览模式 · 自动投放已暂停" : root.auto-connect ? "DFU 自动投放已启用" : "自动投放已关闭";
+                    color: Theme.text-3;
+                    font-size: 10px;
+                    font-family: Theme.mono;
+                }
+            }
+            Rectangle {}
+            if root.width > 600px: Text {
+                text: "自动投放";
+                color: Theme.text-2;
+                font-size: 10.5px;
+                font-family: Theme.mono;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                width: 40px;
+                height: 100%;
                 ToggleSwitch {
+                    y: (parent.height - self.height) / 2;
                     checked: root.auto-connect;
+                    interactive: !root.preview-mode;
                     toggled(v) => {
                         root.toggle-auto(v);
                     }
                 }
             }
+            Rectangle {
+                width: 1px;
+                height: 100%;
+                Rectangle {
+                    y: (parent.height - self.height) / 2;
+                    width: 1px;
+                    height: 21px;
+                    background: Theme.divider;
+                }
+            }
+            Rectangle {
+                width: 34px;
+                height: 100%;
+                Rectangle {
+                    y: (parent.height - self.height) / 2;
+                    width: 34px;
+                    height: 34px;
+                    border-radius: 8px;
+                    border-width: 1px;
+                    border-color: close-area.has-hover ? Theme.border-hi : Theme.border;
+                    background: close-area.has-hover ? Theme.bg-card-hi : Theme.bg-inset;
+                    Text {
+                        text: "×";
+                        color: close-area.has-hover ? Theme.text : Theme.text-2;
+                        font-size: 21px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    close-area := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => { root.close-settings(); }
+                    }
+                }
+            }
         }
+    }
+
+    VerticalLayout {
+        x: (parent.width - self.width) / 2;
+        y: 88px;
+        width: Math.min(parent.width - 40px, 720px);
+        height: parent.height - 126px;
+        spacing: 13px;
 
         // ── 状态提示条（橄榄=信息）──
         if root.status-line != "": Rectangle {
@@ -533,10 +637,11 @@ export component OmarpadWindow inherits Window {
             spacing: Theme.sp-2;
             Segmented {
                 a-text: "屏幕";
-                b-text: "充电";
+                b-text: "设备";
                 b-active: root.tab == 1;
                 chose(b) => {
                     root.tab = b ? 1 : 0;
+                    root.tab-changed(b);
                 }
             }
             Rectangle {}
@@ -544,7 +649,9 @@ export component OmarpadWindow inherits Window {
 
         // ── 屏幕 页 ──
         if root.tab == 0: VerticalLayout {
+            height: parent.height - 39px;
             spacing: Theme.sp-3;
+            Rectangle { vertical-stretch: 1; }
 
             if root.canvas-ok: VerticalLayout {
                 spacing: 6px;
@@ -553,30 +660,34 @@ export component OmarpadWindow inherits Window {
                     SectionLabel { text: "排列 LAYOUT"; }
                     Rectangle {}
                     if root.selected-is-ipad: Btn {
-                        text: "↻ 旋转所选";
+                        text: "旋转所选";
                         compact: true;
                         triggered => {
-                            root.canvas-rotate(root.selected-id);
+                            root.canvas-rotate(root.selected-id, canvas-frame.fit);
                         }
                     }
                 }
                 canvas-frame := Rectangle {
-                    height: 248px;
+                    // 屏幕页独占布局空间，画布保持接近黄金矩形。
+                    height: Math.max(200px, Math.min(self.width / 1.618, root.height - 220px));
                     border-radius: 12px;
                     border-width: 1px;
                     border-color: Theme.border;
                     background: Theme.bg-inset;
                     clip: true;
+                    property <float> occupancy: root.width <= 600px ? 0.74 : 0.62;
                     property <float> fit: Math.min(
-                        (self.width - 24px) / (root.canvas-span-w * 1px),
-                        208px / (root.canvas-span-h * 1px),
+                        (self.width * self.occupancy) / (root.canvas-span-w * 1px),
+                        (self.height * self.occupancy) / (root.canvas-span-h * 1px),
                     );
+                    property <length> origin-x: (self.width - root.canvas-span-w * self.fit * 1px) / 2;
+                    property <length> origin-y: (self.height - root.canvas-span-h * self.fit * 1px) / 2;
                     for m in root.canvas: MonitorRect {
                         mid: m.mid;
                         label: m.label;
                         is-ipad: m.is-ipad;
-                        px: 12px + (m.x - root.canvas-min-x) * parent.fit * 1px;
-                        py: 12px + (m.y - root.canvas-min-y) * parent.fit * 1px;
+                        px: parent.origin-x + (m.x - root.canvas-min-x) * parent.fit * 1px;
+                        py: parent.origin-y + (m.y - root.canvas-min-y) * parent.fit * 1px;
                         pw: m.w * parent.fit * 1px;
                         ph: m.h * parent.fit * 1px;
                         log-x: m.x;
@@ -588,7 +699,7 @@ export component OmarpadWindow inherits Window {
                             root.canvas-select(id);
                         }
                         drag-ended(id, x, y) => {
-                            root.canvas-moved(id, x, y);
+                            root.canvas-moved(id, x, y, parent.fit);
                         }
                     }
                 }
@@ -599,172 +710,260 @@ export component OmarpadWindow inherits Window {
                     font-family: Theme.mono;
                 }
             }
-
-            SectionLabel { text: "设备 DEVICES"; }
-
-            for d in root.devices: Rectangle {
-                clip: true;
-                border-radius: 12px;
-                border-width: 1px;
-                border-color: Theme.border;
-                background: Theme.bg-card;
-                height: d.has-brightness && d.has-mode ? 150px
-                    : d.has-brightness || d.has-mode || d.progress != "" ? 124px
-                    : d.action-label != "" ? 108px
-                    : 78px;
-                // 左侧 3px 状态色条：一眼读出设备状态
-                Rectangle {
-                    x: 0;
-                    y: 0;
-                    width: 3px;
-                    height: 100%;
-                    background: d.state-color;
-                }
-                VerticalLayout {
-                    padding: Theme.sp-3;
-                    padding-left: 17px;
-                    spacing: 5px;
-
-                    HorizontalLayout {
-                        spacing: Theme.sp-2;
-                        Text {
-                            text: d.name;
-                            color: Theme.text;
-                            font-size: 13.5px;
-                            font-weight: 600;
-                            overflow: elide;
-                            vertical-alignment: center;
-                            horizontal-stretch: 1;
-                        }
-                        StateChip {
-                            text: d.state;
-                            tint: d.state-color;
-                        }
-                    }
-                    Text {
-                        text: d.port + "  ·  " + d.detail;
-                        color: Theme.text-2;
-                        font-size: 10.5px;
-                        font-family: Theme.mono;
-                        overflow: elide;
-                    }
-                    if d.progress != "": Text {
-                        text: d.progress;
-                        color: Theme.text-2;
-                        font-size: 10.5px;
-                        font-family: Theme.mono;
-                        wrap: word-wrap;
-                        max-height: 40px;
-                    }
-                    if d.has-brightness: HorizontalLayout {
-                        spacing: Theme.sp-2;
-                        Text {
-                            text: "亮度";
-                            color: Theme.text-3;
-                            font-size: 10.5px;
-                            font-family: Theme.mono;
-                            vertical-alignment: center;
-                        }
-                        BrightSlider {
-                            value: d.brightness;
-                            changed(v) => {
-                                root.brightness-live(d.slug, v);
-                            }
-                            released(v) => {
-                                root.brightness-commit(d.slug, v);
-                            }
-                        }
-                        Text {
-                            text: Math.round(d.brightness) + "%";
-                            color: Theme.text;
-                            font-size: 10.5px;
-                            font-family: Theme.mono;
-                            vertical-alignment: center;
-                        }
-                    }
-                    if d.has-mode: HorizontalLayout {
-                        spacing: Theme.sp-2;
-                        Text {
-                            text: "分辨率";
-                            color: Theme.text-3;
-                            font-size: 10.5px;
-                            font-family: Theme.mono;
-                            vertical-alignment: center;
-                        }
-                        Segmented {
-                            a-text: "原生";
-                            b-text: "半分辨率";
-                            b-active: d.mode-half-on;
-                            chose(half) => {
-                                root.mode-set(d.slug, half);
-                            }
-                        }
-                        Rectangle {}
-                    }
-                    if d.action-label != "": HorizontalLayout {
-                        spacing: Theme.sp-2;
-                        Rectangle {}
-                        Btn {
-                            text: d.action-label;
-                            primary: true;
-                            triggered => {
-                                root.retry-flash(d.port);
-                            }
-                        }
-                    }
-                }
+            if !root.canvas-ok: Text {
+                text: "尚无可排列的显示器";
+                color: Theme.text-2;
+                font-size: 12px;
+                horizontal-alignment: center;
             }
+            Rectangle { vertical-stretch: 1; }
         }
 
-        // ── 充电 页（P1c 占位，同系统）──
-        if root.tab == 1: Rectangle {
-            vertical-stretch: 1;
-            border-radius: 12px;
-            border-width: 1px;
-            border-color: Theme.border;
-            background: Theme.bg-card;
-            VerticalLayout {
-                alignment: center;
-                spacing: Theme.sp-2;
-                Text {
-                    text: "充电 CHARGING";
-                    color: Theme.text-3;
-                    font-size: 10px;
-                    font-family: Theme.mono;
-                    letter-spacing: 1.5px;
-                    horizontal-alignment: center;
+        // 设备页在卡片数量超过视口时可滚动，Flickable 不绘制滚动条。
+        if root.tab == 1: Flickable {
+            width: 100%;
+            height: parent.height - 39px;
+            content-width: self.width;
+            content-height: device-content.preferred-height;
+            mouse-drag-pan-enabled: false;
+            device-content := VerticalLayout {
+                width: parent.width;
+                height: self.preferred-height;
+                spacing: Theme.sp-3;
+                SectionLabel { text: "设备控制 DEVICES"; }
+
+                for d in root.devices: Rectangle {
+                    clip: true;
+                    border-radius: 12px;
+                    border-width: 1px;
+                    border-color: Theme.border;
+                    background: Theme.bg-card;
+                    height: d.has-brightness && d.has-mode ? 150px
+                        : d.has-brightness || d.has-mode || d.progress != "" ? 124px
+                        : d.action-label != "" ? 108px
+                        : 78px;
+                    // 左侧 3px 状态色条：一眼读出设备状态
+                    Rectangle {
+                        x: 0;
+                        y: 0;
+                        width: 3px;
+                        height: 100%;
+                        background: d.state-color;
+                    }
+                    VerticalLayout {
+                        padding: Theme.sp-3;
+                        padding-left: 17px;
+                        spacing: 5px;
+
+                        HorizontalLayout {
+                            spacing: Theme.sp-2;
+                            Text {
+                                text: d.name;
+                                color: Theme.text;
+                                font-size: 13.5px;
+                                font-weight: 600;
+                                overflow: elide;
+                                vertical-alignment: center;
+                                horizontal-stretch: 1;
+                            }
+                            StateChip {
+                                text: d.state;
+                                tint: d.state-color;
+                            }
+                        }
+                        Text {
+                            text: d.port + "  ·  " + d.detail;
+                            color: Theme.text-2;
+                            font-size: 10.5px;
+                            font-family: Theme.mono;
+                            overflow: elide;
+                        }
+                        if d.progress != "": Text {
+                            text: d.progress;
+                            color: Theme.text-2;
+                            font-size: 10.5px;
+                            font-family: Theme.mono;
+                            wrap: word-wrap;
+                            max-height: 40px;
+                        }
+                        if d.has-brightness: HorizontalLayout {
+                            spacing: Theme.sp-2;
+                            Text {
+                                text: "亮度";
+                                color: Theme.text-3;
+                                font-size: 10.5px;
+                                font-family: Theme.mono;
+                                vertical-alignment: center;
+                            }
+                            BrightSlider {
+                                value: d.brightness;
+                                changed(v) => {
+                                    root.brightness-live(d.slug, v);
+                                }
+                                released(v) => {
+                                    root.brightness-commit(d.slug, v);
+                                }
+                            }
+                            Text {
+                                text: Math.round(d.brightness) + "%";
+                                color: Theme.text;
+                                font-size: 10.5px;
+                                font-family: Theme.mono;
+                                vertical-alignment: center;
+                            }
+                        }
+                        if d.has-mode: HorizontalLayout {
+                            spacing: Theme.sp-2;
+                            Text {
+                                text: "分辨率";
+                                color: Theme.text-3;
+                                font-size: 10.5px;
+                                font-family: Theme.mono;
+                                vertical-alignment: center;
+                            }
+                            Segmented {
+                                a-text: "原生";
+                                b-text: "半分辨率";
+                                b-active: d.mode-half-on;
+                                chose(half) => {
+                                    root.mode-set(d.slug, half);
+                                }
+                            }
+                            Rectangle {}
+                        }
+                        if d.action-label != "": HorizontalLayout {
+                            spacing: Theme.sp-2;
+                            Rectangle {}
+                            Btn {
+                                text: d.action-label;
+                                primary: true;
+                                triggered => {
+                                    root.retry-flash(d.port);
+                                }
+                            }
+                        }
+                    }
                 }
+                // 读数与目标分开呈现，旧日志不会冒充本次生效。
+                SectionLabel { text: "充电状态 CHARGING"; }
                 Text {
-                    text: "P1c 交付：限流档位 · 实时电流\n三态生效（提交 → 看门狗 → 回读）";
+                    text: "限流目标由设备看门狗执行。电流只在设备提供电量计时显示。";
                     color: Theme.text-2;
-                    font-size: 11.5px;
-                    horizontal-alignment: center;
+                    font-size: 11px;
                     wrap: word-wrap;
                 }
+                if root.charge-empty: Rectangle {
+                    height: 100px;
+                    background: Theme.bg-card;
+                    border-color: Theme.border;
+                    border-width: 1px;
+                    border-radius: 12px;
+                    Text {
+                        text: "当前没有可读取充电状态的在线设备";
+                        color: Theme.text-2;
+                        font-size: 11.5px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        wrap: word-wrap;
+                    }
+                }
+                for d in root.charges: Rectangle {
+                    height: 147px;
+                    clip: true;
+                    border-radius: 12px;
+                    border-width: 1px;
+                    border-color: Theme.border;
+                    background: Theme.bg-card;
+                    Rectangle {
+                        x: 0; y: 0; width: 3px; height: 100%;
+                        background: d.state-color;
+                    }
+                    VerticalLayout {
+                        padding: Theme.sp-3;
+                        padding-left: 17px;
+                        spacing: 5px;
+                        HorizontalLayout {
+                            spacing: Theme.sp-2;
+                            Text {
+                                text: d.name;
+                                color: Theme.text;
+                                font-size: 13px;
+                                font-weight: 600;
+                                overflow: elide;
+                                horizontal-stretch: 1;
+                            }
+                            StateChip { text: d.state; tint: d.state-color; }
+                        }
+                        Text { text: d.port + " · " + d.sampled-line; color: Theme.text-2; font-size: 10.5px; overflow: elide; }
+                        Text { text: d.limit-line; color: Theme.text; font-size: 11.5px; overflow: elide; }
+                        Text { text: d.battery-line; color: Theme.text-2; font-size: 11px; overflow: elide; }
+                        Text { text: d.proof-line; color: Theme.text-2; font-size: 10.5px; overflow: elide; }
+                        HorizontalLayout {
+                            spacing: Theme.sp-2;
+                            Btn {
+                                text: d.option-a;
+                                compact: true;
+                                primary: d.active-a;
+                                enabled: d.can-set;
+                                triggered => { root.charge-set(d.slug, d.option-a-hex); }
+                            }
+                            Btn {
+                                text: d.option-b;
+                                compact: true;
+                                primary: d.active-b;
+                                enabled: d.can-set;
+                                triggered => { root.charge-set(d.slug, d.option-b-hex); }
+                            }
+                            if d.option-c != "": Btn {
+                                text: d.option-c;
+                                compact: true;
+                                primary: d.active-c;
+                                enabled: d.can-set;
+                                triggered => { root.charge-set(d.slug, d.option-c-hex); }
+                            }
+                            Rectangle {}
+                            Btn {
+                                text: "刷新";
+                                compact: true;
+                                enabled: d.can-set;
+                                triggered => { root.charge-refresh(d.slug); }
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        Rectangle { vertical-stretch: 1; }
+    }
 
-        // ── 底部信息栏 ──
-        Rectangle { height: 1px; background: Theme.divider; }
-        HorizontalLayout {
-            spacing: Theme.sp-2;
-            Text {
-                text: "托盘常驻 · 扫描 " + root.scan-count;
-                color: Theme.text-3;
-                font-size: 10px;
-                font-family: Theme.mono;
-                vertical-alignment: center;
-            }
-            Rectangle {}
-            Text {
-                text: "OMARPAD v0.1";
-                color: Theme.text-3;
-                font-size: 10px;
-                font-family: Theme.mono;
-                vertical-alignment: center;
-            }
+    // 底栏以窗口为锚点，内容区收窄或画布变高时仍留在可见范围内。
+    Rectangle {
+        x: 20px;
+        y: parent.height - 28px;
+        width: parent.width - 40px;
+        height: 1px;
+        background: Theme.divider;
+    }
+    HorizontalLayout {
+        x: 20px;
+        y: parent.height - 22px;
+        width: parent.width - 40px;
+        height: 14px;
+        spacing: Theme.sp-2;
+        Text {
+            text: "托盘常驻 · 扫描 " + root.scan-count;
+            color: Theme.text-3;
+            font-size: 10px;
+            font-family: Theme.mono;
+            vertical-alignment: center;
+        }
+        Rectangle {}
+        Text {
+            text: root.theme-name + " · OMARPAD v0.1";
+            color: Theme.text-3;
+            font-size: 10px;
+            font-family: Theme.mono;
+            vertical-alignment: center;
         }
     }
 }

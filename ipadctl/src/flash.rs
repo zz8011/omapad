@@ -22,7 +22,7 @@
 
 use crate::model::{self, Model};
 use crate::usb::{self, UsbDevice};
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{Duration, Instant};
@@ -37,7 +37,10 @@ pub struct Snapshot {
 
 pub fn snapshot() -> Snapshot {
     let ports = |id: (&str, &str)| -> Vec<String> {
-        usb::with_id(id.0, id.1).into_iter().map(|d| d.port).collect()
+        usb::with_id(id.0, id.1)
+            .into_iter()
+            .map(|d| d.port)
+            .collect()
     };
     Snapshot {
         gud: ports(usb::GUD),
@@ -93,15 +96,15 @@ pub fn flash_with_progress<F: FnMut(&FlashEvent)>(
     on: &mut F,
 ) -> Result<Outcome> {
     let (dfu, m) = sole_dfu_device()?;
-    if let Some((pport, pm)) = expect {
-        if dfu.port != pport || m.slug != pm.slug {
-            bail!(
-                "决策与执行之间 DFU 设备变了（决策：{} @ {pport}，实际：{} @ {}）——已中止，不做投放",
-                pm.name,
-                m.name,
-                dfu.port
-            );
-        }
+    if let Some((pport, pm)) = expect
+        && (dfu.port != pport || m.slug != pm.slug)
+    {
+        bail!(
+            "决策与执行之间 DFU 设备变了（决策：{} @ {pport}，实际：{} @ {}）——已中止，不做投放",
+            pm.name,
+            m.name,
+            dfu.port
+        );
     }
     let wrapper = model::wrapper_path(root, m)?;
 
@@ -212,9 +215,13 @@ pub fn auto_decide(
         };
     }
     if failed_ports.contains(&d.port) {
-        return AutoAction::Backoff { port: d.port.clone() };
+        return AutoAction::Backoff {
+            port: d.port.clone(),
+        };
     }
-    AutoAction::Trigger { port: d.port.clone() }
+    AutoAction::Trigger {
+        port: d.port.clone(),
+    }
 }
 
 /// 找当前处于 DFU 的那**唯一**一台。
@@ -225,7 +232,9 @@ pub fn auto_decide(
 pub fn sole_dfu_device() -> Result<(UsbDevice, &'static Model)> {
     let dfu = usb::with_id(usb::DFU.0, usb::DFU.1);
     match dfu.len() {
-        0 => bail!("没有处于 DFU 的 iPad。先按住 Home + 电源直到屏幕全黑，松开电源继续按 Home 约 10 秒。"),
+        0 => bail!(
+            "没有处于 DFU 的 iPad。先按住 Home + 电源直到屏幕全黑，松开电源继续按 Home 约 10 秒。"
+        ),
         1 => {}
         n => {
             let list = dfu
@@ -241,7 +250,10 @@ pub fn sole_dfu_device() -> Result<(UsbDevice, &'static Model)> {
     let d = dfu.into_iter().next().unwrap();
     let m = model::from_dfu_serial(&d.serial).with_context(|| {
         // 认不出来就拒绝，绝不猜一个包递上去
-        format!("不认识的设备（CPID/BDID 不在机型表里），拒绝投放：{}", d.serial)
+        format!(
+            "不认识的设备（CPID/BDID 不在机型表里），拒绝投放：{}",
+            d.serial
+        )
     })?;
     Ok((d, m))
 }
@@ -370,7 +382,10 @@ mod tests {
     fn 自动决策覆盖全部安全分支() {
         let ok = "CPID:8960 CPRV:11 CPFM:03 SCEP:01 BDID:0C ECID:000000768C9CDEE4 IBFL:1C";
         // 无 DFU / 开关关 / 正忙 → Sleep
-        assert!(matches!(auto_decide(&[], true, false, &[]), AutoAction::Sleep));
+        assert!(matches!(
+            auto_decide(&[], true, false, &[]),
+            AutoAction::Sleep
+        ));
         assert!(matches!(
             auto_decide(&[dev("1-4", ok)], false, false, &[]),
             AutoAction::Sleep
