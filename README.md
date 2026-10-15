@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/omarpad-logo.svg" alt="Omarpad — iPad USB Linux 副屏" width="640">
+  <img src="branding/omarpad-horizontal-dark.svg" alt="Omarpad — iPad USB Linux 副屏" width="640">
 </p>
 
 # Omarpad
@@ -78,6 +78,7 @@ Linux 运行于 RAM；iPad 重新开机后需要再次进入 DFU 并由宿主启
 | 路径 | 内容 |
 |---|---|
 | [gud/](gud/README.md) | 当前副屏主线：设备端守护进程、RAM 镜像组装、启动脚本、宿主与内核补丁 |
+| [branding/](branding/README.md) | Logo、应用图标及深浅色版本 |
 | [gud/dtb/](gud/dtb/README.md) | 机型设备树与 J86 适配说明 |
 | [HANDOFF.md](HANDOFF.md) | 项目历史、实机证据、外部依赖和后续问题 |
 | [archive/](archive/) | 历史启动、软件副屏和硬解源码快照 |
