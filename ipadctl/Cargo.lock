@@ -2972,6 +2972,7 @@ name = "omarpad"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "image",
  "ipadctl",
  "ksni",
  "slint",

@@ -13,14 +13,57 @@ mod charge;
 mod layout;
 mod theme;
 
+#[cfg(test)]
+mod tray_icon_tests {
+    use super::*;
+
+    #[test]
+    fn tray_uses_omarpad_artwork_at_small_sizes() {
+        let (tx, _rx) = std::sync::mpsc::channel();
+        let tray = Tray { tx };
+        assert!(ksni::Tray::icon_name(&tray).is_empty());
+        let icons = ksni::Tray::icon_pixmap(&tray);
+        assert_eq!(
+            icons.iter().map(|i| (i.width, i.height)).collect::<Vec<_>>(),
+            [(32, 32), (64, 64)]
+        );
+        for icon in icons {
+            assert_eq!(icon.data.len(), (icon.width * icon.height * 4) as usize);
+            assert!(icon.data.as_chunks::<4>().0.contains(&[255, 16, 26, 49]));
+        }
+    }
+}
+
+#[cfg(test)]
+mod device_model_tests {
+    use super::*;
+    use slint::Model;
+
+    #[test]
+    fn refresh_preserves_repeater_for_same_device() {
+        let current = ModelRc::new(VecModel::from(vec![("j207", 100)]));
+        let updated = preserve_rows(current.clone(), vec![("j207", 50)], |a, b| a.0 == b.0);
+        assert_eq!(current, updated);
+        assert_eq!(current.row_data(0), Some(("j207", 50)));
+    }
+
+    #[test]
+    fn hotplug_replaces_repeater_when_identity_changes() {
+        let current = ModelRc::new(VecModel::from(vec![("j207", 100)]));
+        let updated = preserve_rows(current.clone(), vec![("a1599", 50)], |a, b| a.0 == b.0);
+        assert_ne!(current, updated);
+        assert_eq!(current.row_data(0), Some(("j207", 100)));
+    }
+}
+
 use flash::AutoAction;
 use ipadctl::flash::{self, FlashEvent};
 use ipadctl::hypr::Connector;
 use ipadctl::{config, device, hypr, model, paths, usb};
-use slint::{Brush, Color, ComponentHandle, ModelRc, VecModel, Weak};
+use slint::{Brush, Color, ComponentHandle, Model, ModelRc, VecModel, Weak};
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Arc, LazyLock, Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 
 fn color(rgb: theme::Rgb) -> Color {
@@ -72,6 +115,30 @@ fn apply_style(window: &OmarpadWindow, style: &StyleSnapshot) {
     window.set_theme_name(style.name.clone().into());
 }
 
+/// 保留相同设备的 Slint repeater 实例。扫描每秒更新一次数据；若重建
+/// ModelRc，TouchArea 的按下状态会丢失，亮度滑条会在拖动中途回弹。
+fn preserve_rows<T: Clone + PartialEq + 'static>(
+    current: ModelRc<T>,
+    next: Vec<T>,
+    same_identity: impl Fn(&T, &T) -> bool,
+) -> ModelRc<T> {
+    if current.row_count() != next.len()
+        || next.iter().enumerate().any(|(i, item)| {
+            !current
+                .row_data(i)
+                .is_some_and(|old| same_identity(&old, item))
+        })
+    {
+        return ModelRc::new(VecModel::from(next));
+    }
+    for (i, item) in next.into_iter().enumerate() {
+        if current.row_data(i).is_some_and(|old| old != item) {
+            current.set_row_data(i, item);
+        }
+    }
+    current
+}
+
 fn watch_style(weak: Weak<OmarpadWindow>, shared: Arc<Mutex<Shared>>, mut last: StyleSnapshot) {
     loop {
         std::thread::sleep(Duration::from_secs(3));
@@ -98,7 +165,11 @@ fn watch_style(weak: Weak<OmarpadWindow>, shared: Arc<Mutex<Shared>>, mut last: 
             }
             if let Some(w) = weak2.upgrade() {
                 apply_style(&w, &ui_style);
-                w.set_devices(ModelRc::new(VecModel::from(devices)));
+                let current = w.get_devices();
+                let updated = preserve_rows(current.clone(), devices, |a, b| a.slug == b.slug);
+                if updated != current {
+                    w.set_devices(updated);
+                }
                 if let Some(charges) = charges {
                     w.set_charge_empty(charges.is_empty());
                     w.set_charges(ModelRc::new(VecModel::from(charges)));
@@ -214,7 +285,34 @@ impl ksni::Tray for Tray {
         "Omarpad".into()
     }
     fn icon_name(&self) -> String {
-        "video-display".into()
+        String::new()
+    }
+    fn icon_pixmap(&self) -> Vec<ksni::Icon> {
+        // 原版品牌应用图标；SNI 要求网络字节序 ARGB，而 PNG 解码为 RGBA。
+        static ICONS: LazyLock<Vec<ksni::Icon>> = LazyLock::new(|| {
+            [
+                include_bytes!("../assets/omarpad-app-icon-32.png").as_slice(),
+                include_bytes!("../assets/omarpad-app-icon-64.png").as_slice(),
+            ]
+            .into_iter()
+            .map(|bytes| {
+                let img = image::load_from_memory_with_format(bytes, image::ImageFormat::Png)
+                    .expect("bundled Omarpad icon must be valid PNG")
+                    .into_rgba8();
+                let (width, height) = img.dimensions();
+                let mut data = img.into_vec();
+                for pixel in data.as_chunks_mut::<4>().0 {
+                    pixel.rotate_right(1);
+                }
+                ksni::Icon {
+                    width: width as i32,
+                    height: height as i32,
+                    data,
+                }
+            })
+            .collect()
+        });
+        ICONS.clone()
     }
 
     fn activate(&mut self, _x: i32, _y: i32) {
@@ -1065,7 +1163,11 @@ fn scan_loop(
                 return;
             }
             let Some(w) = weak.upgrade() else { return };
-            w.set_devices(ModelRc::new(VecModel::from(items)));
+            let current = w.get_devices();
+            let updated = preserve_rows(current.clone(), items, |a, b| a.slug == b.slug);
+            if updated != current {
+                w.set_devices(updated);
+            }
             if let Some(charges) = charges {
                 w.set_charge_empty(charges.is_empty());
                 w.set_charges(ModelRc::new(VecModel::from(charges)));
