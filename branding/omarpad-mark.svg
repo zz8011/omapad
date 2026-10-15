@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Omarpad 标志：相连的电脑屏幕和竖向副屏">
+  <defs><mask id="front-cut"><rect width="128" height="128" fill="white"/><rect x="58" y="41" width="61" height="83" rx="16" fill="black"/></mask></defs>
+  <g mask="url(#front-cut)">
+    <rect x="12" y="27" width="82" height="65" rx="12" fill="none" stroke="#6678E8" stroke-width="8"/>
+    <path d="M29 73h21" fill="none" stroke="#6678E8" stroke-linecap="round" stroke-width="7"/>
+  </g>
+  <rect x="63" y="46" width="51" height="73" rx="11" fill="none" stroke="#098F87" stroke-width="8"/>
+  <path d="M79 104h19" fill="none" stroke="#098F87" stroke-linecap="round" stroke-width="5"/>
+</svg>
