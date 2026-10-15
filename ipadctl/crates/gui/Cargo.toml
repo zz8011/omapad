@@ -1,0 +1,36 @@
+[package]
+name = "omarpad"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.104"
+ipadctl = { path = "../.." }
+# ksni 默认特性会拉 tokio + zbus(tokio) —— 违反"无常驻异步运行时"约束。
+# async-io 做执行器 + blocking 出同步 API（零额外依赖的门闸特性），
+# 见 DESIGN.md §2 / §11 评审①。
+ksni = { version = "0.3.6", default-features = false, features = [
+    "async-io",
+    "blocking",
+] }
+# Slint 按编译期裁剪：std + 仅 Wayland 的 winit 后端（Omarchy 无 X11 需求）。
+# 渲染器二选一（特性）；进程内不做运行时切换 —— "降级"指换构建特性重出
+# 软件渲染版（DESIGN.md §2.1）。特性名以 slint 1.18 为准：
+# renderer-winit-femtovg / renderer-winit-software + software-renderer-systemfonts。
+slint = { version = "1", default-features = false, features = [
+    "std",
+    "backend-winit-wayland",
+    "compat-1-18",
+] }
+
+[features]
+# 默认 software：P0 实测定案（托盘态 17.8 MB vs femtovg 117 MB，DESIGN.md §2.1）
+default = ["gui-software"]
+gui-femtovg = ["slint/renderer-winit-femtovg"]
+gui-software = [
+    "slint/renderer-winit-software",
+    "slint/software-renderer-systemfonts",
+]
+
+[build-dependencies]
+slint-build = "1"
