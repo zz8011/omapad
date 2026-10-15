@@ -1,0 +1,6 @@
+{
+  "error": "raw/no-echo termios readback mismatch",
+  "no_retry": true,
+  "execution_may_have_occurred": true,
+  "resources_not_freed": true
+}

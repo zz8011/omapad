@@ -1,0 +1,116 @@
+$ ['cc', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_decode_diagnostics.c', 'id81_host_contract/id81_contract.c', '-o', 'a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_decode_diagnostics']
+exit=0
+
+$ ['a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_decode_diagnostics']
+exit=0
+decode diagnostic fixtures: PASS
+
+$ ['cc', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_decode_layout.c', '-o', 'a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_decode_layout']
+exit=0
+
+$ ['a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_decode_layout']
+exit=0
+decode IOVA allocator mock tests: PASS
+
+$ ['cc', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_decode_lifetime.c', '-o', 'a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_decode_lifetime']
+exit=0
+
+$ ['a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_decode_lifetime']
+exit=0
+decode DMA lifetime mock tests: PASS
+
+$ ['cc', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_decode_stream.c', 'a1599_first_decode_candidate_c0_classification_20261014/a1599_fw_decode_stream.c', '-o', 'a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_decode_stream']
+exit=0
+
+$ ['a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_decode_stream']
+exit=0
+decode command serializer host tests: PASS
+
+$ ['cc', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_decode_submit_mock.c', 'id81_host_contract/id81_contract.c', '-o', 'a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_decode_submit_mock']
+exit=0
+
+$ ['a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_decode_submit_mock']
+exit=0
+ID81 one-shot send/C0 MMIO mock tests: PASS (native class10/class8010, captured flags, missing detail, wrong fence, timeout, preflight)
+
+$ ['cc', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_dma_route_contract.c', '-o', 'a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_dma_route_contract']
+exit=0
+
+$ ['a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_dma_route_contract']
+exit=0
+DMA probe and mask transaction tests: PASS (32-bit defaults, 36-bit allocation, restore, partial-set rollback)
+
+$ ['cc', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_init_mmio_mock.c', '-o', 'a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_init_mmio_mock']
+exit=0
+
+$ ['a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_init_mmio_mock']
+exit=0
+production MMIO send path fake-backend checks passed (4 scenarios)
+
+$ ['cc', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_output_snapshot.c', '-o', 'a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_output_snapshot']
+exit=0
+
+$ ['a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_output_snapshot']
+exit=0
+bounded coherent snapshot: PASS (normal/nonzero flags, gates, late message/error, guard mutation, data mutation, exact read limits)
+
+$ ['cc', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_ring_capacity.c', '-o', 'a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_ring_capacity']
+exit=0
+
+$ ['a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_ring_capacity']
+exit=0
+ring capacity and firmware-ABI gate checks passed (13 cases)
+
+$ ['python', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/check_contract.py']
+exit=0
+test_all_backing_ranges_are_page_aligned_and_nonoverlapping (__main__.CandidateContract.test_all_backing_ranges_are_page_aligned_and_nonoverlapping) ... ok
+test_decode_dma_lifetime_zeroes_rolls_back_and_pins_after_start (__main__.CandidateContract.test_decode_dma_lifetime_zeroes_rolls_back_and_pins_after_start) ... ok
+test_empty_ring_capacity_helper_preserves_one_slot_and_forbids_wrap (__main__.CandidateContract.test_empty_ring_capacity_helper_preserves_one_slot_and_forbids_wrap) ... ok
+test_firmware_abi_gate_is_exact_and_poll_is_bounded_single_shot (__main__.CandidateContract.test_firmware_abi_gate_is_exact_and_poll_is_bounded_single_shot) ... ok
+test_one_shot_submission_uses_real_map_root_fence_and_default_gate (__main__.CandidateContract.test_one_shot_submission_uses_real_map_root_fence_and_default_gate) ... ok
+test_optional_actions_default_off_and_snapshot_reads_six_words (__main__.CandidateContract.test_optional_actions_default_off_and_snapshot_reads_six_words) ... ok
+test_output_export_is_fixed_size_default_off_and_snapshot_only (__main__.CandidateContract.test_output_export_is_fixed_size_default_off_and_snapshot_only) ... ok
+test_probe_uses_shared_32_to_36_bit_dma_mask_contract (__main__.CandidateContract.test_probe_uses_shared_32_to_36_bit_dma_mask_contract) ... ok
+test_production_mmio_path_has_fake_backend_scenarios (__main__.CandidateContract.test_production_mmio_path_has_fake_backend_scenarios) ... ok
+test_real_resource_path_is_preallocated_and_submission_is_default_closed (__main__.CandidateContract.test_real_resource_path_is_preallocated_and_submission_is_default_closed) ... ok
+test_ring_snapshot_resource_bounded_log_is_computed (__main__.CandidateContract.test_ring_snapshot_resource_bounded_log_is_computed) ... ok
+test_sender_is_empty_ring_one_shot_and_does_not_wait_for_ack (__main__.CandidateContract.test_sender_is_empty_ring_one_shot_and_does_not_wait_for_ack) ... ok
+test_small_context_maps_its_real_backing_page (__main__.CandidateContract.test_small_context_maps_its_real_backing_page) ... ok
+test_tables_require_all_five_exact_maps_and_seal_iovas (__main__.CandidateContract.test_tables_require_all_five_exact_maps_and_seal_iovas) ... ok
+test_wire_words_and_explicit_bounds_gate_precede_writes (__main__.CandidateContract.test_wire_words_and_explicit_bounds_gate_precede_writes) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.002s
+
+OK
+
+$ ['python', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_compare_output.py']
+exit=0
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.017s
+
+OK
+
+$ ['python', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_m2h_snapshot_source.py']
+exit=0
+source-driven M2H callback host tests: PASS
+compiled exact callback bytes=2641 source=/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_first_decode_candidate_c0_classification_20261014/a1599_fw_first_ready_platform_harness.c:38912:41553
+
+$ ['python', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_output_gate_source.py']
+exit=0
+production output integration: PASS (16 cases; independent coherent/lifetime/response/authorization gates, two bounded copies, release publication)
+
+$ ['python', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_output_export_source.py']
+exit=0
+production output export callback: PASS (gates, bounds, immutable snapshot; inaccessible DMA backing)
+
+$ ['python', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_apple_emitter.py']
+exit=0
+Raw producer replay: 5 picture paths, metadata store, B28 carryover, QP perturbation: PASS
+{
+  "compared_words": 136,
+  "differences": []
+}
+PASS: all 136 candidate words equal the independent original-instruction oracle.
+PASS: actual candidate resource layout, all 544 bytes equal original producer; SHA256=c4445322027a187cae85358dcce3c8cdd39fa7220ea45de62904c75612977e9c

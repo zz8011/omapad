@@ -1,0 +1,17 @@
+{
+  "archive_entries_before": 538,
+  "archive_entries_after": 539,
+  "changed": [
+    "etc/inittab"
+  ],
+  "added": [
+    "sbin/a1599-start-receiver"
+  ],
+  "unchanged_prefix_bytes": 9553530,
+  "unchanged_receiver_sha256": "7515a14756613d825258a4022318fc2c127a1b53357470010b146181d5e08d05",
+  "new_bundle_sha256": "94068c0d4a606f2edb7517fca455fdbf19c3de1adba766fa6554d4b71346b1af",
+  "launcher_exact_two_substitutions": true,
+  "bindings_unchanged": true,
+  "inputs_verified": 10,
+  "historical_sources_verified": 12
+}

@@ -1,0 +1,93 @@
+A1599 15:13 transfer diagnosis — independent read-only review
+
+Scope: Reviewed reproduce.py, REPRODUCTION.json, BUNDLE-RECEIVER.json,
+TRANSFER-STOP-RESULT.json, frozen bound_transport.py, and
+DIAGNOSIS-AND-RECOVERY-REVIEW.txt. No device access, USB action, receiver
+execution, module action, or frozen-file modification was performed by this
+reviewer. This is code/evidence review, not an independently rerun experiment.
+
+Decision: The diagnosis is sound with the evidence limits it states. The
+proposed next step is a useful diagnostic design, not yet an approved or
+reviewed runnable recovery implementation. Do not infer a current receiver
+command state or resend PUT from the existing 35-byte RX prefix.
+
+Confirmed from the supplied records and sender code
+1. Recorded application TX is exactly HELLO\n followed by the single 42-byte
+   PUT line; total 48 bytes. RX is exactly READY plus FILE-ERR request,
+   total 35 bytes. The sender raises at bound_transport.py:145 before its
+   payload loop at :146. Thus this sender sent no module payload and did not
+   run the trial. This is not a sampled assertion about current target modules.
+2. The first READY is not correlated to HELLO. The protocol has no request ID.
+   An ERR encountered after issuing PUT need not have been caused by that PUT.
+   It is equally unjustified to say PUT was definitely rejected or definitely
+   accepted. The accurate stop is: host did not observe PUT authorization;
+   target payload-wait state is unknown.
+3. The supplied offline result demonstrates a counterexample to attribution:
+   injected startup echo produces the same observed prefix, followed by
+   HELLO READY and FILE-READY. In that experiment the PUT was accepted.
+4. The harness asserts the fixed ELF and musl hashes, uses the original
+   receiver through QEMU, observes its actual timeout/error and empty temp
+   directory, then transfers the original module into a temporary ordinary
+   file in the same process. These are meaningful tests of parser acceptance
+   and a possible same-process recovery path. They do not load a module.
+
+Not proved
+1. Startup echo is not established as the live cause. reproduce.py:34 injects
+   extra bytes explicitly before sending the recorded TX. It does not reproduce
+   the actual host opening, termios transition, close/restore, CDC transport,
+   or exact read/write interleaving of RecordedLink.
+2. Application TX logging at bound_transport.py:89-90 does not record kernel
+   tty automatic echo. The 48 bytes therefore are not a complete wire capture.
+   The report correctly limits its claim to this sender.
+3. An elapsed 30 seconds does not prove the live receiver completed its
+   timeout cleanup: it could be blocked delivering output or affected by
+   pending input/process lifecycle. The test had an actively draining peer.
+4. A current unique file-recv process does not prove it is the original process:
+   the bundle's inittab uses respawn. Record PID and process start time; classify
+   an observed restart explicitly. Do not claim same-process recovery without
+   a prior comparable process identity. Same RAM and same process are separate.
+
+Required refinements to the proposed receive-only diagnosis
+1. Opening a tty with inherited ECHO can itself cause protocol output before
+   raw mode is established. Restoring saved ECHO on close (:79) can cause more
+   output after the diagnostic exits. An empty application TX trace alone is
+   not proof of zero host-to-target wire bytes. Record old/new termios, document
+   the open-to-raw window and close policy, and avoid claiming strict wire
+   passivity without stronger evidence. Do not reuse RecordedLink unchanged
+   and assume it solves this issue.
+2. A two-second read loop is not an overall bound on open/ioctl/tcsetattr,
+   identity walks, fsync, restore or close. The implementation needs an explicit
+   overall supervisory deadline and a documented fail-stop/cleanup outcome;
+   timeout must never invoke reset, reopen, retransmit or alter attempt markers.
+3. Enforce the 4096-byte cap deliberately. RecordedLink.read currently reads
+   up to 8192 bytes. If a diagnostic reads past the cap, preserve the complete
+   returned chunk then stop and report excess; never truncate evidence or
+   silently treat excess as a successful quiet interval.
+4. Retain all raw bytes and timestamps. Any unknown/extra line, volume excess,
+   EOF or identity change fails the diagnostic. Silence is not readiness.
+
+Minimum gates before any recovery PUT
+1. Same frozen host/session/gadget/tty binding; new diagnostic/recovery audit
+   records; original send-attempt marker intact; no competing opener/operator.
+2. Preserve outstanding RX before any HELLO/PUT. FILE-READY followed by
+   FILE-ERR transfer would strengthen the timeout explanation only when the
+   single-request/unique-operator premise is established. It is not required
+   to force that explanation if the tail is absent.
+3. Independently sample target boot identity, receiver PID/start/cmdline/exe,
+   receiver descriptors/current wait state, RAM incoming directory including
+   hidden .part entries and target files, absent candidate module and absent
+   trial sentinel. Empty directory plus a unique receiver process alone does
+   not identify its parser state. A generic read/poll wait alone is likewise
+   insufficient to distinguish command versus payload reads.
+4. Only after pending responses and request state have been reconciled can a
+   single fresh HELLO/READY exchange serve as a synchronization check. A stale
+   READY must not satisfy it. If command state cannot be established, do not
+   send HELLO into possible payload reception and do not send another PUT.
+5. Any actual recovery implementation must be separately reviewed and tested
+   against delayed/stale replies, original PUT already accepted, timeout,
+   extra/unknown replies, volume limit, identity change and no-second-attempt
+   behavior. Keep the three frozen file hashes and original trial gates.
+
+No need is established to restart RAM or repeat DFU. The evidence supports
+further bounded state diagnosis, not immediate retransmission. The current
+review does not authorize or perform a hardware recovery action.

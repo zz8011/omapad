@@ -1,0 +1,44 @@
+A1599 1211：同一 RAM 会话单帧硬解与像素验收通过
+2026-10-14 UTC
+
+结论：冻结 1211 候选在同一 RAM 启动中完成一次 INIT、一次 ID81 decode、一次有界输出导出。4096-byte 真实输出中的1536个可见YUV字节与FFmpeg软件参考逐字节一致。本结论严格限57-byte、32x32 progressive CAVLC IDR fixture的一帧。
+
+会话：20261014T151302Z-891c529e0474，物理路径1-9.3，原gadget dev88及绑定全程未更换。
+目标boot ID：aa750945-a330-48f2-8efb-ca451a8df092。
+模块SHA256：1211a6abbf026a9354f05a44e710c16ec7e8286cb0708b86b9ee260aa59bbbaa。
+
+现场时间线与恢复
+15:13:02 唯一RAM启动开始；15:13:32完成bootm。
+首传输的应用TX仅HELLO+一个PUT，48bytes；RX为READY+FILE-ERR request，35bytes。模块载荷0，尚无INIT/decode。
+15:30:44–46，同一绑定的有界待收诊断得到FILE-ERR transfer和FILE-ERR request；该诊断应用TX0。打开前确实ECHO/ICANON开启，打开到设raw约0.590ms，不能将应用TX0当成线缆零TX证明。
+15:35:10，唯一维护状态查询证实模块列表空、/run/incoming空、trial路径空、接收器PID104及固定ELF哈希正确。ppoll syscall73的timeout=NULL且没有payload输出FD；结合固定musl及receiver指令，支持命令读取路径。
+15:42:35–38，独立审核后的单次恢复入口成功：文件接口已保留raw/no-echo，先读2秒没有残留；之后一次新HELLO、每个固定文件一次PUT，三个FILE-OK/CRC均正确。原失败标记保留，新恢复标记独占创建。没有重启、重置接收器或改协议/载荷。
+15:43:20–24，原冻结target-once脚本执行本轮首次且唯一模块加载/INIT/decode，返回A1599_TRIAL_DONE rc=0。
+15:44:04，冻结比较器离线像素比较返回0。
+
+本次硬件结果
+first-ready：131ms，签名a5a5a5a5。
+INIT transport consumed=1；不把此字段单独称为语义INIT证明。
+C0实际12bytes：8c c0 01 00 03 00 00 00 d5 44 06 60。
+flags=600644d5，native class10，native error0，fence1；没有detail字段。
+decode ret0；guard intact；coherent输出复制2次、环状态检查3次、50ms稳定检查通过。
+输出快照：4096bytes，SHA256 9f4d0fe4b48d7ae835608a1a686a7a075e9ab8eb136bd7e5c10e6bc290849557。
+匹配布局：NV12，Y offset0/stride64，UV offset2048/stride64。
+可见像素：1536/1536相同，MAE0，最大绝对误差0；Y81、U90、V240。
+独立手工NV12提取SHA与软件参考同为ffcb5e22013d3f42d9260f7c1e54f2bb082876dda77c7231c6088f331139f186。
+
+证据
+FINAL-RESULT.json：机器可读结果与边界。
+execute/console.raw：本轮完整原始控制台87206bytes，SHA256 202d648d86f2c5ec4b04a3f37dce65c976325733808de1d55cbdf8a5289c52ab。
+execute/serial-tx.raw：唯一trial启动命令及固定终端回应，261bytes。
+received/：8个回传原文件、C0字节和capture-integrity.json，所有长度/哈希验证通过。
+pixel-comparison.json：52种候选布局中唯一精确NV12匹配，SHA256 9311cb002b086923e8ce77324a5c5c5ea95ecf1131b559ba91c5a5edf184475b。
+transfer/、diagnostic-*、recovery-transfer/：原始失败、诊断和恢复的分开RX/TX与事件，不覆盖旧记录。
+wrapper.final.json及bound-*标记：同一会话和一次性动作审计。
+独立审核及离线复现位于../../transfer_recovery_review_20261014/，包括FINAL-PIXEL-REVIEW.txt。
+
+剩余边界
+这不是多帧/任意分辨率/其他profile的支持声明，也没有证明未来DMA静止、长期确定性或通用驱动生命周期。
+最初传输错误的逐字节因果归属仍未完全闭合；已证实继承ECHO开启和可复现的回显机制，但不声称已取得目标初始输入的线缆捕获。
+资源与mapping保持pinned，未卸载模块、未重启、未重复decode，也未扩大M2H读取。
+本次试验已完成，不再执行设备动作。原1211候选和原准备包清单均复核未变。

@@ -1,0 +1,7 @@
+compile=['clang', '--target=aarch64-linux-gnu', '-ffreestanding', '-fno-builtin', '-fno-stack-protector', '-nostdlib', '-static', '-fuse-ld=lld', '-Wl,-Ttext=0x1000000', '-O2', '-Wall', '-Wextra', '-Werror', '/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_ring_lifetime_20261014/tests/replay_receiver.c', '-o', '/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_ring_lifetime_20261014/tests/replay_receiver']
+run=['qemu-aarch64-static', '/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_ring_lifetime_20261014/tests/replay_receiver', '/home/zz8011/Documents/Codex/2026-10-13/task-6/evidence/a1599-usb-reenum-20261013/firmware-12.5.8-16H88/kernelcache.release.ipad4bm.decompressed']
+raw receiver cases=0000000000000198
+PASS: actual Apple copy, modulo advance, consumer write before dispatch, both core offsets; no DMA modeled.
+PASS: raw completion -> raw IOSurface base unlock/+1b8 -> notify -> record clear -> raw dequeue path -> next submit boundary (2 cases); locks/client/submit boundaries modeled, no DMA proof.
+
+exit=0

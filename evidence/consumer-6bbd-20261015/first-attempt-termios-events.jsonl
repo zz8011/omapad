@@ -1,0 +1,2 @@
+{"event": "termios_before", "monotonic": 92805.24261809, "wall_time": 1792002380.6071208, "flags": [1280, 5, 855229, 35387, 9600, 9600]}
+{"event": "termios_after", "monotonic": 92805.244240058, "wall_time": 1792002380.6087425, "flags": [0, 0, 268572850, 0, 115200, 115200]}

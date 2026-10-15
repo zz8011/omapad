@@ -1,0 +1,288 @@
+{
+  "kernelcache_sha256": "76269e79b4715783b95407acbb54df2369116c76709a03f24e0fe95924199eb9",
+  "frozen_module_sha256": "c97fb883bbe39269bb9f16a9074305ce870e3366f563c72bf4b5ba77d6745fb2",
+  "fixture_sha256": "839967e0bd3c887029c3a8517f3f5ed0aea57b0a567ac9ac700a85f92458af31",
+  "sps_fields": [
+    {
+      "name": "nal_header",
+      "start_bit_in_nal_rbsp": 0,
+      "end_bit": 8,
+      "value": 103
+    },
+    {
+      "name": "profile_idc",
+      "start_bit_in_nal_rbsp": 8,
+      "end_bit": 16,
+      "value": 66
+    },
+    {
+      "name": "constraint_flags",
+      "start_bit_in_nal_rbsp": 16,
+      "end_bit": 24,
+      "value": 192
+    },
+    {
+      "name": "level_idc",
+      "start_bit_in_nal_rbsp": 24,
+      "end_bit": 32,
+      "value": 10
+    },
+    {
+      "name": "sps_id",
+      "start_bit_in_nal_rbsp": 32,
+      "end_bit": 33,
+      "value": 0
+    },
+    {
+      "name": "log2_max_frame_num_minus4",
+      "start_bit_in_nal_rbsp": 33,
+      "end_bit": 34,
+      "value": 0
+    },
+    {
+      "name": "pic_order_cnt_type",
+      "start_bit_in_nal_rbsp": 34,
+      "end_bit": 37,
+      "value": 2
+    },
+    {
+      "name": "max_num_ref_frames",
+      "start_bit_in_nal_rbsp": 37,
+      "end_bit": 38,
+      "value": 0
+    },
+    {
+      "name": "gaps_flag",
+      "start_bit_in_nal_rbsp": 38,
+      "end_bit": 39,
+      "value": 0
+    },
+    {
+      "name": "width_mbs_minus1",
+      "start_bit_in_nal_rbsp": 39,
+      "end_bit": 42,
+      "value": 1
+    },
+    {
+      "name": "height_map_units_minus1",
+      "start_bit_in_nal_rbsp": 42,
+      "end_bit": 45,
+      "value": 1
+    },
+    {
+      "name": "frame_mbs_only_flag",
+      "start_bit_in_nal_rbsp": 45,
+      "end_bit": 46,
+      "value": 1
+    },
+    {
+      "name": "direct_8x8_inference_flag",
+      "start_bit_in_nal_rbsp": 46,
+      "end_bit": 47,
+      "value": 1
+    },
+    {
+      "name": "crop_flag",
+      "start_bit_in_nal_rbsp": 47,
+      "end_bit": 48,
+      "value": 0
+    }
+  ],
+  "pps_fields": [
+    {
+      "name": "nal_header",
+      "start_bit_in_nal_rbsp": 0,
+      "end_bit": 8,
+      "value": 104
+    },
+    {
+      "name": "pps_id",
+      "start_bit_in_nal_rbsp": 8,
+      "end_bit": 9,
+      "value": 0
+    },
+    {
+      "name": "sps_id",
+      "start_bit_in_nal_rbsp": 9,
+      "end_bit": 10,
+      "value": 0
+    },
+    {
+      "name": "entropy_coding_mode_flag",
+      "start_bit_in_nal_rbsp": 10,
+      "end_bit": 11,
+      "value": 0
+    },
+    {
+      "name": "bottom_field_pic_order_present",
+      "start_bit_in_nal_rbsp": 11,
+      "end_bit": 12,
+      "value": 0
+    },
+    {
+      "name": "slice_groups_minus1",
+      "start_bit_in_nal_rbsp": 12,
+      "end_bit": 13,
+      "value": 0
+    },
+    {
+      "name": "refs_l0_minus1",
+      "start_bit_in_nal_rbsp": 13,
+      "end_bit": 14,
+      "value": 0
+    },
+    {
+      "name": "refs_l1_minus1",
+      "start_bit_in_nal_rbsp": 14,
+      "end_bit": 15,
+      "value": 0
+    },
+    {
+      "name": "weighted_pred_flag",
+      "start_bit_in_nal_rbsp": 15,
+      "end_bit": 16,
+      "value": 0
+    },
+    {
+      "name": "weighted_bipred_idc",
+      "start_bit_in_nal_rbsp": 16,
+      "end_bit": 18,
+      "value": 0
+    },
+    {
+      "name": "pic_init_qp_minus26",
+      "start_bit_in_nal_rbsp": 18,
+      "end_bit": 23,
+      "value": -3
+    },
+    {
+      "name": "pic_init_qs_minus26",
+      "start_bit_in_nal_rbsp": 23,
+      "end_bit": 24,
+      "value": 0
+    },
+    {
+      "name": "chroma_qp_offset",
+      "start_bit_in_nal_rbsp": 24,
+      "end_bit": 25,
+      "value": 0
+    },
+    {
+      "name": "deblocking_control_present",
+      "start_bit_in_nal_rbsp": 25,
+      "end_bit": 26,
+      "value": 1
+    },
+    {
+      "name": "constrained_intra",
+      "start_bit_in_nal_rbsp": 26,
+      "end_bit": 27,
+      "value": 0
+    },
+    {
+      "name": "redundant_pic_cnt_present",
+      "start_bit_in_nal_rbsp": 27,
+      "end_bit": 28,
+      "value": 0
+    }
+  ],
+  "slice_fields": [
+    {
+      "name": "nal_header",
+      "start_bit_in_nal_rbsp": 0,
+      "end_bit": 8,
+      "value": 101
+    },
+    {
+      "name": "first_mb",
+      "start_bit_in_nal_rbsp": 8,
+      "end_bit": 9,
+      "value": 0
+    },
+    {
+      "name": "slice_type",
+      "start_bit_in_nal_rbsp": 9,
+      "end_bit": 16,
+      "value": 7
+    },
+    {
+      "name": "pps_id",
+      "start_bit_in_nal_rbsp": 16,
+      "end_bit": 17,
+      "value": 0
+    },
+    {
+      "name": "frame_num",
+      "start_bit_in_nal_rbsp": 17,
+      "end_bit": 21,
+      "value": 0
+    },
+    {
+      "name": "idr_pic_id",
+      "start_bit_in_nal_rbsp": 21,
+      "end_bit": 22,
+      "value": 0
+    },
+    {
+      "name": "no_output_of_prior_pics",
+      "start_bit_in_nal_rbsp": 22,
+      "end_bit": 23,
+      "value": 0
+    },
+    {
+      "name": "long_term_reference",
+      "start_bit_in_nal_rbsp": 23,
+      "end_bit": 24,
+      "value": 0
+    },
+    {
+      "name": "slice_qp_delta",
+      "start_bit_in_nal_rbsp": 24,
+      "end_bit": 29,
+      "value": -3
+    },
+    {
+      "name": "disable_deblocking_filter_idc",
+      "start_bit_in_nal_rbsp": 29,
+      "end_bit": 32,
+      "value": 1
+    }
+  ],
+  "apple_private_values": {
+    "slice_1c": 0,
+    "sps_664": 0,
+    "picture_half6_low": 16,
+    "C534": 2,
+    "slice_QPY": 20
+  },
+  "command_differences": [
+    {
+      "command_offset": "0x4",
+      "name": "H+4",
+      "candidate": "0x1004",
+      "apple_derived": "0x1008",
+      "xor": "0xc"
+    },
+    {
+      "command_offset": "0xc8",
+      "name": "FE 0x0a0c",
+      "candidate": "0x10040000",
+      "apple_derived": "0x10080000",
+      "xor": "0xc0000"
+    },
+    {
+      "command_offset": "0xf0",
+      "name": "RENDEC 0x0ae4",
+      "candidate": "0x10040000",
+      "apple_derived": "0x10080000",
+      "xor": "0xc0000"
+    }
+  ],
+  "qp_word_unchanged": "0x5000",
+  "limits": [
+    "instruction interpreter covers picture-mode branch only",
+    "arithmetic is a disassembly transcription, not full Apple execution",
+    "capture log is the earlier diagnostic trial",
+    "three-word patch is review-only and does not establish a complete corrected stream or panic cause"
+  ]
+}

@@ -1,0 +1,18 @@
+#!/bin/busybox sh
+# 排查用：/run/gudd-watch 存在且 gudd 心跳超过 15 秒未更新时，
+# 结束 gudd（释放 DRM，fbcon 恢复），把诊断信息打印到 iPad 屏幕。
+touch /run/gudd-hb
+while sleep 2; do
+    [ -e /run/gudd-watch ] || continue
+    age=$(( $(date +%s) - $(stat -c %Y /run/gudd-hb) ))
+    [ $age -gt 15 ] || continue
+    echo w > /proc/sysrq-trigger
+    killall gudd; sleep 2
+    {
+        echo; echo "===== gudd watchdog: 心跳中断 ${age}s ====="
+        uptime; grep -i -E "dwc|usb|CPU" /proc/interrupts
+        tail -6 /run/gudd.log
+        dmesg | tail -45
+    } > /dev/tty0 2>&1
+    rm -f /run/gudd-watch
+done

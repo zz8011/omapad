@@ -1,0 +1,25 @@
+#!/bin/sh
+# D2355 输入限流看门狗（仅 J207 / iPad Pro 10.5）
+#
+# 背景：Linux 侧没有 Tristar CBTL1610 驱动，D2355 把 USB 口当"未识别"，
+# 输入限流锁在 80 mA（iOS 遗留值）。setup-gadget 启动时把 0x44e 抬到 1000 mA，
+# 但该寄存器**随 VBUS 重连复位**（主机重启 / 拔插 USB / USB 重新枚举），
+# 掉回 80 mA 后系统耗电大于充电，电池净放电 —— 2026-10-15 实测确认。
+#
+# 这里周期性地重写限流寄存器。用盲写而非"读-比较-写"，是为了不依赖 dmesg：
+# dmesg 环形缓冲会滚动，读回判据会失效。写同一个值硬件无动作，安全。
+#
+# 目标值可运行时改（十六进制 code，单位 10 mA）：
+#   echo 32 > /run/d2355-limit     # 0x32 = 500 mA
+
+RW=/sys/kernel/d2355/rw
+LIMFILE=/run/d2355-limit
+
+[ -e "$RW" ] || exit 0
+
+while true; do
+    LIM=$(cat "$LIMFILE" 2>/dev/null)
+    [ -n "$LIM" ] || LIM=64
+    echo "w 0x44e 0x$LIM" > "$RW" 2>/dev/null
+    sleep 30
+done

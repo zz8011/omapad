@@ -1,0 +1,7 @@
+test_output_gate_source.py
+exit=0
+production output integration: PASS (16 cases; independent coherent/lifetime/response/authorization gates, two bounded copies, release publication)
+
+test_output_export_source.py
+exit=0
+production output export callback: PASS (gates, bounds, immutable snapshot; inaccessible DMA backing)

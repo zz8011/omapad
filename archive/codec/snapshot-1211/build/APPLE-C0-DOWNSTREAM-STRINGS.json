@@ -1,0 +1,37 @@
+[
+  {
+    "va": "0xfffffff00736523e",
+    "file_offset": "0x36123e",
+    "text": "AppleVXD393::submitCommandInternal: ERROR - deviceLockSurface returned error"
+  },
+  {
+    "va": "0xfffffff007365508",
+    "file_offset": "0x361508",
+    "text": "deviceUnlockSurface"
+  },
+  {
+    "va": "0xfffffff00736551c",
+    "file_offset": "0x36151c",
+    "text": "AppleVXD393::ProcessInterrupt() - ERROR - deviceUnLockSurface returned error"
+  },
+  {
+    "va": "0xfffffff007365569",
+    "file_offset": "0x361569",
+    "text": "ProcessHWResponse"
+  },
+  {
+    "va": "0xfffffff007366775",
+    "file_offset": "0x362775",
+    "text": "AppleVXD393UserClient:: ProcessHWResponse  hwContextID %d  contextID %d, frameNumber %d sendAsyncResult64 failed\n"
+  },
+  {
+    "va": "0xfffffff00736684b",
+    "file_offset": "0x36284b",
+    "text": "AppleVXD393UserClient::DecrementPendingFrameCounter - WARNING - expected contextID %d - received %d"
+  },
+  {
+    "va": "0xfffffff007369e65",
+    "file_offset": "0x365e65",
+    "text": "AppleVXD393PriorityQueue: client not registered %p (UniqueID %d contextID %d)-> %s\n"
+  }
+]

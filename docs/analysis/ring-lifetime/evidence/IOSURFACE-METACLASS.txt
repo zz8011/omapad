@@ -1,0 +1,16 @@
+fffffff007f40b2c file=00f3cb2c  f44fbea9  stp      x20, x19, [sp, #-0x20]!
+fffffff007f40b30 file=00f3cb30  fd7b01a9  stp      x29, x30, [sp, #0x10]
+fffffff007f40b34 file=00f3cb34  fd430091  add      x29, sp, #0x10
+fffffff007f40b38 file=00f3cb38  e0500090  adrp     x0, #0xfffffff00895c000
+fffffff007f40b3c file=00f3cb3c  00a00991  add      x0, x0, #0x268
+fffffff007f40b40 file=00f3cb40  4196ffb0  adrp     x1, #0xfffffff007209000
+fffffff007f40b44 file=00f3cb44  216c3991  add      x1, x1, #0xe5b
+fffffff007f40b48 file=00f3cb48  b35000b0  adrp     x19, #0xfffffff008955000
+fffffff007f40b4c file=00f3cb4c  73c21991  add      x19, x19, #0x670
+fffffff007f40b50 file=00f3cb50  03798052  mov      w3, #0x3c8
+fffffff007f40b54 file=00f3cb54  e20313aa  mov      x2, x19
+fffffff007f40b58 file=00f3cb58  d5cff297  bl       #0xfffffff007bf4aac
+fffffff007f40b5c file=00f3cb5c  a8a9ffd0  adrp     x8, #0xfffffff007476000
+fffffff007f40b60 file=00f3cb60  08410291  add      x8, x8, #0x90
+fffffff007f40b64 file=00f3cb64  08410091  add      x8, x8, #0x10
+fffffff007f40b68 file=00f3cb68  080000f9  str      x8, [x0]

@@ -1,0 +1,26 @@
+Raw producer replay: 5 picture paths, metadata store, B28 carryover, QP perturbation: PASS
+{
+  "compared_words": 136,
+  "differences": [
+    {
+      "word": 1,
+      "byte_offset": "0x4",
+      "candidate": "00001004",
+      "apple": "00001008"
+    },
+    {
+      "word": 50,
+      "byte_offset": "0xc8",
+      "candidate": "10040000",
+      "apple": "10080000"
+    },
+    {
+      "word": 60,
+      "byte_offset": "0xf0",
+      "candidate": "10040000",
+      "apple": "10080000"
+    }
+  ]
+}
+
+EXIT_STATUS=1 (expected old-source regression failure)

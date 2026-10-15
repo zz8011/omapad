@@ -1,0 +1,24 @@
+#!/bin/busybox sh
+# 守护 gudd：退出后保存日志、重启，并在 FunctionFS 解绑 gadget 后重新绑定 UDC。
+# 首轮由 setup-gadget 负责绑定，本脚本只在重启后绑定。
+cfg=/sys/kernel/config/usb_gadget/a1599
+ffs=/dev/ffs-gud
+udc=$(ls /sys/class/udc | head -1)
+n=0
+while :; do
+    /usr/sbin/gudd $ffs </dev/null >/run/gudd.log 2>&1 &
+    pid=$!
+    if [ $n -gt 0 ]; then
+        i=0
+        while [ ! -e $ffs/ep1 ] && [ $i -lt 50 ]; do sleep 0.2; i=$((i + 1)); done
+        [ -z "$(cat $cfg/UDC)" ] && echo $udc > $cfg/UDC
+        echo "$(date) gudd 已重启并重新绑定 UDC" >> /run/gudd-supervisor.log
+    fi
+    wait $pid
+    rc=$?
+    n=$((n + 1))
+    cp /run/gudd.log /run/gudd.log.$n
+    dmesg | tail -40 > /run/gudd-dmesg.$n
+    echo "$(date) gudd 退出 rc=$rc（第 $n 次），日志 /run/gudd.log.$n" >> /run/gudd-supervisor.log
+    sleep 1
+done

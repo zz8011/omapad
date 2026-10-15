@@ -1,0 +1,213 @@
+--- /dev/null
++++ consumer-observation/a1599_fw_c0_ack.h
+@@ -0,0 +1,94 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++#ifndef A1599_FW_C0_ACK_H
++#define A1599_FW_C0_ACK_H
++
++#include "a1599_fw_decode_submit.h"
++
++struct a1599_c0_ack_state {
++	bool attempted;
++	bool write_issued;
++	bool verified;
++	unsigned int after_valid_count;
++	a1599_ring_u32 after[6];
++};
++
++/* One terminal observation, core 0, only the captured baseline C0. The caller
++ * holds the existing ring mutex. Never frees/reuses DMA or grants another job.
++ * Apple 12.5.8 VA 0xfffffff008681720..172c writes the advanced word index to
++ * 0x2fe8 after copying the message. Additional validation/readback below is our
++ * bounded policy, not a claim that Apple performs these same checks.
++ */
++static inline int a1599_c0_ack_once(
++		const struct a1599_init_mmio_ops *ops, void *context,
++		const struct a1599_ring_message *saved,
++		bool authorized, bool snapshot_ready, bool resources_pinned,
++		struct a1599_c0_ack_state *state)
++{
++	static const a1599_ring_u32 offsets[6] = {
++		0x2ff0, 0x2fe4, 0x2ff4, 0x2ffc, 0x2fe8, 0x2fec,
++	};
++	static const a1599_ring_u32 expected[6] = {
++		0x60cc01cc, 0x60000033, 10, 10, 0, 3,
++	};
++	struct c0_response parsed;
++	a1599_ring_u32 value, wanted;
++	unsigned int pass, i, j;
++	int ret;
++
++	if (!state || !saved || !ops || !ops->read32 || !ops->write32 ||
++	    !ops->read_barrier || !ops->publish_barrier)
++		return -EINVAL;
++	if (!authorized)
++		return -EACCES;
++	if (!snapshot_ready || !resources_pinned)
++		return -ENODATA;
++	if (state->attempted)
++		return -EALREADY;
++	/* No retry even if a pre-write check fails. A posted write followed by a
++	 * failed readback must remain distinguishable from no write. */
++	state->attempted = true;
++	if (saved->length != 12 || saved->read_index != 0 ||
++	    saved->write_index != 3 ||
++	    c0_parse(saved->bytes, saved->length, 1, &parsed) != C0_OK ||
++	    parsed.dispatch_class != C0_DISPATCH_10 || parsed.has_detail)
++		return -EBADMSG;
++	for (pass = 0; pass < 2; pass++) {
++		for (i = 0; i < 6; i++) {
++			ret = ops->read32(context, offsets[i], &value);
++			if (ret)
++				return ret;
++			if (value != expected[i])
++				return -ESTALE;
++		}
++		if (pass)
++			break;
++		ops->read_barrier(context);
++		for (i = 0; i < 3; i++) {
++			ret = ops->read32(context, 0x8000 + 4 * i, &value);
++			if (ret)
++				return ret;
++			wanted = 0;
++			for (j = 0; j < 4; j++)
++				wanted |= (a1599_ring_u32)saved->bytes[4 * i + j] << (8 * j);
++			if (value != wanted)
++				return -ESTALE;
++		}
++	}
++	/* Sole write: consume exactly the three already-copied words. No kick,
++	 * IRQ clear, producer write, reset, output store or second ID81. */
++	ops->publish_barrier(context);
++	state->write_issued = true;
++	ops->write32(context, 0x2fe8, 3);
++	for (i = 0; i < 6; i++) {
++		ret = ops->read32(context, offsets[i], &state->after[i]);
++		if (ret)
++			return ret;
++		state->after_valid_count++;
++		wanted = i == 4 ? 3 : expected[i];
++		if (state->after[i] != wanted)
++			return -ESTALE;
++	}
++	state->verified = true;
++	return 0;
++}
++#endif
+--- 1211/a1599_fw_first_ready_platform_harness.c
++++ consumer-observation/a1599_fw_first_ready_platform_harness.c
+@@ -33,6 +33,7 @@
+ #include "a1599_fw_dma_mask.h"
+ #include "a1599_fw_decode_stream.h"
+ #include "a1599_fw_decode_submit.h"
++#include "a1599_fw_c0_ack.h"
+ #include "a1599_fw_output_snapshot.h"
+ #include "a1599_fw_decode_diagnostics.h"
+ #include "a1599_fw_decode_layout.h"
+@@ -75,6 +76,10 @@
+ module_param(allow_output_export, bool, 0400);
+ MODULE_PARM_DESC(allow_output_export,
+ 		 "default-off: after a matching normal C0, take two bounded read-only coherent output snapshots; no pixel success is implied");
++static bool allow_c0_consumer_observation;
++module_param(allow_c0_consumer_observation, bool, 0400);
++MODULE_PARM_DESC(allow_c0_consumer_observation,
++		 "default-off: permit one terminal C0 consumer write after the immutable snapshot; no second decode or DMA reuse");
+ static ushort decode_flags = 0x4015;
+ module_param(decode_flags, ushort, 0400);
+ MODULE_PARM_DESC(decode_flags,
+@@ -99,6 +104,8 @@
+ static bool a1599_decode_result_valid;
+ static bool a1599_decode_output_inspection_allowed;
+ static bool a1599_decode_output_snapshot_ready;
++static struct a1599_ring_message a1599_ack_c0;
++static struct a1599_c0_ack_state a1599_ack_state;
+ static u8 a1599_decode_output_snapshot[A1599_FW_DECODE_OUTPUT_BYTES];
+ static u8 a1599_decode_output_second_sample[A1599_FW_DECODE_OUTPUT_BYTES];
+ static DEFINE_MUTEX(a1599_ring_lock);
+@@ -853,6 +860,8 @@
+ 	else
+ 		a1599_log_ring_snapshot(dev, &a1599_live_window, &after_decode, 0,
+ 					"AFTER_ID81");
++	/* Published together with the immutable output eligibility flag below. */
++	a1599_ack_c0 = result.message;
+ 	/* CPU-only snapshot publication is separate from native C0 classification. */
+ 	WRITE_ONCE(a1599_decode_output_snapshot_ready, false);
+ 	if (allow_output_export) {
+@@ -948,6 +957,57 @@
+ 
+ static BIN_ATTR_RO(decode_output, A1599_FW_DECODE_OUTPUT_BYTES);
+ 
++static void a1599_c0_ack_barrier(void *context)
++{
++	(void)context;
++	/* Order the finished record reads/copy before returning ownership of its
++	 * ring slots. This is not a hardware DMA-completion predicate. */
++	mb();
++}
++
++static const struct a1599_init_mmio_ops a1599_c0_ack_ops = {
++	.read32 = a1599_mmio_read32,
++	.write32 = a1599_mmio_write32,
++	.read_barrier = a1599_mmio_read_barrier,
++	.publish_barrier = a1599_c0_ack_barrier,
++};
++
++/* A separately approved terminal observation. It cannot reset decode_once's
++ * gate. Its result never implies output/command/reference memory can be reused. */
++static ssize_t c0_consumer_once_store(struct device *dev,
++				     struct device_attribute *attr,
++				     const char *buf, size_t count)
++{
++	int ret;
++
++	(void)attr;
++	if (!sysfs_streq(buf, "1"))
++		return -EINVAL;
++	if (!allow_c0_consumer_observation || !allow_output_export)
++		return -EACCES;
++	if (!READ_ONCE(a1599_first_ready_live) ||
++	    dev != READ_ONCE(a1599_live_device) || !a1599_memory ||
++	    !atomic_read(&a1599_decode_consumed))
++		return -EAGAIN;
++	mutex_lock(&a1599_ring_lock);
++	ret = a1599_c0_ack_once(&a1599_c0_ack_ops, &a1599_live_window,
++		&a1599_ack_c0, allow_c0_consumer_observation,
++		smp_load_acquire(&a1599_decode_output_snapshot_ready),
++		a1599_memory->hardware_started && a1599_memory->decode_lifetime.started,
++		&a1599_ack_state);
++	dev_warn(dev, "C0_CONSUMER_ONCE ret=%d attempted=%d write_issued=%d verified=%d offset=0x2fe8 value=3 after_valid_count=%u after_h2m=%u/%u after_m2h=%u/%u second_decode_allowed=0 dma_reuse_allowed=0 resources_pinned=%d retry=0\n",
++		 ret, a1599_ack_state.attempted, a1599_ack_state.write_issued,
++		 a1599_ack_state.verified, a1599_ack_state.after_valid_count,
++		 a1599_ack_state.after[2],
++		 a1599_ack_state.after[3], a1599_ack_state.after[4],
++		 a1599_ack_state.after[5], a1599_memory->hardware_started &&
++		 a1599_memory->decode_lifetime.started);
++	mutex_unlock(&a1599_ring_lock);
++	if (ret)
++		return ret;
++	return count;
++}
++
+ /* One-shot host-side diagnostic capture. The existing driver mutex excludes
+  * concurrent CPU ring transactions through this driver. It cannot stop the
+  * firmware from writing asynchronously; unchanged producer indexes are not a
+@@ -1021,6 +1081,7 @@
+ static DEVICE_ATTR_RO(ring_snapshot);
+ static DEVICE_ATTR_WO(init_once);
+ static DEVICE_ATTR_WO(decode_once);
++static DEVICE_ATTR_WO(c0_consumer_once);
+ 
+ static void a1599_install_runtime_controls(struct device *dev,
+ 					  struct a1599_fw_reg_window *window)
+@@ -1045,6 +1106,10 @@
+ 	decode_ret = sysfs_create_bin_file(&dev->kobj, &bin_attr_decode_output);
+ 	if (decode_ret)
+ 		dev_warn(dev, "decode_output sysfs export unavailable ret=%d\n",
++			 decode_ret);
++	decode_ret = device_create_file(dev, &dev_attr_c0_consumer_once);
++	if (decode_ret)
++		dev_warn(dev, "c0_consumer_once sysfs control unavailable ret=%d\n",
+ 			 decode_ret);
+ 	decode_ret = sysfs_create_bin_file(&dev->kobj, &bin_attr_m2h_ring_raw_once);
+ 	if (decode_ret)

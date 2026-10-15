@@ -1,0 +1,42 @@
+[
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux/Documentation/core-api/dma-api-howto.rst",
+    "sha256": "92070ca3b5e150580c26d39be990b109053951a767fb3fd1d695aece478bbff2"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux/Documentation/core-api/dma-api.rst",
+    "sha256": "356b8e6385d35582ae04cc96772327231062ff62d19a37437b42c79b0b4b995c"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux/Documentation/memory-barriers.txt",
+    "sha256": "090db2834c75aff44a528204c8072640e01efe51f1ac44e54a1d89efe1714a5c"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux/kernel/dma/mapping.c",
+    "sha256": "59b703f208f0abd0b633fe92a6c45c1819058c56cc91547fbf024c01ccd2642e"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux/kernel/dma/direct.c",
+    "sha256": "c115a5757eed546612504a653d8fc762dfe275f591382498c90b7eacd70b346e"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux/arch/arm64/mm/dma-mapping.c",
+    "sha256": "6e6dc598f7952b990c266899aafd099cbac52a91c3e387be9ffa499f68adf192"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux/arch/arm64/include/asm/pgtable.h",
+    "sha256": "b8bb7a8a02ecaf220f47f95ce49ef41c1d9709127757e2de5b0199c69fce3f5f"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux/arch/arm64/include/asm/barrier.h",
+    "sha256": "8a999b400d262bb182a2881f105041309ded27fa6dd3971af662f690fbc24135"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux/arch/arm64/include/asm/io.h",
+    "sha256": "00094f2b75733389e6a940201b1231df863fc355f159f0ab0f3d4986c938e4bf"
+  },
+  {
+    "path": "/tmp/a1599-kbuild-decode/.config",
+    "sha256": "ac210bdf37e38926c7b1d64b2344b1041715a2b7c032bf930817102a63c969be"
+  }
+]

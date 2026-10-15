@@ -1,0 +1,32 @@
+{
+  "verified_at_utc": "2026-10-14T16:21:31.867051+00:00",
+  "module_sha256": "6bbdcdf835923dbd57c1e00a7a8180307c3c856ac0694a8cf83b9d41869e8193",
+  "module_build_exit": 0,
+  "module_loaded": false,
+  "host_regression_commands": 27,
+  "host_regression_failures": 0,
+  "kernel_sha256": "76269e79b4715783b95407acbb54df2369116c76709a03f24e0fe95924199eb9",
+  "original_ranges_verified": 12,
+  "firmware_text_data_exact": true,
+  "iosurface_vtable_slots_verified": 3,
+  "baseline_files_unchanged": 118,
+  "receiver_cases": 408,
+  "completion_cases": 2,
+  "original_instruction_replay_exit": 0,
+  "hardware_access": false,
+  "dma_order_proven": false,
+  "production_changes": [
+    "a1599_fw_c0_ack.h",
+    "a1599_fw_first_ready_platform_harness.c"
+  ],
+  "maximum_ack_mmio_reads": 21,
+  "maximum_ack_mmio_writes": 1,
+  "sole_write": {
+    "offset": "0x2fe8",
+    "value": 3
+  },
+  "consecutive_idr_enabled": false,
+  "dma_reuse_enabled": false,
+  "device_trial_authorized": false,
+  "complete_boot_transport_package": false
+}

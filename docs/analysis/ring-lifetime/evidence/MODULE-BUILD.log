@@ -1,0 +1,8 @@
+make: Entering directory '/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux'
+make[1]: Entering directory '/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_consumer_observation_candidate_20261014/build/module'
+  CC [M]  a1599_fw_first_ready_platform_harness.o
+  LD [M]  a1599_fw_candidate.o
+  MODPOST Module.symvers
+  LD [M]  a1599_fw_candidate.ko
+make[1]: Leaving directory '/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_consumer_observation_candidate_20261014/build/module'
+make: Leaving directory '/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux'

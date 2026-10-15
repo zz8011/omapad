@@ -1,0 +1,10 @@
+{
+  "raw_console": "/home/zz8011/Documents/Codex/2026-10-14/task-3/evidence/a1599-snapshot-next-trial-1211/execute/console.raw",
+  "raw_console_sha256": "202d648d86f2c5ec4b04a3f37dce65c976325733808de1d55cbdf8a5289c52ab",
+  "dmesg_sha256": "43765ac3f05def067fac417ac065a0350ace89606b00e9e39ef87a9bc8e483cd",
+  "c0_sha256": "b21b5571ec81376e750d010344a0b25df3592b669d8ffe6221ee1bb3cd2045eb",
+  "c0_hex": "8cc0010003000000d5440660",
+  "base64_decodes_exactly": true,
+  "complete_base64_present_in_console": true,
+  "older_4367_original_capture": "not recovered; available artifact explicitly identifies itself as tool-output transcription"
+}

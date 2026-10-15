@@ -1,0 +1,35 @@
+
+/home/zz8011/Documents/Codex/2026-10-12/task-2/a1599-alpine-fixed/diagnostic-v2/runtime/lib/ld-musl-aarch64.so.1:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+0000000000051a0c <poll>:
+   51a0c: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+   51a10: d2800003     	mov	x3, #0x0                // =0
+   51a14: 910003fd     	mov	x29, sp
+   51a18: 37f80202     	tbnz	w2, #0x1f, 0x51a58 <poll+0x4c>
+   51a1c: 5289ba63     	mov	w3, #0x4dd3             // =19923
+   51a20: 52807d04     	mov	w4, #0x3e8              // =1000
+   51a24: 72a20c43     	movk	w3, #0x1062, lsl #16
+   51a28: 9b237c43     	smull	x3, w2, w3
+   51a2c: 9366fc63     	asr	x3, x3, #38
+   51a30: 4b827c63     	sub	w3, w3, w2, asr #31
+   51a34: 1e27007f     	fmov	s31, w3
+   51a38: 1b048864     	msub	w4, w3, w4, w2
+   51a3c: 52884802     	mov	w2, #0x4240             // =16960
+   51a40: 72a001e2     	movk	w2, #0xf, lsl #16
+   51a44: 910043e3     	add	x3, sp, #0x10
+   51a48: 1b027c84     	mul	w4, w4, w2
+   51a4c: 4e0c1c9f     	mov	v31.s[1], w4
+   51a50: 0f20a7ff     	sshll	v31.2d, v31.2s, #0x0
+   51a54: 3d8007ff     	str	q31, [sp, #0x10]
+   51a58: aa0103e2     	mov	x2, x1
+   51a5c: aa0003e1     	mov	x1, x0
+   51a60: d2800006     	mov	x6, #0x0                // =0
+   51a64: d2800105     	mov	x5, #0x8                // =8
+   51a68: d2800004     	mov	x4, #0x0                // =0
+   51a6c: d2800920     	mov	x0, #0x49               // =73
+   51a70: 94003bc4     	bl	0x60980 <tcsetwinsize+0x19c>
+   51a74: 97ff44fd     	bl	0x22e68 <feupdateenv+0x2274>
+   51a78: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+   51a7c: d65f03c0     	ret

@@ -1,0 +1,1 @@
+[   83.468662] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: C0_CONSUMER_ONCE ret=0 attempted=1 write_issued=1 verified=1 offset=0x2fe8 value=3 after_valid_count=6 after_h2m=10/10 after_m2h=3/3 second_decode_allowed=0 dma_reuse_allowed=0 resources_pinned=1 retry=0

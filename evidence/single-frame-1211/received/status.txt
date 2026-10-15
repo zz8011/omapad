@@ -1,0 +1,17 @@
+stage=preflight
+/run/incoming/a1599_fw_candidate.ko: OK
+/run/incoming/vxd-staging-12.5.8-16H88.bin: OK
+1211a6abbf026a9354f05a44e710c16ec7e8286cb0708b86b9ee260aa59bbbaa  /run/a1599_fw_candidate.ko
+6b274c576a7952d7a4f22f65adf5b1041c4329c3dfc7ce761de53668cfd4a41e  /lib/firmware/a1599/vxd-staging-12.5.8-16H88.bin
+stage=insmod_once
+insmod_rc=0
+stage=decode_once
+decode_rc=0
+stage=export_immutable_snapshot_once
+export_rc=0
+export_bytes=4096
+9f4d0fe4b48d7ae835608a1a686a7a075e9ab8eb136bd7e5c10e6bc290849557  /run/a1599-snapshot-1211/decode-output.bin
+stage=finished_no_pixel_success_claim
+script_rc=0
+final_dmesg_rc=0
+evidence_files_closed=1

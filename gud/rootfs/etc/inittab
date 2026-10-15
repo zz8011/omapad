@@ -1,0 +1,5 @@
+::sysinit:/etc/init.d/rcS
+::respawn:/sbin/wait-for-device /dev/ttyGS0 /sbin/getty -L -n -l /bin/sh 115200 ttyGS0 vt100
+::respawn:/sbin/wait-for-device /dev/ttyGS1 /sbin/getty -L -n -l /bin/sh 115200 ttyGS1 vt100
+::ctrlaltdel:/sbin/reboot
+::shutdown:/etc/init.d/rcK

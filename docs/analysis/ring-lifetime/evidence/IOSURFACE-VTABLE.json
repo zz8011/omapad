@@ -1,0 +1,24 @@
+{
+  "vtable_va": "0xfffffff007475d60",
+  "identity": "allocation references metaclass at 0xfffffff00895c268; metaclass name IOSurface",
+  "slots": [
+    {
+      "slot": "0x1b8",
+      "file_offset": "0x471f18",
+      "raw": "0x17fff007f3cb70",
+      "canonical_low51": "0xfffffff007f3cb70"
+    },
+    {
+      "slot": "0x220",
+      "file_offset": "0x471f80",
+      "raw": "0x17fff007f3ee2c",
+      "canonical_low51": "0xfffffff007f3ee2c"
+    },
+    {
+      "slot": "0x228",
+      "file_offset": "0x471f88",
+      "raw": "0x17fff007f3ee90",
+      "canonical_low51": "0xfffffff007f3ee90"
+    }
+  ]
+}

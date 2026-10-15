@@ -1,0 +1,91 @@
+A1599 / 1211 / session 20261014T151302Z-891c529e0474
+Independent final single-frame acceptance review
+
+RESULT: PASS for this fixed 32x32 progressive 8-bit 4:2:0 IDR fixture.
+The saved hardware output's 1536 visible Y/U/V bytes exactly match the frozen
+software-reference file. This conclusion includes an independent manual
+extraction/comparison, not just acceptance of pixel-comparison.json.
+
+Scope and method
+The reviewer read existing root-owned files using approved host sudo reads.
+No USB, tty, target command, module, codec or hardware operation was performed.
+Read status.txt, full dmesg.after.txt, capture-integrity.json,
+pixel-comparison.json, decode-output.bin and staging/red32x32-yuv420p.raw.
+Recomputed all eight captured files' lengths and SHA256, comparing each to
+both actual and announced fields in capture-integrity.json; all matched.
+
+Snapshot: 4096 bytes
+SHA256 9f4d0fe4b48d7ae835608a1a686a7a075e9ab8eb136bd7e5c10e6bc290849557
+Reference: 1536 bytes
+SHA256 ffcb5e22013d3f42d9260f7c1e54f2bb082876dda77c7231c6088f331139f186
+
+Independent visible-pixel extraction (no comparator functions imported)
+Y = concatenate snapshot[r*64 : r*64+32] for r = 0..31.
+U = snapshot[2048 + r*64 + 2*c] for r = 0..15, c = 0..15.
+V = snapshot[2048 + r*64 + 2*c+1] for r = 0..15, c = 0..15.
+Compare Y || U || V directly to the 1536-byte planar reference.
+Result: 1536/1536 equal, zero differing bytes, maximum absolute error 0.
+Extracted planar SHA256 equals the reference SHA256 above.
+Observed distinct values: Y={81}, U={90}, V={240}.
+Guard snapshot[3072:4096] is exactly 1024 bytes of 0xA5.
+
+This independently confirms NV12-compatible visible extraction with Y stride
+64, interleaved UV stride 64 and UV offset 2048 for this fixture. The supplied
+pixel-comparison.json reports one exact match among its 52 candidates, agreeing
+with this extraction. This review did not independently enumerate all layouts;
+the constant-color fixture cannot establish a universal layout specification.
+The frozen reference hash was verified; FFmpeg was not rerun by this reviewer.
+
+Transport and execution evidence
+status.txt SHA256
+58e80c205fd2639c107506ac41298a444c0ab077b705d57cfb4bc2da9aaec626
+records original module SHA
+1211a6abbf026a9354f05a44e710c16ec7e8286cb0708b86b9ee260aa59bbbaa,
+insmod_rc=0, decode_rc=0, export_rc=0, export_bytes=4096, script_rc=0,
+final_dmesg_rc=0 and evidence_files_closed=1.
+
+dmesg.after.txt is 27173 bytes, SHA256
+43765ac3f05def067fac417ac065a0350ace89606b00e9e39ef87a9bc8e483cd.
+It contains exactly one occurrence of each:
+INIT_WIRE_SEND=published_and_kicked_once
+ID81_ENVELOPE published=1
+C0_CAPTURE actual_length=12
+C0_RAW 00000000:
+DECODE_ONE_SHOT consumed=1
+This supports a single INIT/ID81 decode within the captured boot/run, consistent
+with the previously reviewed absent-module/absent-trial preflight and one-shot
+script. It does not substitute for a claim about every historical session.
+
+C0 actual bytes: 8c c0 01 00 03 00 00 00 d5 44 06 60
+Length 12, fence 1, flags little-endian 0x600644d5, error bit27 clear.
+Log reports c0_record_valid=1, c0_native_class=0x10, c0_native_error=0,
+expected_fence=1 and no detail field. LastMB=3 was not used as an image index
+or as the basis for acceptance; pixel equality is the acceptance evidence.
+
+DECODE_ONE_SHOT also records:
+consumed=1 ret=0 published=1 h2m_consumed=1 response_received=1 retry=0
+guard_checked=1 guard_state=intact
+output_inspection_allowed=1 output_snapshot_ret=0
+output_copies=2 output_ring_checks=3
+cpu_mapping=dma_alloc_coherent snapshot_kind=bounded_read_only
+output_snapshot_ready=1 output_stability_checked=1 output_stable_50ms=1
+resources_pinned=1 response_ring_consumer_advanced=0.
+The independently checked guard bytes agree with the log. Copy count, ring
+checks and 50ms stability are recorded instrumentation observations; the saved
+single snapshot alone cannot independently repeat those temporal checks.
+
+Limits
+Acceptance covers this exact module, firmware, fixture, single execution and
+visible frame. It does not establish multi-frame decoding, reference frames,
+CABAC, other profiles/sizes, general output layout, performance, long-term DMA
+quiescence, safe resource release, or repeatability. Log fields explicitly keep
+future_dma_quiescence and semantic_init_complete unproven. No additional trial
+was performed or requested by this review.
+
+Prior recovery review closure
+Final recover_same_session.py SHA256
+0501a7bbf22cf6f76c865a02a7f84ed1abde13705ee72868b4f74913ececd679
+was subsequently inspected. Its fixed dependency list includes the three
+requested INPUTS.json / target-once.sh / bound_launcher.py pins, closing the
+remaining condition in RECOVERY-IMPLEMENTATION-REVIEW.txt. This is a code-review
+closure, not a claim that this reviewer operated the recovery transfer.

@@ -1,0 +1,157 @@
+{
+  "reference": "/home/zz8011/Documents/Codex/2026-10-14/task-3/evidence/a1599-consumer-6bbd-20261015-termiosfix/staging/red32x32-idr.h264",
+  "reference_decoder": "ffmpeg",
+  "geometry": "32x32 progressive 8-bit 4:2:0",
+  "guard": "intact",
+  "candidate_layouts_compared": 52,
+  "classification": "exact_layout_match",
+  "exact_matches": [
+    {
+      "layout": {
+        "name": "NV12",
+        "y_offset": 0,
+        "y_stride": 64,
+        "u_offset": 2048,
+        "v_offset": 2048,
+        "c_stride": 64,
+        "semiplanar": true
+      },
+      "exact": true,
+      "equal_bytes": 1536,
+      "bytes": 1536,
+      "mae": 0.0,
+      "max_abs_error": 0
+    }
+  ],
+  "best_candidates": [
+    {
+      "layout": {
+        "name": "NV12",
+        "y_offset": 0,
+        "y_stride": 64,
+        "u_offset": 2048,
+        "v_offset": 2048,
+        "c_stride": 64,
+        "semiplanar": true
+      },
+      "exact": true,
+      "equal_bytes": 1536,
+      "bytes": 1536,
+      "mae": 0.0,
+      "max_abs_error": 0
+    },
+    {
+      "layout": {
+        "name": "NV12",
+        "y_offset": 0,
+        "y_stride": 32,
+        "u_offset": 2048,
+        "v_offset": 2048,
+        "c_stride": 64,
+        "semiplanar": true
+      },
+      "exact": false,
+      "equal_bytes": 1024,
+      "bytes": 1536,
+      "mae": 27.0,
+      "max_abs_error": 81
+    },
+    {
+      "layout": {
+        "name": "NV12",
+        "y_offset": 0,
+        "y_stride": 48,
+        "u_offset": 2048,
+        "v_offset": 2048,
+        "c_stride": 64,
+        "semiplanar": true
+      },
+      "exact": false,
+      "equal_bytes": 1024,
+      "bytes": 1536,
+      "mae": 27.0,
+      "max_abs_error": 81
+    },
+    {
+      "layout": {
+        "name": "NV12",
+        "y_offset": 0,
+        "y_stride": 64,
+        "u_offset": 2048,
+        "v_offset": 2048,
+        "c_stride": 32,
+        "semiplanar": true
+      },
+      "exact": false,
+      "equal_bytes": 1280,
+      "bytes": 1536,
+      "mae": 27.5,
+      "max_abs_error": 240
+    },
+    {
+      "layout": {
+        "name": "YUV420P",
+        "y_offset": 0,
+        "y_stride": 64,
+        "u_offset": 2048,
+        "v_offset": 2304,
+        "c_stride": 16,
+        "semiplanar": false
+      },
+      "exact": false,
+      "equal_bytes": 1152,
+      "bytes": 1536,
+      "mae": 40.0,
+      "max_abs_error": 240
+    },
+    {
+      "layout": {
+        "name": "YVU420P",
+        "y_offset": 0,
+        "y_stride": 64,
+        "u_offset": 2304,
+        "v_offset": 2048,
+        "c_stride": 16,
+        "semiplanar": false
+      },
+      "exact": false,
+      "equal_bytes": 1152,
+      "bytes": 1536,
+      "mae": 40.0,
+      "max_abs_error": 240
+    },
+    {
+      "layout": {
+        "name": "YUV420P",
+        "y_offset": 0,
+        "y_stride": 64,
+        "u_offset": 2048,
+        "v_offset": 2560,
+        "c_stride": 32,
+        "semiplanar": false
+      },
+      "exact": false,
+      "equal_bytes": 1152,
+      "bytes": 1536,
+      "mae": 40.0,
+      "max_abs_error": 240
+    },
+    {
+      "layout": {
+        "name": "YVU420P",
+        "y_offset": 0,
+        "y_stride": 64,
+        "u_offset": 2560,
+        "v_offset": 2048,
+        "c_stride": 32,
+        "semiplanar": false
+      },
+      "exact": false,
+      "equal_bytes": 1152,
+      "bytes": 1536,
+      "mae": 40.0,
+      "max_abs_error": 240
+    }
+  ],
+  "warning": "A score ranks only this finite layout set; a match does not prove DMA coherency or future hardware determinism."
+}

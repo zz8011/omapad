@@ -1,0 +1,20 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "apple,j85m", "apple,s5l8960x";
+
+	fragment@0 {
+		target-path = "/soc";
+		__overlay__ {
+			#address-cells = <2>;
+			#size-cells = <2>;
+			vxd-first-ready@207f00000 {
+				compatible = "apple,s5l8960x-vxd-first-ready-experiment",
+					     "vxd,s5l8960x";
+				reg = <0x2 0x07f00000 0x0 0x00100000>;
+				status = "okay";
+			};
+		};
+	};
+};

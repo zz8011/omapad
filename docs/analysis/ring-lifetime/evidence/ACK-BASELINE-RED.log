@@ -1,0 +1,3 @@
+baseline_no_consume: a1599_ring_lifetime_20261014/tests/baseline_no_consume.c:20: main: Assertion `read_idx==3 && "new consumer advancement contract absent in unchanged 1211"' failed.
+
+exit=-6

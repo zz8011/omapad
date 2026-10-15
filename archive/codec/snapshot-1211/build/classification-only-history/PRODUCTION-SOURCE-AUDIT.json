@@ -1,0 +1,41 @@
+{
+  "changed": [
+    "a1599_fw_decode_submit.h",
+    "a1599_fw_first_ready_platform_harness.c"
+  ],
+  "unchanged": [
+    "Kconfig",
+    "Makefile",
+    "a1599-vxd-first-ready-overlay.dts",
+    "a1599_fw_candidate_kunit.c",
+    "a1599_fw_decode_diagnostics.h",
+    "a1599_fw_decode_layout.h",
+    "a1599_fw_decode_lifetime.h",
+    "a1599_fw_decode_stream.c",
+    "a1599_fw_decode_stream.h",
+    "a1599_fw_dma_mask.h",
+    "a1599_fw_first_ready_candidate.h",
+    "a1599_fw_first_ready_tables.c",
+    "a1599_fw_id81.c",
+    "a1599_fw_linux_backend_skeleton.c",
+    "a1599_fw_linux_backend_skeleton.h",
+    "a1599_fw_ring_capacity.h",
+    "a1599_fw_static_boot_memory.c",
+    "a1599_fw_static_boot_memory.h",
+    "a1599_fw_vlc_table.h",
+    "a1599_vxd_first_ready_dtbo.inc"
+  ],
+  "new_module": {
+    "sha256": "006e46341aa95d1aaa72bcf57ae8ecc82eeb0a5c3c7442bdf187f0e4c7ba58a2",
+    "bytes": 865688
+  },
+  "a1599_first_decode_candidate_progressive_mode_20261014/build/a1599_fw_candidate.ko": {
+    "sha256": "4367df89658bdbcee535129f768180c2fc239baf1eaae87896079a2061687b4c",
+    "bytes": 866280
+  },
+  "/home/zz8011/Documents/Codex/2026-10-13/task-6/a1599_first_decode_candidate_m2h_snapshot_20261014/build/a1599_fw_candidate.ko": {
+    "sha256": "c97fb883bbe39269bb9f16a9074305ce870e3366f563c72bf4b5ba77d6745fb2",
+    "bytes": 866224
+  },
+  "m2h_callback_unchanged": true
+}

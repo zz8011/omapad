@@ -1,0 +1,18 @@
+{
+  "module_sha256": "1211a6abbf026a9354f05a44e710c16ec7e8286cb0708b86b9ee260aa59bbbaa",
+  "module_rebuilt": false,
+  "prior_manifest_modified_files": [
+    "host-regressions/test_compare_output.py",
+    "tools/compare_output.py"
+  ],
+  "regression_tests": 7,
+  "new_tests_failed_before_fix": 4,
+  "new_tests_passed_after_fix": 4,
+  "review_reproducer_after": {
+    "nv21_correct_yuv": true,
+    "nv21_swapped_yvu": false,
+    "nv21_exact_match": true,
+    "nv12_mislabeled_nv21": false
+  },
+  "device_operations": false
+}

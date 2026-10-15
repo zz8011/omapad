@@ -1,0 +1,37 @@
+FILE-OK name=a1599_fw_candidate.ko bytes=889384 crc=381a44b5 sha256=6bbdcdf835923dbd57c1e00a7a8180307c3c856ac0694a8cf83b9d41869e8193
+FILE-OK name=vxd-staging-12.5.8-16H88.bin bytes=57344 crc=1af336b2 sha256=6b274c576a7952d7a4f22f65adf5b1041c4329c3dfc7ce761de53668cfd4a41e
+FILE-OK name=target-once.sh bytes=5062 crc=44cf1cad sha256=15634c76768aa4ff0cc2ba0b55d1034ad20210a3ebddddf8719040518f4289b3
+FILE-OK name=target-consumer.sh bytes=2770 crc=d002865e sha256=23dcb39fa37e3e6fa46f6eef508fd34fa2ab6deb94c85dadf8572e0898bea77d
+{
+  "scope": "QEMU user mode and software PTY; no USB or kernel module execution",
+  "events": [
+    "host_endpoint_held_before_receiver_start",
+    "startup_ready_consumed"
+  ],
+  "payloads": [
+    {
+      "name": "a1599_fw_candidate.ko",
+      "bytes": 889384,
+      "sha256": "6bbdcdf835923dbd57c1e00a7a8180307c3c856ac0694a8cf83b9d41869e8193"
+    },
+    {
+      "name": "vxd-staging-12.5.8-16H88.bin",
+      "bytes": 57344,
+      "sha256": "6b274c576a7952d7a4f22f65adf5b1041c4329c3dfc7ce761de53668cfd4a41e"
+    },
+    {
+      "name": "target-once.sh",
+      "bytes": 5062,
+      "sha256": "15634c76768aa4ff0cc2ba0b55d1034ad20210a3ebddddf8719040518f4289b3"
+    },
+    {
+      "name": "target-consumer.sh",
+      "bytes": 2770,
+      "sha256": "23dcb39fa37e3e6fa46f6eef508fd34fa2ab6deb94c85dadf8572e0898bea77d"
+    }
+  ],
+  "receiver_errors": 0,
+  "receiver_restarts": 0,
+  "rx_sha256": "58ac40a9ae6f6519ac4570605bebf344a372b84ad87b63ae3e8bb7940523cacd",
+  "tx_sha256": "0f43ea0e698332a57e43f00ec3e42d7e6a02db4be5401b449d1acc61008e6541"
+}

@@ -1,0 +1,7 @@
+fffffff008682640 file=0167e640  88fc8552  mov      w8, #0x2fe4
+fffffff008682644 file=0167e644  a102082a  orr      w1, w21, w8
+fffffff008682648 file=0167e648  e00314aa  mov      x0, x20
+fffffff00868264c file=0167e64c  0ed6ff97  bl       #0xfffffff008677e84
+fffffff008682650 file=0167e650  083c0012  and      w8, w0, #0xffff
+fffffff008682654 file=0167e654  097c1053  lsr      w9, w0, #0x10
+fffffff008682658 file=0167e658  89220c29  stp      w9, w8, [x20, #0x60]

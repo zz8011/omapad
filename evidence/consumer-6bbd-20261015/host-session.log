@@ -1,0 +1,14 @@
+FILE-OK name=a1599_fw_candidate.ko bytes=889384 crc=381a44b5 sha256=6bbdcdf835923dbd57c1e00a7a8180307c3c856ac0694a8cf83b9d41869e8193
+FILE-OK name=vxd-staging-12.5.8-16H88.bin bytes=57344 crc=1af336b2 sha256=6b274c576a7952d7a4f22f65adf5b1041c4329c3dfc7ce761de53668cfd4a41e
+FILE-OK name=target-once.sh bytes=5062 crc=44cf1cad sha256=15634c76768aa4ff0cc2ba0b55d1034ad20210a3ebddddf8719040518f4289b3
+FILE-OK name=target-consumer.sh bytes=2770 crc=d002865e sha256=23dcb39fa37e3e6fa46f6eef508fd34fa2ab6deb94c85dadf8572e0898bea77d
+{
+  "result": "single_frame_pixels_and_consumer_readback_verified",
+  "boot_id": "39a2e6e3-5272-4e4c-ae9e-b0d0ab066333",
+  "nonce": "ce9214d5f94131d6200d39d91d69eac0",
+  "output_sha256": "9f4d0fe4b48d7ae835608a1a686a7a075e9ab8eb136bd7e5c10e6bc290849557",
+  "dma_completion_proven": false,
+  "dma_reuse_allowed": false,
+  "second_decode_allowed": false,
+  "resources_pinned": true
+}

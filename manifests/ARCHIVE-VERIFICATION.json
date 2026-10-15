@@ -1,0 +1,12 @@
+{
+  "copied_files": 384,
+  "copied_bytes": 2430917,
+  "all_copies_match_source_sha256": true,
+  "external_references": 22,
+  "credential_marker_hits": 0,
+  "existing_project_code_executed": false,
+  "build_or_test_run": false,
+  "hardware_access": false,
+  "source_files_modified": false,
+  "platform_block": "unresolved; paused test is not authorized by archival work"
+}

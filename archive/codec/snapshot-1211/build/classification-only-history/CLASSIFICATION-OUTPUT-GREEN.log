@@ -1,0 +1,10 @@
+['cc', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_decode_submit_mock.c', 'id81_host_contract/id81_contract.c', '-o', 'a1599_first_decode_candidate_c0_classification_20261014/build/test_decode_submit_green']
+exit=0
+
+['a1599_first_decode_candidate_c0_classification_20261014/build/test_decode_submit_green']
+exit=0
+ID81 one-shot send/C0 MMIO mock tests: PASS (native class10/class8010, captured flags, missing detail, wrong fence, timeout, preflight)
+
+['python', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_output_gate_source.py']
+exit=0
+production output block: PASS (12 cases; zero guard/output reads without synchronization proof)

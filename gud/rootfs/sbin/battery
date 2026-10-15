@@ -1,0 +1,30 @@
+#!/bin/sh
+# 读 BQ27540 电量计（iPad mini 3 / J85M，HDQ bit-bang，见 lib/a1599/hdq3.ko）
+#
+# 这是判断"到底有没有在充电"的**独立判据**：不看 PMU，只看电量计本身。
+# 关键寄存器 0x14 是平均电流，**正值 = 在充电，负值 = 在放电**。
+#
+# 用法:
+#   battery            读一次
+#   battery <次数> <秒>  连续读，例如 battery 5 10
+
+CMD=/sys/kernel/hdq3/cmd
+OUT=/sys/kernel/hdq3/out
+
+grep -q '^hdq3 ' /proc/modules || {
+    [ -e /lib/a1599/hdq3.ko ] || { echo "无 /lib/a1599/hdq3.ko"; exit 1; }
+    insmod /lib/a1599/hdq3.ko 2>/dev/null || { echo "insmod hdq3 失败"; exit 1; }
+}
+i=0
+while [ ! -e "$CMD" ] && [ $i -lt 20 ]; do sleep 0.1; i=$((i + 1)); done
+[ -e "$CMD" ] || { echo "hdq3 sysfs 未出现"; exit 1; }
+
+n=${1:-1}
+iv=${2:-5}
+i=0
+while [ "$i" -lt "$n" ]; do
+    echo battery > "$CMD"
+    cat "$OUT"
+    i=$((i + 1))
+    [ "$i" -lt "$n" ] && sleep "$iv"
+done

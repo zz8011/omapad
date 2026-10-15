@@ -1,0 +1,94 @@
+{
+  "session": "20261014T182538Z-4d47b6f215c6",
+  "nonce": "ce9214d5f94131d6200d39d91d69eac0",
+  "binding": {
+    "schema": 1,
+    "session": "20261014T182538Z-4d47b6f215c6",
+    "device": {
+      "port": "1-9.3",
+      "mode": "gadget",
+      "boot_id": "c6bc4ae9-534e-4ec8-a938-93aece29d186",
+      "controller": "/sys/devices/pci0000:00/0000:00:14.0/usb1",
+      "controller_inode": [
+        25,
+        24915
+      ],
+      "hubs": [
+        {
+          "path": "/sys/devices/pci0000:00/0000:00:14.0/usb1/1-9",
+          "inode": [
+            25,
+            45689
+          ],
+          "idVendor": "1d5c",
+          "idProduct": "5510",
+          "busnum": "1",
+          "devnum": "5",
+          "devpath": "9",
+          "authorized": "1"
+        }
+      ],
+      "leaf": {
+        "path": "/sys/devices/pci0000:00/0000:00:14.0/usb1/1-9/1-9.3",
+        "inode": [
+          25,
+          570136
+        ],
+        "idVendor": "1d6b",
+        "idProduct": "0104",
+        "busnum": "1",
+        "devnum": "94",
+        "devpath": "9.3",
+        "authorized": "1"
+      },
+      "interfaces": {
+        "00": {
+          "tty": "ttyACM0",
+          "path": "/dev/ttyACM0",
+          "rdev": 42496,
+          "node_token": [
+            7,
+            2103
+          ],
+          "interface_path": "/sys/devices/pci0000:00/0000:00:14.0/usb1/1-9/1-9.3/1-9.3:1.0",
+          "interface_inode": [
+            25,
+            570186
+          ],
+          "driver": "/sys/bus/usb/drivers/cdc_acm"
+        },
+        "02": {
+          "tty": "ttyACM1",
+          "path": "/dev/ttyACM1",
+          "rdev": 42497,
+          "node_token": [
+            7,
+            2104
+          ],
+          "interface_path": "/sys/devices/pci0000:00/0000:00:14.0/usb1/1-9/1-9.3/1-9.3:1.2",
+          "interface_inode": [
+            25,
+            570293
+          ],
+          "driver": "/sys/bus/usb/drivers/cdc_acm"
+        },
+        "04": {
+          "tty": "ttyACM2",
+          "path": "/dev/ttyACM2",
+          "rdev": 42498,
+          "node_token": [
+            7,
+            2105
+          ],
+          "interface_path": "/sys/devices/pci0000:00/0000:00:14.0/usb1/1-9/1-9.3/1-9.3:1.4",
+          "interface_inode": [
+            25,
+            570400
+          ],
+          "driver": "/sys/bus/usb/drivers/cdc_acm"
+        }
+      }
+    }
+  },
+  "package_manifest_sha256": "7abf6e5660973a7c0c2d401e3954684493173c7bf4fc5da16560acd7351914f4"
+}

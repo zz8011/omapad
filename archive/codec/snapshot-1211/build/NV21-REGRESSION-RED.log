@@ -1,0 +1,64 @@
+test_detects_nv12_candidate_without_assuming_it (__main__.CompareOutputTests.test_detects_nv12_candidate_without_assuming_it) ... ok
+test_detects_planar_candidate_and_rejects_guard_overlap (__main__.CompareOutputTests.test_detects_planar_candidate_and_rejects_guard_overlap) ... ok
+test_nv12_extracts_uv_and_nv21_interpretation_swaps_planes (__main__.CompareOutputTests.test_nv12_extracts_uv_and_nv21_interpretation_swaps_planes) ... FAIL
+test_nv12_screen_matches_nv12_and_rejects_nv21 (__main__.CompareOutputTests.test_nv12_screen_matches_nv12_and_rejects_nv21) ... FAIL
+test_nv21_extracts_vu_and_nv12_interpretation_swaps_planes (__main__.CompareOutputTests.test_nv21_extracts_vu_and_nv12_interpretation_swaps_planes) ... FAIL
+test_nv21_screen_matches_nv21_and_rejects_nv12 (__main__.CompareOutputTests.test_nv21_screen_matches_nv21_and_rejects_nv12) ... FAIL
+test_unmatched_output_is_explicit (__main__.CompareOutputTests.test_unmatched_output_is_explicit) ... ok
+
+======================================================================
+FAIL: test_nv12_extracts_uv_and_nv21_interpretation_swaps_planes (__main__.CompareOutputTests.test_nv12_extracts_uv_and_nv21_interpretation_swaps_planes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_compare_output.py", line 49, in test_nv12_extracts_uv_and_nv21_interpretation_swaps_planes
+    self.assertEqual(compare_output.extract_planes(backing, nv21),
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     (expected[0], expected[2], expected[1]))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (b'\x[3904 chars] b'\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x1[2007 chars]xcb') != (b'\x[3904 chars] b'\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xc[2007 chars]x11')
+
+First differing element 1:
+b'\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x1[977 chars]\x11'
+b'\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xc[977 chars]\xcb'
+
+Diff is 7926 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_nv12_screen_matches_nv12_and_rejects_nv21 (__main__.CompareOutputTests.test_nv12_screen_matches_nv12_and_rejects_nv21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_compare_output.py", line 65, in test_nv12_screen_matches_nv12_and_rejects_nv21
+    self.assertEqual(matches, {"NV12"})
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+AssertionError: Items in the first set but not the second:
+'NV21'
+
+======================================================================
+FAIL: test_nv21_extracts_vu_and_nv12_interpretation_swaps_planes (__main__.CompareOutputTests.test_nv21_extracts_vu_and_nv12_interpretation_swaps_planes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_compare_output.py", line 56, in test_nv21_extracts_vu_and_nv12_interpretation_swaps_planes
+    self.assertEqual(compare_output.extract_planes(backing, nv21), expected)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (b'\x[3904 chars] b'\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xc[2007 chars]x11') != (b'\x[3904 chars] b'\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x1[2007 chars]xcb')
+
+First differing element 1:
+b'\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xcb\xc[977 chars]\xcb'
+b'\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x1[977 chars]\x11'
+
+Diff is 7926 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_nv21_screen_matches_nv21_and_rejects_nv12 (__main__.CompareOutputTests.test_nv21_screen_matches_nv21_and_rejects_nv12)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_compare_output.py", line 72, in test_nv21_screen_matches_nv21_and_rejects_nv12
+    self.assertEqual(matches, {"NV21"})
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+AssertionError: Items in the second set but not the first:
+'NV21'
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.029s
+
+FAILED (failures=4)

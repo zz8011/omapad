@@ -1,0 +1,33 @@
+--- /home/zz8011/Projects/ipad-a1599-linux-display/.scratch/dwc2-params.c.orig	2026-10-15 05:04:39.790307155 +0800
++++ /home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux/drivers/usb/dwc2/params.c	2026-10-15 05:04:39.797464472 +0800
+@@ -303,6 +303,15 @@
+ 	p->hird_threshold_en = false;
+ }
+ 
++/*
++ * A1599/J207 GUD 副屏：GUD 的流量几乎全是 bulk OUT，默认 539 字的 RX FIFO（约 4 个包）
++ * 会把 HS 吞吐限制在每微帧一次 FIFO（实测约 18 MB/s）。dwc2.apple_rx_fifo=N（字）
++ * 加大 RX FIFO；发送 FIFO 改为前两个 128 字（ACM bulk IN 512 B）、其余 16 字。0 = 原行为。
++ */
++static unsigned int apple_rx_fifo;
++module_param(apple_rx_fifo, uint, 0444);
++MODULE_PARM_DESC(apple_rx_fifo, "Apple dwc2: RX FIFO size in words (0 = default)");
++
+ static void dwc2_set_apple_silicon_params(struct dwc2_hsotg *hsotg)
+ {
+ 	struct dwc2_core_params *p = &hsotg->params;
+@@ -320,6 +329,14 @@
+ 	p->g_tx_fifo_size[0] = 64;
+ 	for(fifo = 1; fifo <= fifo_count; fifo++)
+ 		p->g_tx_fifo_size[fifo] = 244;
++
++	if (apple_rx_fifo) {
++		p->g_rx_fifo_size = apple_rx_fifo;
++		for (fifo = 1; fifo <= fifo_count; fifo++)
++			p->g_tx_fifo_size[fifo] = fifo <= 2 ? 128 : 16;
++		dev_info(hsotg->dev, "apple_rx_fifo=%u, tx fifos 2x128 + %dx16\n",
++			 apple_rx_fifo, fifo_count > 2 ? fifo_count - 2 : 0);
++	}
+ }
+ 
+ const struct of_device_id dwc2_of_match_table[] = {

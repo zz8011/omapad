@@ -1,0 +1,47 @@
+#!/bin/busybox sh
+# USB 链路看门狗。A1599 的 USB 没有 VBUS 检测：宿主重启、端口断电或拔插线后，
+# dwc2 不知道链路断过，可能一直停在 configured，却不再响应宿主枚举
+# （宿主报 "Device not responding to setup address"）。
+# 因此以“宿主最近的控制请求”为心跳：gudd 收到 SETUP 就更新 /run/usb-hb，
+# 宿主 gud 因 POLL_STATUS 每 10 秒查询一次。心跳超过 25 秒未更新时逐级恢复：
+#   1. soft_connect 断开再连接   2. 重新绑定 UDC   3. 卸载并重新加载 dwc2（重新初始化 PHY）
+# 每一级都把诊断信息打印到 iPad 屏幕（/dev/tty0），便于在 USB 不通时拍照取证。
+cfg=/sys/kernel/config/usb_gadget/a1599
+udc=$(ls /sys/class/udc | head -1)
+dev=$(basename "$(readlink -f /sys/class/udc/$udc/device)")   # A1599: 20c100000.usbdev；J207: 20c100000.usb2dev
+log() {
+    [ "$(stat -c %s /run/usb-linkwatch.log 2>/dev/null || echo 0)" -gt 65536 ] && : > /run/usb-linkwatch.log
+    echo "$(date) $*" >> /run/usb-linkwatch.log
+}
+show() {
+    { echo; echo "===== usb-linkwatch: $* ====="; uptime
+      cat /sys/class/udc/$udc/state 2>/dev/null; tail -5 /run/usb-linkwatch.log
+      dmesg | grep -i -E "dwc2|usb|ffs|functionfs|phy" | tail -15; } > /dev/tty0 2>&1
+}
+touch /run/usb-hb
+step=0
+while sleep 2; do
+    age=$(( $(date +%s) - $(stat -c %Y /run/usb-hb) ))
+    if [ $age -le 25 ]; then
+        [ $step -gt 0 ] && log "已恢复（心跳 ${age}s）"
+        step=0; continue
+    fi
+    [ -n "$(cat $cfg/UDC 2>/dev/null)" ] || [ $step -ge 3 ] || continue   # supervisor 正在重绑
+    step=$((step + 1))
+    case $((step % 3)) in
+    1)  log "心跳中断 ${age}s，state=$(cat /sys/class/udc/$udc/state)，soft_connect 断开/连接"
+        echo disconnect > /sys/class/udc/$udc/soft_connect; sleep 1
+        echo connect > /sys/class/udc/$udc/soft_connect ;;
+    2)  log "仍未恢复，重新绑定 UDC"
+        echo "" > $cfg/UDC; sleep 1; echo $udc > $cfg/UDC ;;
+    0)  log "仍未恢复，重新加载 dwc2 驱动"
+        show "重新加载 dwc2"
+        echo "" > $cfg/UDC 2>/dev/null
+        echo $dev > /sys/bus/platform/drivers/dwc2/unbind; sleep 1
+        echo $dev > /sys/bus/platform/drivers/dwc2/bind; sleep 2
+        udc=$(ls /sys/class/udc | head -1)
+        echo $udc > $cfg/UDC ;;
+    esac
+    touch /run/usb-hb   # 给本级恢复留出 25 秒
+    [ $step -ge 9 ] && { show "多次恢复失败"; step=3; }
+done

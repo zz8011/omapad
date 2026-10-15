@@ -1,0 +1,709 @@
+$ sudo -n python3 /home/zz8011/Documents/Codex/2026-10-12/task-2/a1599-alpine-fixed/diagnostic-v2/gadget-fix/launch/alpine_dfu_wrapper.py --start
+#
+# Checkra1n 0.1337.3
+#
+# Proudly written in nano
+# (c) 2019-2023 Kim Jong Cracks
+#
+#========  Made by  =======
+# argp, axi0mx, danyl931, jaywalker, kirb, littlelailo, nitoTV
+# never_released, nullpixel, pimskeks, qwertyoruiop, sbingner, siguza
+#======== Thanks to =======
+# haifisch, jndok, jonseals, xerub, lilstevie, psychotea, sferrini
+# Cellebrite (ih8sn0w, cjori, ronyrus et al.)
+#==========================
+
+ - [10/14/26 17:22:36] <Info>: Waiting for DFU mode devices
+ - [10/14/26 17:22:36] <Verbose>: DFU mode device found
+ - [10/14/26 17:22:36] <Info>: Checking if device is ready
+ - [10/14/26 17:22:36] <Verbose>: Attempting to perform checkm8 on 8960 11
+ - [10/14/26 17:22:36] <Info>: Setting up the exploit
+ - [10/14/26 17:22:36] <Verbose>: == checkm8 setup stage ==
+ - [10/14/26 17:22:36] <Verbose>: UaF race: heuristic strategy failed, setup packet was not accepted
+ - [10/14/26 17:22:36] <Warning>: Performing USB device reset: device disconnect detection might not work until a manual cable replug
+ - [10/14/26 17:22:37] <Verbose>: UaF race: setup packet was accepted, attempting heuristic strategy
+ - [10/14/26 17:22:37] <Verbose>: UaF race: heuristic strategy was successful
+ - [10/14/26 17:22:37] <Verbose>: Entered initial checkm8 state after 2 steps
+ - [10/14/26 17:22:38] <Verbose>: DFU mode device disconnected
+ - [10/14/26 17:22:38] <Verbose>: DFU mode device found
+ - [10/14/26 17:22:38] <Verbose>: == checkm8 trigger stage ==
+ - [10/14/26 17:22:39] <Warning>: Performing USB device reset: device disconnect detection might not work until a manual cable replug
+ - [10/14/26 17:22:40] <Info>: Checkmate!
+ - [10/14/26 17:22:40] <Verbose>: Device should now reconnect in download mode
+ - [10/14/26 17:22:40] <Verbose>: DFU mode device disconnected
+ - [10/14/26 17:22:40] <Info>: Entered download mode
+ - [10/14/26 17:22:40] <Verbose>: Download mode device found
+ - [10/14/26 17:22:40] <Info>: Booting PongoOS...
+Pongo startup returned successfully; next verify the banner with session 20261014T092236Z-130b8ba299d9.
+local log: /run/a1599-alpine-maintenance/a1599-alpine-wrapper-20261014T092236Z-130b8ba299d9.jsonl
+$ sudo -n python3 /home/zz8011/Documents/Codex/2026-10-12/task-2/a1599-alpine-fixed/diagnostic-v2/gadget-fix/launch/alpine_dfu_wrapper.py --upload 20261014T092236Z-130b8ba299d9
+Fixed Alpine bundle uploaded and bootm sent; no post-boot service command was sent.
+local log: /run/a1599-alpine-maintenance/a1599-alpine-wrapper-20261014T092236Z-130b8ba299d9.jsonl
+$ lsusb -d 1d6b:0104; ls -l /dev/ttyACM*; lsusb -t
+Bus 001 Device 042: ID 1d6b:0104 Linux Foundation Multifunction Composite Gadget
+crw-rw---- 1 root uucp 166, 0 Oct 14 17:23 /dev/ttyACM0
+crw-rw---- 1 root uucp 166, 1 Oct 14 17:23 /dev/ttyACM1
+crw-rw---- 1 root uucp 166, 2 Oct 14 17:23 /dev/ttyACM2
+/:  Bus 001.Port 001: Dev 001, Class=root_hub, Driver=xhci_hcd/16p, 480M
+    |__ Port 001: Dev 002, If 0, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 001: Dev 002, If 1, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 003: Dev 003, If 0, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 003: Dev 003, If 1, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 003: Dev 003, If 2, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 006: Dev 004, If 0, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 009: Dev 005, If 0, Class=Hub, Driver=hub/6p, 480M
+        |__ Port 003: Dev 036, If 0, Class=Human Interface Device, Driver=usbhid, 12M
+        |__ Port 003: Dev 036, If 1, Class=Audio, Driver=snd-usb-audio, 12M
+        |__ Port 003: Dev 036, If 3, Class=Audio, Driver=snd-usb-audio, 12M
+        |__ Port 003: Dev 036, If 6, Class=Vendor Specific Class, Driver=[none], 12M
+        |__ Port 006: Dev 008, If 0, Class=Video, Driver=uvcvideo, 480M
+        |__ Port 006: Dev 008, If 1, Class=Video, Driver=uvcvideo, 480M
+        |__ Port 006: Dev 008, If 2, Class=Audio, Driver=snd-usb-audio, 480M
+        |__ Port 006: Dev 008, If 3, Class=Audio, Driver=snd-usb-audio, 480M
+    |__ Port 011: Dev 006, If 0, Class=Video, Driver=uvcvideo, 480M
+    |__ Port 011: Dev 006, If 1, Class=Video, Driver=uvcvideo, 480M
+    |__ Port 012: Dev 042, If 0, Class=Communications, Driver=cdc_acm, 480M
+    |__ Port 012: Dev 042, If 1, Class=CDC Data, Driver=cdc_acm, 480M
+    |__ Port 012: Dev 042, If 2, Class=Communications, Driver=cdc_acm, 480M
+    |__ Port 012: Dev 042, If 3, Class=CDC Data, Driver=cdc_acm, 480M
+    |__ Port 012: Dev 042, If 4, Class=Communications, Driver=cdc_acm, 480M
+    |__ Port 012: Dev 042, If 5, Class=CDC Data, Driver=cdc_acm, 480M
+    |__ Port 013: Dev 007, If 0, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 013: Dev 007, If 1, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 013: Dev 007, If 2, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 013: Dev 007, If 3, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 014: Dev 009, If 0, Class=Wireless, Driver=btusb, 12M
+    |__ Port 014: Dev 009, If 1, Class=Wireless, Driver=btusb, 12M
+/:  Bus 002.Port 001: Dev 001, Class=root_hub, Driver=xhci_hcd/10p, 20000M/x2
+    |__ Port 004: Dev 002, If 0, Class=Hub, Driver=hub/4p, 10000M
+
+--- wrapper audit ---
+{"argv": ["/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/out/checkra1n-0.1337.3-exec", "--override-pongo", "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/out/a1599-host-candidate/Pongo.bin", "--pongo", "--early-exit"], "dfu_identity": {"busnum": "1", "devnum": "37", "product": "1227", "sysfs_name": "1-12", "vendor": "05ac"}, "event": "checkra1n_start", "hashes": {"Pongo": "86c9b1989c35a98f7dc2abfe369a06c73b029e9ebae17b29c822a709a008f0b5", "bundle": "a069bf7743ac234a463e106f6eacce366fd5a89ca8d10a467e1cf93b790bb074", "checkra1n": "53154d87594cf67c56659f24547f1b5bb5336f84ea58c2d42f25a7b2df81a964", "pongoterm": "50e68a1c2b516cb984c293601ce93059990286ef859f1dbac8583f0b58f835b3"}, "time_utc": "2026-10-14T09:22:36+00:00"}
+{"event": "checkra1n_exit", "returncode": 0, "time_utc": "2026-10-14T09:22:40+00:00"}
+{"argv": ["/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/out/pongoterm"], "event": "pongo_live_session_start", "pongo_identity": {"busnum": "1", "devnum": "40", "product": "4141", "sysfs_name": "1-12", "vendor": "05ac"}, "time_utc": "2026-10-14T09:23:41+00:00"}
+{"banner_ok": true, "event": "pongo_live_banner_result", "pongo_identity": {"busnum": "1", "devnum": "40", "product": "4141", "sysfs_name": "1-12", "vendor": "05ac"}, "prompt_ok": true, "time_utc": "2026-10-14T09:23:41+00:00"}
+{"event": "fixed_payload_transfer_result", "pongo_identity": {"busnum": "1", "devnum": "40", "product": "4141", "sysfs_name": "1-12", "vendor": "05ac"}, "time_utc": "2026-10-14T09:23:41+00:00", "uploaded_marker": true}
+{"bundle_sha256": "a069bf7743ac234a463e106f6eacce366fd5a89ca8d10a467e1cf93b790bb074", "event": "fixed_payload_bootm_sent", "pongo_identity": {"busnum": "1", "devnum": "40", "product": "4141", "sysfs_name": "1-12", "vendor": "05ac"}, "stdin_ascii": "/send <bundle sha256 a069bf7743ac234a463e106f6eacce366fd5a89ca8d10a467e1cf93b790bb074>\\nbootm\\n", "time_utc": "2026-10-14T09:23:41+00:00"}
+{"bootm_rejected": false, "event": "fixed_payload_upload_result", "returncode": 255, "time_utc": "2026-10-14T09:23:48+00:00", "uploaded_marker": true, "usb_disconnect_after_upload": true}
+  File "<string>", line 1
+    import sys; sys.path.insert(0,"/home/zz8011/Documents/Codex/2026-10-12/task-3"); from a1599_h264_runner import shell_command; print("\n".join(shell_command("id; uname -a; printf ROOTFS=; awk '$2==\"/\"{print $3}' /proc/mounts; printf MODULES_DISABLED=; cat /proc/sys/kernel/modules_disabled; printf USB_ID=; cat /sys/bus/usb/devices/1-12/idVendor; cat /sys/bus/usb/devices/1-12/idProduct; printf INCOMING=; ls -la /run/incoming; printf VXD=; ls /dev/*vxd* 2>/dev/null; printf MODULE=; grep a1599 /proc/modules; printf SERVICES=; ps | grep -E "displayd|file-recv"", "A1599_CHECK_%s" % "DEVICE_STATUS_20261014", 20)))
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ^^^^^^^^^^^^^^^^^^
+SyntaxError: invalid syntax. Is this intended to be part of the string?
+2026-10-14T09:24:25Z pid=3626846 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:24:25Z pid=3626846 ACM0 modem lines after open: DTR=True RTS=True bits=0x26
+id; uname -a; printf ROOTFS=; awk '$2=="/"{print $3}' /proc/mounts; printf M\nODULES_DISABLED=; cat /proc/sys/kernel/modules_disabled; printf USB_ID=; cat /sy\ns/bus/usb/devices/1-12/idVendor; cat /sys/bus/usb/devices/1-12/idProduct; printf\n INCOMING=; ls -la /run/incoming; printf VXD=; ls /dev/*vxd* 2>/dev/null; printf\n MODULE=; grep a1599 /proc/modules; printf SERVICES=; ps | grep -E 'displayd|fil\ne-recv'; printf A1599_MARKER_%s\n CHECK_DEVICE_STATUS_20261014
+2026-10-14T09:24:40Z pid=3637805 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:24:40Z pid=3637805 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+id; uname -a; printf ROOTFS=; awk '$2=="/"{print $3}' /proc/mounts; printf M\nODULES_DISABLED=; cat /proc/sys/kernel/modules_disabled; printf USB_ID=; cat /sy\ns/bus/usb/devices/1-12/idVendor; cat /sys/bus/usb/devices/1-12/idProduct; printf\n INCOMING=; ls -la /run/incoming; printf VXD=; ls /dev/*vxd* 2>/dev/null; printf\n MODULE=; grep a1599 /proc/modules; printf SERVICES=; ps | grep -E 'displayd|fil\ne-recv'; printf '%s%s\n' CHECK_DEVICE_ STATUS_20261014\nuid=0(root) gid=0(root)\nLinux (none) 7.3.0-rc1 #4 SMP PREEMPT Mon Oct 12 00:34:11 CST 2026 aarch64 Linux\nROOTFS=rootfs\nMODULES_DISABLED=0\nUSB_ID=cat: can't open '/sys/bus/usb/devices/1-12/idVendor': No such file or directory\ncat: can't open '/sys/bus/usb/devices/1-12/idProduct': No such file or directory\nINCOMING=total 0\ndrwxr-xr-x    2 root     root            40 Oct 14 09:23 [1;34m.[m\ndrwxr-xr-x    5 root     root           100 Oct 14 09:23 [1;34m..[m\nVXD=MODULE=SERVICES=  106 root      0:00 /sbin/file-recv /dev/ttyGS1 /run/incoming\n  107 root      0:00 /sbin/displayd /dev/ttyGS2\n  131 root      0:00 grep -E displayd|file-recv\nCHECK_DEVICE_STATUS_20261014
+$ sudo -n python3 a1599_overlay_loader/send_ram_files.py <diagnostic-ko> <pinned-firmware>
+RAM-TRANSFER-FAILED ACM1 receiver reply timed out
+Traceback (most recent call last):
+  File "/home/zz8011/Documents/Codex/2026-10-13/task-6/a1599_overlay_loader/send_ram_files.py", line 134, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/zz8011/Documents/Codex/2026-10-13/task-6/a1599_overlay_loader/send_ram_files.py", line 100, in main
+    greeting = read_line(fd, 8)
+  File "/home/zz8011/Documents/Codex/2026-10-13/task-6/a1599_overlay_loader/send_ram_files.py", line 53, in read_line
+    raise LinkError("ACM1 receiver reply timed out")
+a1599_h264_runner.LinkError: ACM1 receiver reply timed out
+2026-10-14T09:25:13Z pid=3662570 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:25:13Z pid=3662570 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+printf SERVICES\n; ps; printf TTYMAP\n; ls -l /dev/ttyGS*; printf RECVLOG\n;
+ dmesg | tail -n 50; printf '%s%s\n' DIAG_DEV_ EVIDENCE
+SERVICESnPID   USER     TIME  COMMAND
+    1 root      0:00 /init
+    2 root      0:00 [kthreadd]
+    3 root      0:00 [pool_workqueue_]
+    4 root      0:00 [kworker/R-rcu_g]
+    5 root      0:00 [kworker/R-sync_]
+    6 root      0:00 [kworker/R-kvfre]
+    7 root      0:00 [kworker/R-slub_]
+    8 root      0:00 [kworker/R-netns]
+    9 root      0:00 [kworker/0:0-dev]
+   10 root      0:00 [kworker/0:1-dev]
+   11 root      0:00 [kworker/0:0H]
+   12 root      0:00 [kworker/u8:0-ev]
+   13 root      0:00 [kworker/R-mm_pe]
+   14 root      0:00 [ksoftirqd/0]
+   15 root      0:00 [rcu_preempt]
+   16 root      0:00 [rcu_exp_par_gp_]
+   17 root      0:00 [rcu_exp_gp_kthr]
+   18 root      0:00 [migration/0]
+   19 root      0:00 [cpuhp/0]
+   20 root      0:00 [cpuhp/1]
+   21 root      0:00 [migration/1]
+   22 root      0:00 [ksoftirqd/1]
+   23 root      0:00 [kworker/1:0-eve]
+   24 root      0:00 [kworker/1:0H]
+   25 root      0:00 [kdevtmpfs]
+   26 root      0:00 [kworker/R-inet_]
+   27 root      0:00 [rcu_tasks_kthre]
+   28 root      0:00 [kauditd]
+   29 root      0:00 [oom_reaper]
+   30 root      0:00 [kworker/u8:1-pm]
+   31 root      0:00 [kworker/R-write]
+   32 root      0:00 [kcompactd0]
+   33 root      0:00 [ksmd]
+   34 root      0:00 [khugepaged]
+   35 root      0:00 [kworker/R-bio_c]
+   36 root      0:00 [kworker/R-kbloc]
+   37 root      0:00 [kworker/1:1-mm_]
+   38 root      0:00 [kworker/R-devfr]
+   39 root      0:00 [watchdogd]
+   40 root      0:00 [kworker/R-quota]
+   41 root      0:01 [kworker/u8:2-tt]
+   42 root      0:00 [kworker/u8:3]
+   43 root      0:00 [kswapd0]
+   44 root      0:00 [kworker/R-crypt]
+   45 root      0:00 [kworker/u9:0]
+   46 root      0:00 [kworker/R-nbd0-]
+   47 root      0:00 [kworker/R-nbd1-]
+   48 root      0:00 [kworker/R-nbd2-]
+   49 root      0:00 [kworker/R-nbd3-]
+   50 root      0:00 [kworker/R-nbd4-]
+   51 root      0:00 [kworker/R-nbd5-]
+   52 root      0:00 [kworker/R-nbd6-]
+   53 root      0:00 [kworker/R-nbd7-]
+   54 root      0:00 [kworker/R-nbd8-]
+   55 root      0:00 [kworker/R-nbd9-]
+   56 root      0:00 [kworker/R-nbd10]
+   57 root      0:00 [kworker/R-nbd11]
+   58 root      0:00 [kworker/R-nbd12]
+   59 root      0:00 [kworker/R-nbd13]
+   60 root      0:00 [kworker/R-nbd14]
+   61 root      0:00 [kworker/R-nbd15]
+   62 root      0:00 [kworker/R-nvme-]
+   63 root      0:00 [kworker/R-nvme-]
+   64 root      0:00 [kworker/R-nvme-]
+   67 root      0:00 [kworker/R-mld]
+   68 root      0:00 [kworker/R-ipv6_]
+   69 root      0:00 [kworker/R-zswap]
+   70 root      0:00 [kworker/0:2-eve]
+   71 root      0:00 [kworker/0:3-rcu]
+   72 root      0:00 [kworker/0:4-eve]
+  105 root      0:00 /bin/sh --
+  106 root      0:00 /sbin/file-recv /dev/ttyGS1 /run/incoming
+  107 root      0:00 /sbin/displayd /dev/ttyGS2
+  108 root      0:00 [kworker/1:2-eve]
+  132 root      0:00 ps
+TTYMAPncrw--w----    1 root     root      246,   0 Oct 14 09:25 [1;35m/dev/ttyGS0[m
+crw-------    1 root     root      246,   1 Oct 14 09:24 [1;35m/dev/ttyGS1[m
+crw-------    1 root     root      246,   2 Oct 14 09:23 [1;35m/dev/ttyGS2[m
+RECVLOGn[    0.123780] tun: Universal TUN/TAP device driver, 1.6
+[    0.125565] Driver for 1-wire Dallas network protocol.
+[    0.126439] device-mapper: ioctl: 4.50.0-ioctl (2025-04-28) initialised: dm-devel@lists.linux.dev
+[    0.126553] Bluetooth: HCI UART driver ver 2.3
+[    0.126614] Bluetooth: HCI UART protocol H4 registered
+[    0.126792] Bluetooth: HCI UART protocol Broadcom registered
+[    0.127560] usbcore: registered new interface driver usbhid
+[    0.127590] usbhid: USB HID core driver
+[    0.128806] hw perfevents: enabled with apple_cyclone_pmu PMU driver, 8 (0,000000ff) counters available
+[    0.129198]  cs_system_cfg: CoreSight Configuration manager initialised
+[    0.130989] NET: Registered PF_INET6 protocol family
+[    0.131625] Segment Routing with IPv6
+[    0.131719] In-situ OAM (IOAM) with IPv6
+[    0.131852] sit: IPv6, IPv4 and MPLS over IPv4 tunneling driver
+[    0.132271] NET: Registered PF_PACKET protocol family
+[    0.132344] Bluetooth: BNEP (Ethernet Emulation) ver 1.3
+[    0.132406] Bluetooth: BNEP filters: protocol multicast
+[    0.132473] Bluetooth: BNEP socket layer initialized
+[    0.132534] Bluetooth: HIDP (Human Interface Emulation) ver 1.2
+[    0.132601] Bluetooth: HIDP socket layer initialized
+[    0.132675] Key type dns_resolver registered
+[    0.137846] registered taskstats version 1
+[    0.138046] Loading compiled-in X.509 certificates
+[    0.144546] zswap: loaded using pool zstd
+[    0.148266] dwc2 20c100000.usbdev: EPs: 9, dedicated fifos, 2024 entries in SPRAM
+[    0.156455] 20a0a0000.serial: ttySAC0 MMIO32:0x000000020a0a0000 (irq = 45, base_baud = 0) is a APPLE S5L
+[    0.156668] printk: legacy console [ttySAC0] enabled
+[    1.131606] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.136778] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.142650] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.148237] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.154793] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.159763] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.165757] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.173569] rtc-apple-pmic 20a110000.i2c:pmic@3c:rtc@5c0: registered as rtc0
+[    1.180271] rtc-apple-pmic 20a110000.i2c:pmic@3c:rtc@5c0: setting system clock to 2026-10-14T09:23:49 UTC (1791969829)
+[    1.191142] input: gpio-keys as /devices/platform/gpio-keys/input/input0
+[    1.197408] clk: Disabling unused clocks
+[    1.200625] PM: genpd: Disabling unused power domains
+[    1.206331] Freeing unused kernel memory: 960K
+[    1.210296] Run /init as init process
+[    1.213805]   with arguments:
+[    1.213812]     /init
+[    1.213817]   with environment:
+[    1.213821]     HOME=/
+[    1.213824]     TERM=linux
+[    1.311431] dwc2 20c100000.usbdev: bound driver configfs-gadget.a1599
+[    1.523748] dwc2 20c100000.usbdev: new device is high-speed
+[    1.638618] dwc2 20c100000.usbdev: new device is high-speed
+[    1.696511] dwc2 20c100000.usbdev: new address 42
+DIAG_DEV_EVIDENCE
+2026-10-14T09:25:42Z pid=3685713 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:25:42Z pid=3685713 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+grep -n file-recv /etc/inittab; p=$(pidof file-recv); printf FILE_RECV_PID=;
+ echo $p; printf FILE_RECV_FDS=; ls -l /proc/$p/fd 2>/dev/null; printf DISPLAYD_
+PID=; pidof displayd; printf '%s%s\n' DIAG_CHECK_ RECEIVER_RESPAWN
+3:::respawn:/sbin/wait-for-device /dev/ttyGS1 /sbin/file-recv /dev/ttyGS1 /run/incoming
+FILE_RECV_PID=106
+FILE_RECV_FDS=total 0
+lrwx------    1 root     root            64 Oct 14 09:25 [1;36m0[m -> [1;35m/dev/console[m
+lrwx------    1 root     root            64 Oct 14 09:25 [1;36m1[m -> [1;35m/dev/console[m
+lrwx------    1 root     root            64 Oct 14 09:25 [1;36m2[m -> [1;35m/dev/console[m
+lrwx------    1 root     root            64 Oct 14 09:25 [1;36m3[m -> [1;35m/dev/ttyGS1[m
+lr-x------    1 root     root            64 Oct 14 09:25 [1;36m4[m -> [1;34m/run/incoming[m
+DISPLAYD_PID=107
+DIAG_CHECK_RECEIVER_RESPAWN
+2026-10-14T09:25:52Z pid=3693056 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:25:52Z pid=3693056 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+p=$(pidof file-recv); test -n "$p"; kill -TERM $p; i=0; while [ $i -lt 30 ];
+ do n=$(pidof file-recv); if [ -n "$n" ] && [ "$n" != "$p" ]; then printf FILE_R
+ECV_RESPAWNED_"$n"\n; break; fi; sleep 0.1; i=$((i+1)); done; pidof file-recv; p
+idof displayd; printf '%s%s\n' DIAG_ACTION_ DONE
+FILE_RECV_RESPAWNED_161n161
+107
+DIAG_ACTION_DONE
+$ sudo -n python3 a1599_overlay_loader/send_ram_files.py <diagnostic-ko> <pinned-firmware> [receiver respawned once]
+RAM-TRANSFER-FAILED ACM1 receiver reply timed out
+Traceback (most recent call last):
+  File "/home/zz8011/Documents/Codex/2026-10-13/task-6/a1599_overlay_loader/send_ram_files.py", line 134, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/zz8011/Documents/Codex/2026-10-13/task-6/a1599_overlay_loader/send_ram_files.py", line 100, in main
+    greeting = read_line(fd, 8)
+  File "/home/zz8011/Documents/Codex/2026-10-13/task-6/a1599_overlay_loader/send_ram_files.py", line 53, in read_line
+    raise LinkError("ACM1 receiver reply timed out")
+a1599_h264_runner.LinkError: ACM1 receiver reply timed out
+$ final host/device transport identity
+Bus 001 Device 042: ID 1d6b:0104 Linux Foundation Multifunction Composite Gadget
+ttyACM0=/sys/devices/pci0000:00/0000:00:14.0/usb1/1-12/1-12:1.0
+ttyACM1=/sys/devices/pci0000:00/0000:00:14.0/usb1/1-12/1-12:1.2
+ttyACM2=/sys/devices/pci0000:00/0000:00:14.0/usb1/1-12/1-12:1.4
+2026-10-14T09:26:23Z pid=3715251 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:26:23Z pid=3715251 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+printf FINAL_STATE\n; pidof file-recv; pidof displayd; ls -la /run/incoming;
+ grep a1599 /proc/modules; ls /dev/*vxd* 2>/dev/null; printf '%s%s\n' FINAL_ CHE
+CK_20261014
+FINAL_STATEn161
+107
+total 0
+drwxr-xr-x    2 root     root            40 Oct 14 09:23 [1;34m.[m
+drwxr-xr-x    5 root     root           100 Oct 14 09:23 [1;34m..[m
+FINAL_CHECK_20261014
+2026-10-14T09:28:18Z pid=3799628 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:28:18Z pid=3799628 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+printf FILE_RECV_PID=; p=$(pidof file-recv); echo $p; ls -l /proc/$p/fd; pri
+ntf TTYGS1_STTY\n; stty -F /dev/ttyGS1 -a; printf INITTAB\n; cat /etc/inittab; p
+rintf '%s%s\n' ACM1_READONLY_ DONE
+FILE_RECV_PID=161
+total 0
+lrwx------    1 root     root            64 Oct 14 09:28 [1;36m0[m -> [1;35m/dev/console[m
+lrwx------    1 root     root            64 Oct 14 09:28 [1;36m1[m -> [1;35m/dev/console[m
+lrwx------    1 root     root            64 Oct 14 09:28 [1;36m2[m -> [1;35m/dev/console[m
+lrwx------    1 root     root            64 Oct 14 09:28 [1;36m3[m -> [1;35m/dev/ttyGS1[m
+lr-x------    1 root     root            64 Oct 14 09:28 [1;36m4[m -> [1;34m/run/incoming[m
+TTYGS1_STTYnspeed 9600 baud;stty: /dev/ttyGS1
+ line = 0;
+intr = ^C; quit = ^\; erase = ^?; kill = ^U; eof = ^D; eol = <undef>;
+eol2 = <undef>; swtch = <undef>; start = ^Q; stop = ^S; susp = ^Z; rprnt = ^R;
+werase = ^W; lnext = ^V; flush = ^O; min = 1; time = 0;
+-parenb -parodd -cmspar cs8 hupcl -cstopb cread clocal -crtscts
+-ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon
+-ixoff -iuclc -ixany -imaxbel -iutf8
+-opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0
+ff0
+-isig -icanon -iexten -echo echoe echok -echonl -noflsh -xcase -tostop -echoprt
+echoctl echoke -flusho -extproc
+INITTABn::sysinit:/etc/init.d/rcS
+::respawn:/sbin/wait-for-device /dev/ttyGS0 /sbin/getty -L -n -l /bin/sh 115200 ttyGS0 vt100
+::respawn:/sbin/wait-for-device /dev/ttyGS1 /sbin/file-recv /dev/ttyGS1 /run/incoming
+::respawn:/sbin/wait-for-device /dev/ttyGS2 /sbin/displayd /dev/ttyGS2
+::ctrlaltdel:/sbin/reboot
+::shutdown:/etc/init.d/rcK
+ACM1_READONLY_DONE
+ACM1_SAVED_TERMIOS [1280, 5, 855229, 35387, 9600, 9600, [b'\x03', b'\x1c', b'\x7f', b'\x15', b'\x04', b'\x00', b'\x01', b'\x00', b'\x11', b'\x13', b'\x1a', b'\x00', b'\x12', b'\x0f', b'\x17', b'\x16', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00']]
+ACM1_PREWRITE_BYTES 0 HEX  RAW b''
+ACM1_POSTWRITE_BYTES 18 HEX 46494c452d5245435620312052454144590a RAW b'FILE-RECV 1 READY\n'
+ACM1_RESTORE_CLOSE True
+$ sudo -n python3 a1599_overlay_loader/send_ram_files.py <diagnostic-ko> <pinned-firmware> [after raw HELLO probe]
+SEND a1599_fw_candidate.ko bytes=859824 sha256=46de66e072e207a96e868c394c87a0c96e5f99fc2e1bfae925f190c58be74607
+ACK FILE-OK name=a1599_fw_candidate.ko bytes=859824 crc=81b1e45b sha256=46de66e072e207a96e868c394c87a0c96e5f99fc2e1bfae925f190c58be74607
+SEND vxd-staging-12.5.8-16H88.bin bytes=57344 sha256=6b274c576a7952d7a4f22f65adf5b1041c4329c3dfc7ce761de53668cfd4a41e
+ACK FILE-OK name=vxd-staging-12.5.8-16H88.bin bytes=57344 crc=1af336b2 sha256=6b274c576a7952d7a4f22f65adf5b1041c4329c3dfc7ce761de53668cfd4a41e
+RAM-TRANSFER-COMPLETE
+2026-10-14T09:29:45Z pid=3863648 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:29:45Z pid=3863648 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+2026-10-14T09:30:07Z pid=3879998 ACM0 termios before sync: iflag=0x0 oflag=0x0 cflag=0x100218b2 lflag=0x0 VMIN=1 VTIME=0
+2026-10-14T09:30:07Z pid=3879998 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+16H88.bin 2>
+&1; printf '%s%s\n' VERIFY_ FILES_20261014
+incomingntotal 896
+-rw-------    1 root     root        859824 Oct 14 09:29 [0;0ma1599_fw_candidate.ko[m
+-rw-------    1 root     root         57344 Oct 14 09:29 [0;0mvxd-staging-12.5.8-16H88.bin[m
+46de66e072e207a96e868c394c87a0c96e5f99fc2e1bfae925f190c58be74607  /run/incoming/a1599_fw_candidate.ko
+6b274c576a7952d7a4f22f65adf5b1041c4329c3dfc7ce761de53668cfd4a41e  /run/incoming/vxd-staging-12.5.8-16H88.bin
+stagedn-rw-------    1 root     root         57344 Oct 14 09:29 [0;0m/lib/firmware/a1599/vxd-staging-12.5.8-16H88.bin[m
+-rw-------    1 root     root        859824 Oct 14 09:29 [0;0m/run/a1599_fw_candidate.ko[m
+VERIFY_FILES_20261014
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+  File "/home/zz8011/Documents/Codex/2026-10-12/task-3/a1599_h264_runner.py", line 284, in shell_command
+    raise LinkError(f"maintenance shell timed out waiting for {marker}; output={lines[-6:]}")
+a1599_h264_runner.LinkError: maintenance shell timed out waiting for STATUS_DIAG_STAGED_20261014; output=['rootfs rw,size=460608k,nr_inodes=115152', '0', 'STATUS_DIAG_nSTATUS_STAGED_20261014n~ # ', '~ # ', '~ # printf incoming\\n; ls -l /run/incoming; sha256sum /run/incoming/a1599_fw_can', 'didate.ko /run/incoming/vxd-staging-12.5.8-16H88.bin 2>&1; printf staged\\n; ls -']
+2026-10-14T09:30:17Z pid=3887788 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:30:17Z pid=3887788 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+sha256sum /run/a1599_fw_candidate.ko /lib/firmware/a1599/vxd-staging-12.5.8-
+16H88.bin; printf KERNEL=; uname -r; printf MODULES_DISABLED=; cat /proc/sys/ker
+nel/modules_disabled; printf MODULE_STATE=; grep a1599_fw_candidate /proc/module
+s || echo absent; printf ROOT=; awk '$2=="/"{print $3}' /proc/mounts; printf DIS
+PLAYD=; pidof displayd; printf FILERECV=; pidof file-recv; printf '%s%s\n' FINAL
+_ PREFLIGHT_20261014
+46de66e072e207a96e868c394c87a0c96e5f99fc2e1bfae925f190c58be74607  /run/a1599_fw_candidate.ko
+6b274c576a7952d7a4f22f65adf5b1041c4329c3dfc7ce761de53668cfd4a41e  /lib/firmware/a1599/vxd-staging-12.5.8-16H88.bin
+KERNEL=7.3.0-rc1
+MODULES_DISABLED=0
+MODULE_STATE=absent
+ROOT=rootfs
+DISPLAYD=107
+FILERECV=161
+FINAL_PREFLIGHT_20261014
+2026-10-14T09:30:27Z pid=3895706 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:30:27Z pid=3895706 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+insmod /run/a1599_fw_candidate.ko run_once=1 snapshot_once=1 init_once=1 all
+ow_fw_abi_ring_init=1 allow_decode_submission=1 allow_output_export=1 decode_fla
+gs=0x4015 id81_byte0_bit7=0; rc=$?; printf INSMOD_RC_%s\n "$rc"; printf '%s%s\n'
+ MODULE_ LOAD_20261014
+INSMOD_RC_0nMODULE_LOAD_20261014
+2026-10-14T09:30:39Z pid=3904250 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:30:39Z pid=3904250 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+dmesg | grep -iE 'a1599|vxd|first-ready' | tail -n 120; printf SYSFS_CONTROL
+S\n; find /sys/bus/platform/devices -maxdepth 2 \( -name ring_snapshot -o -name 
+init_once -o -name decode_once -o -name decode_output \) -print; printf MODULE\n
+; grep a1599_fw_candidate /proc/modules; printf '%s%s\n' DIAG_ LOAD_LOGS_2026101
+4
+[    1.311431] dwc2 20c100000.usbdev: bound driver configfs-gadget.a1599
+[  399.703883] a1599_fw_candidate: loading out-of-tree module taints kernel.
+[  399.710253] a1599-first-ready: LIVE_DT_PREFLIGHT soc=present vxd_node=absent vdec_provider=verified-by-path provider_phandle=absent live_symbols=absent overlay_fixups=none
+[  399.725418] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: OF DMA preflight: mask=0xffffffff coherent_mask=0xffffffff coherent=0 dma_range_map=absent iommu_domain=absent pm_domain_unattached=1 runtime_suspended=1 resource=[0x0000000207f00000-0x0000000207ffffff] exclusive=devm_ioremap_resource
+[  399.753596] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: DECODE_RESOURCES_READY allocations=7 maps=12 command_words=136 command_bytes=544 iovas=(preload:0x40012000 vlc:0x40013000 bitstream:0x40014004 current_picture:0x40015000 intra:0x40019000 output:0x40029000 command:0x4002a000) bitstream_payload_offset=4 output_planes=(0,2048) output_guard=[3072,4096) submission_gate=open_one_shot_only
+[  399.788268] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: DMA_ALLOCATED_EXPERIMENTAL mask=0xfffffffff staging_dma=0x0000000800640000 staging_bytes=57344 root_dma=0x00000008006c0000 root_bytes=4096 contexts=(0x0000000800700000,0x0000000800680000,0x000000080208f000) leaves=(0x0000000804253000,0x000000080473a000,0x00000008020e4000,0x000000080208d000)
+[  399.820472] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: PREFLIGHT_VALIDATED firmware_sha256=6b274c576a7952d7a4f22f65adf5b1041c4329c3dfc7ce761de53668cfd4a41e vxd_maps=(staging:0x40000000+e000 extra:0x40010000+2000 context_large:0x40100000+100000 context_medium:0x40300000+40000 context_small:0x40340000+400) dma_handles_are_separate=1 dma_mask_hypothesis=0xfffffffff
+[  399.853988] a1599-first-ready: VDEC_GENPD_ATTACHED provider=verified-live-node domain_on=0 runtime_pm=disabled usage=0
+[  399.864512] a1599-first-ready: VDEC_RUNTIME_PM_ENABLED active=0 domain_on=0 usage=0
+[  399.872319] a1599-first-ready: VDEC_PM_RESUME_HELD ret=0 active=1 domain_on=1 usage=1
+[  399.880587] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: FIRST_READY_COMMIT: DMA lifetime pinned before first codec MMIO
+[  399.892312] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: CORE_RESET_BEGIN
+[  399.900402] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: CORE_RESET_DONE
+[  399.908420] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: FIRMWARE_UPLOAD_BEGIN bytes=57344 words=0x3800 staging_iova=0x40000000
+[  399.923482] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: FIRMWARE_UPLOAD_DONE
+[  399.930556] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_PC_WRITE_BEGIN pc=0x80900000 selector=5
+[  399.941027] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_PC_WRITE_DONE
+[  399.949211] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_PC_READ_BEGIN selector=5
+[  399.958374] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_PC_READ_DONE pc=0x80900000
+[  399.967705] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_START_WRITE_BEGIN offset=0x0 value=1
+[  399.979983] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: READY_SIGNATURE_POLL_BEGIN offset=0x2fe0 expected=0xa5a5a5a5 timeout_ms=2000
+[  399.995885] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: READY_SIGNATURE_MATCH offset=0x2fe0 value=0xa5a5a5a5
+[  400.009938] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: FIRST_READY: signature=0xa5a5a5a5 at logical offset 0x2fe0 elapsed_ms=129; no INIT or decode message sent; DMA mappings remain pinned
+[  400.032951] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: RING_SNAPSHOT_INIT_TRIGGER raw_h2m_desc=0x60cc01cc raw_m2h_desc=0x60000033 h2m_offset_bytes=0x60cc h2m_capacity_words=460 h2m_read_word=0 h2m_write_word=0 m2h_offset_bytes=0x6000 m2h_capacity_words=51 m2h_read_word=0 m2h_write_word=0 bounds_h2m=[0x80cc,0x87fc) bounds_m2h=[0x8000,0x80cc) validation=0 resource_bounded=1 comm_ram_proven=0 async_payload_captured=0
+[  400.077873] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: INIT_RANGE_AUTHORITY=firmware-ABI-live-ring-descriptors h2m=[0x80cc,0x87fc) m2h=[0x8000,0x80cc) resource_bounded=1 independent_silicon_comm_ram_extent=unproven experimental_gate=1
+[  400.105564] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: RING_SNAPSHOT_AFTER_INIT_KICK raw_h2m_desc=0x60cc01cc raw_m2h_desc=0x60000033 h2m_offset_bytes=0x60cc h2m_capacity_words=460 h2m_read_word=5 h2m_write_word=5 m2h_offset_bytes=0x6000 m2h_capacity_words=51 m2h_read_word=0 m2h_write_word=0 bounds_h2m=[0x80cc,0x87fc) bounds_m2h=[0x8000,0x80cc) validation=0 resource_bounded=1 comm_ram_proven=0 async_payload_captured=0
+[  400.150887] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: INIT_WIRE_SEND=published_and_kicked_once producer_write_word=5 producer_readback=5 producer_readback_match=1 h2m_consumer_before_kick=0 h2m_consumer_after_poll=5 consume_poll_ret=0 consume_poll_elapsed_ms=0 poll_timeout_ms=2000 m2h_sender_readback=(0,0) m2h_before=(0,0) after_kick_snapshot=see-RING_SNAPSHOT_AFTER_INIT_KICK semantic_init_complete=unproven dedicated_ack=not_required retry=0
+[  400.198870] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: INIT_INDEX_OBSERVATIONS h2m_consumer_advanced=1 h2m_read_before=0 h2m_read_after=5 m2h_indices_changed=0 m2h_read_before=0 m2h_write_before=0 m2h_read_after=0 m2h_write_after=0; these are observations only
+[  400.227889] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: INIT_TRANSPORT_CONSUMED=1 semantic_init_complete=unproven
+[  400.242222] a1599-first-ready: symbol-independent overlay applied id=1; genpd attach is deferred to preflight-complete probe
+SYSFS_CONTROLSnMODULEna1599_fw_candidate 57344 - - Live 0xffffcc7ad6221000 (O)
+DIAG_LOAD_LOGS_20261014
+2026-10-14T09:30:53Z pid=3914793 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:30:53Z pid=3914793 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+printf BUS_DEVICES\n; ls -l /sys/bus/platform/devices | grep -E 'vxd|first-r
+eady' || true; printf SYSFS_PATHS\n; find /sys/devices/platform -name decode_onc
+e -o -name init_once -o -name ring_snapshot -o -name decode_output 2>/dev/null; 
+printf PM\n; find /sys/devices/platform -path '*vxd-first-ready*' -name runtime_
+status -o -name runtime_usage 2>/dev/null; printf '%s%s\n' SYSFS_ DISCOVERY_2026
+1014
+BUS_DEVICESnlrwxrwxrwx    1 root     root             0 Oct 14 09:30 207f00000.vxd-first-ready -> ../../../devices/platform/soc/207f00000.vxd-first-ready
+SYSFS_PATHSn/sys/devices/platform/soc/207f00000.vxd-first-ready/decode_once
+/sys/devices/platform/soc/207f00000.vxd-first-ready/decode_output
+/sys/devices/platform/soc/207f00000.vxd-first-ready/init_once
+/sys/devices/platform/soc/207f00000.vxd-first-ready/ring_snapshot
+PMn/sys/devices/platform/8058a0000.flash/power/runtime_usage
+/sys/devices/platform/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@200f0/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20060/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20268/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@200e0/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20050/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@200d0/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20040/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@200c0/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20030/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@200b0/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20020/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@200a0/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20010/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20218/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20000/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20208/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20198/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20188/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20178/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@201f8/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20168/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@201e8/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20158/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@201d8/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20148/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@201c8/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20138/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@201b8/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20128/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@201a8/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20118/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20108/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20098/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20200/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20088/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20078/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@200f8/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20190/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20068/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@200e8/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20180/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20058/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@200d8/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20170/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20048/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@201f0/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@200c8/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20160/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20038/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@201e0/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@200b8/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20150/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20028/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@201d0/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@200a8/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20140/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20018/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@201c0/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20130/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20008/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@201b0/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20120/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@201a0/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20110/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20100/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20090/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20080/power/runtime_usage
+/sys/devices/platform/soc/20e000000.power-management/20e000000.power-management:power-controller@20070/power/runtime_usage
+/sys/devices/platform/soc/207f00000.vxd-first-ready/power/runtime_usage
+/sys/devices/platform/soc/207f00000.vxd-first-ready/power/runtime_status
+/sys/devices/platform/soc/20a110000.i2c/power/runtime_usage
+/sys/devices/platform/soc/20a110000.i2c/i2c-0/0-003c/20a110000.i2c:pmic@3c:nvmem@4000/power/runtime_usage
+/sys/devices/platform/soc/20a110000.i2c/i2c-0/0-003c/20a110000.i2c:pmic@3c:nvmem@4000/simple_mfd_nvmem2/20a110000.i2c:pmic@3c:nvmem@4000:nvmem-layout/power/runtime_usage
+/sys/devices/platform/soc/20a110000.i2c/i2c-0/0-003c/20a110000.i2c:pmic@3c:nvmem@4000/simple_mfd_nvmem2/power/runtime_usage
+/sys/devices/platform/soc/20a110000.i2c/i2c-0/0-003c/power/runtime_usage
+/sys/devices/platform/soc/20a110000.i2c/i2c-0/0-003c/20a110000.i2c:pmic@3c:rtc@5c0/power/runtime_usage
+/sys/devices/platform/soc/20a110000.i2c/i2c-0/0-003c/20a110000.i2c:pmic@3c:rtc@5c0/rtc/rtc0/power/runtime_usage
+/sys/devices/platform/soc/20a110000.i2c/i2c-0/0-003c/20a110000.i2c:pmic@3c:backlight@600/backlight/20a110000.i2c:pmic@3c:backlight@600/power/runtime_usage
+/sys/devices/platform/soc/20a110000.i2c/i2c-0/0-003c/20a110000.i2c:pmic@3c:backlight@600/power/runtime_usage
+/sys/devices/platform/soc/power/runtime_usage
+/sys/devices/platform/soc/20e027000.watchdog/power/runtime_usage
+/sys/devices/platform/soc/20a0a0000.serial/20a0a0000.serial:0/20a0a0000.serial:0.0/power/runtime_usage
+/sys/devices/platform/soc/20a0a0000.serial/20a0a0000.serial:0/20a0a0000.serial:0.0/tty/ttySAC0/power/runtime_usage
+/sys/devices/platform/soc/20a0a0000.serial/20a0a0000.serial:0/power/runtime_usage
+/sys/devices/platform/soc/20a0a0000.serial/power/runtime_usage
+/sys/devices/platform/soc/20c900000.bus/power/runtime_usage
+/sys/devices/platform/soc/20c900000.bus/20c100000.usbdev/udc/20c100000.usbdev/power/runtime_usage
+/sys/devices/platform/soc/20c900000.bus/20c100000.usbdev/power/runtime_usage
+/sys/devices/platform/soc/20c900000.bus/20c100000.usbdev/gadget.0/power/runtime_usage
+/sys/devices/platform/soc/20c900000.bus/20c000020.phy/power/runtime_usage
+/sys/devices/platform/soc/20c900000.bus/20c000020.phy/phy/phy-20c000020.phy.0/power/runtime_usage
+/sys/devices/platform/soc/202220000.performance-controller/power/runtime_usage
+/sys/devices/platform/soc/20e300000.pinctrl/power/runtime_usage
+/sys/devices/platform/soc/20e300000.pinctrl/gpiochip0/power/runtime_usage
+/sys/devices/platform/gpio-keys/power/runtime_usage
+/sys/devices/platform/gpio-keys/input/input0/power/runtime_usage
+/sys/devices/platform/gpio-keys/input/input0/event0/power/runtime_usage
+/sys/devices/platform/timer/power/runtime_usage
+/sys/devices/platform/83d000000.framebuffer/graphics/fb0/power/runtime_usage
+/sys/devices/platform/83d000000.framebuffer/power/runtime_usage
+/sys/devices/platform/83d000000.framebuffer/drm/card0/power/runtime_usage
+/sys/devices/platform/83d000000.framebuffer/drm/card0/card0-Unknown-1/power/runtime_usage
+/sys/devices/platform/smbios/power/runtime_usage
+/sys/devices/platform/83cffc000.flash/power/runtime_usage
+/sys/devices/platform/pmu/apple_cyclone_pmu/power/runtime_usage
+/sys/devices/platform/pmu/power/runtime_usage
+SYSFS_DISCOVERY_20261014
+2026-10-14T09:31:01Z pid=3920143 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:31:01Z pid=3920143 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+cat /sys/devices/platform/soc/207f00000.vxd-first-ready/ring_snapshot; print
+f PM_STATUS=; cat /sys/devices/platform/soc/207f00000.vxd-first-ready/power/runt
+ime_status; printf PM_USAGE=; cat /sys/devices/platform/soc/207f00000.vxd-first-
+ready/power/runtime_usage; printf '%s%s\n' BEFORE_ DECODE_20261014
+validation=0 h2m_desc=0x60cc01cc m2h_desc=0x60000033
+h2m_offset_bytes=0x60cc h2m_capacity_words=460 h2m_read_word=5 h2m_write_word=5
+m2h_offset_bytes=0x6000 m2h_capacity_words=51 m2h_read_word=0 m2h_write_word=0
+bounds_h2m=[0x80cc,0x87fc) bounds_m2h=[0x8000,0x80cc) comm_ram_proven=0 async_payload_captured=0
+PM_STATUS=active
+PM_USAGE=1
+BEFORE_DECODE_20261014
+2026-10-14T09:31:11Z pid=3927564 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:31:11Z pid=3927564 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+Traceback (most recent call last):
+  File "<stdin>", line 6, in <module>
+  File "/home/zz8011/Documents/Codex/2026-10-12/task-3/a1599_h264_runner.py", line 284, in shell_command
+    raise LinkError(f"maintenance shell timed out waiting for {marker}; output={lines[-6:]}")
+a1599_h264_runner.LinkError: maintenance shell timed out waiting for DECODE_TRIGGER_20261014; output=["printf '1\\n' > /sys/devices/platform/soc/207f00000.vxd-first-ready/decode_on", 'ce; rc=$?; printf DECODE_WRITE_RC_%s\\n "$rc"; printf \'%s%s\\n\' DECODE_ TRIGGER_20', '261014', '']
+Bus 001 Device 042: ID 1d6b:0104 Linux Foundation Multifunction Composite Gadget
+    |__ Port 012: Dev 042, If 2, Class=Communications, Driver=cdc_acm, 480M
+    |__ Port 012: Dev 042, If 3, Class=CDC Data, Driver=cdc_acm, 480M
+    |__ Port 012: Dev 042, If 4, Class=Communications, Driver=cdc_acm, 480M
+    |__ Port 012: Dev 042, If 5, Class=CDC Data, Driver=cdc_acm, 480M
+    |__ Port 013: Dev 007, If 0, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 013: Dev 007, If 1, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 013: Dev 007, If 2, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 013: Dev 007, If 3, Class=Human Interface Device, Driver=usbhid, 12M
+    |__ Port 014: Dev 009, If 0, Class=Wireless, Driver=btusb, 12M
+    |__ Port 014: Dev 009, If 1, Class=Wireless, Driver=btusb, 12M
+/:  Bus 002.Port 001: Dev 001, Class=root_hub, Driver=xhci_hcd/10p, 20000M/x2
+    |__ Port 004: Dev 002, If 0, Class=Hub, Driver=hub/4p, 10000M
+2026-10-14T09:31:43Z pid=3951782 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:31:43Z pid=3951782 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+dmesg | grep -iE 'a1599|vxd|oops|panic|fault|timeout' | tail -n 100; printf 
+RING\n; cat /sys/devices/platform/soc/207f00000.vxd-first-ready/ring_snapshot 2>
+&1; printf STATUS\n; cat /sys/devices/platform/soc/207f00000.vxd-first-ready/pow
+er/runtime_status 2>&1; printf '%s%s\n' POST_ DECODE_20261014
+[    0.000457] pid_max: default: 32768 minimum: 301
+[    0.023213] iommu: Default domain type: Translated
+[    0.032433] PCI: CLS 0 bytes, default 64
+[    1.311431] dwc2 20c100000.usbdev: bound driver configfs-gadget.a1599
+[  399.703883] a1599_fw_candidate: loading out-of-tree module taints kernel.
+[  399.710253] a1599-first-ready: LIVE_DT_PREFLIGHT soc=present vxd_node=absent vdec_provider=verified-by-path provider_phandle=absent live_symbols=absent overlay_fixups=none
+[  399.725418] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: OF DMA preflight: mask=0xffffffff coherent_mask=0xffffffff coherent=0 dma_range_map=absent iommu_domain=absent pm_domain_unattached=1 runtime_suspended=1 resource=[0x0000000207f00000-0x0000000207ffffff] exclusive=devm_ioremap_resource
+[  399.753596] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: DECODE_RESOURCES_READY allocations=7 maps=12 command_words=136 command_bytes=544 iovas=(preload:0x40012000 vlc:0x40013000 bitstream:0x40014004 current_picture:0x40015000 intra:0x40019000 output:0x40029000 command:0x4002a000) bitstream_payload_offset=4 output_planes=(0,2048) output_guard=[3072,4096) submission_gate=open_one_shot_only
+[  399.788268] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: DMA_ALLOCATED_EXPERIMENTAL mask=0xfffffffff staging_dma=0x0000000800640000 staging_bytes=57344 root_dma=0x00000008006c0000 root_bytes=4096 contexts=(0x0000000800700000,0x0000000800680000,0x000000080208f000) leaves=(0x0000000804253000,0x000000080473a000,0x00000008020e4000,0x000000080208d000)
+[  399.820472] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: PREFLIGHT_VALIDATED firmware_sha256=6b274c576a7952d7a4f22f65adf5b1041c4329c3dfc7ce761de53668cfd4a41e vxd_maps=(staging:0x40000000+e000 extra:0x40010000+2000 context_large:0x40100000+100000 context_medium:0x40300000+40000 context_small:0x40340000+400) dma_handles_are_separate=1 dma_mask_hypothesis=0xfffffffff
+[  399.853988] a1599-first-ready: VDEC_GENPD_ATTACHED provider=verified-live-node domain_on=0 runtime_pm=disabled usage=0
+[  399.864512] a1599-first-ready: VDEC_RUNTIME_PM_ENABLED active=0 domain_on=0 usage=0
+[  399.872319] a1599-first-ready: VDEC_PM_RESUME_HELD ret=0 active=1 domain_on=1 usage=1
+[  399.880587] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: FIRST_READY_COMMIT: DMA lifetime pinned before first codec MMIO
+[  399.892312] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: CORE_RESET_BEGIN
+[  399.900402] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: CORE_RESET_DONE
+[  399.908420] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: FIRMWARE_UPLOAD_BEGIN bytes=57344 words=0x3800 staging_iova=0x40000000
+[  399.923482] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: FIRMWARE_UPLOAD_DONE
+[  399.930556] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_PC_WRITE_BEGIN pc=0x80900000 selector=5
+[  399.941027] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_PC_WRITE_DONE
+[  399.949211] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_PC_READ_BEGIN selector=5
+[  399.958374] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_PC_READ_DONE pc=0x80900000
+[  399.967705] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_START_WRITE_BEGIN offset=0x0 value=1
+[  399.979983] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: READY_SIGNATURE_POLL_BEGIN offset=0x2fe0 expected=0xa5a5a5a5 timeout_ms=2000
+[  399.995885] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: READY_SIGNATURE_MATCH offset=0x2fe0 value=0xa5a5a5a5
+[  400.009938] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: FIRST_READY: signature=0xa5a5a5a5 at logical offset 0x2fe0 elapsed_ms=129; no INIT or decode message sent; DMA mappings remain pinned
+[  400.032951] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: RING_SNAPSHOT_INIT_TRIGGER raw_h2m_desc=0x60cc01cc raw_m2h_desc=0x60000033 h2m_offset_bytes=0x60cc h2m_capacity_words=460 h2m_read_word=0 h2m_write_word=0 m2h_offset_bytes=0x6000 m2h_capacity_words=51 m2h_read_word=0 m2h_write_word=0 bounds_h2m=[0x80cc,0x87fc) bounds_m2h=[0x8000,0x80cc) validation=0 resource_bounded=1 comm_ram_proven=0 async_payload_captured=0
+[  400.077873] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: INIT_RANGE_AUTHORITY=firmware-ABI-live-ring-descriptors h2m=[0x80cc,0x87fc) m2h=[0x8000,0x80cc) resource_bounded=1 independent_silicon_comm_ram_extent=unproven experimental_gate=1
+[  400.105564] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: RING_SNAPSHOT_AFTER_INIT_KICK raw_h2m_desc=0x60cc01cc raw_m2h_desc=0x60000033 h2m_offset_bytes=0x60cc h2m_capacity_words=460 h2m_read_word=5 h2m_write_word=5 m2h_offset_bytes=0x6000 m2h_capacity_words=51 m2h_read_word=0 m2h_write_word=0 bounds_h2m=[0x80cc,0x87fc) bounds_m2h=[0x8000,0x80cc) validation=0 resource_bounded=1 comm_ram_proven=0 async_payload_captured=0
+[  400.150887] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: INIT_WIRE_SEND=published_and_kicked_once producer_write_word=5 producer_readback=5 producer_readback_match=1 h2m_consumer_before_kick=0 h2m_consumer_after_poll=5 consume_poll_ret=0 consume_poll_elapsed_ms=0 poll_timeout_ms=2000 m2h_sender_readback=(0,0) m2h_before=(0,0) after_kick_snapshot=see-RING_SNAPSHOT_AFTER_INIT_KICK semantic_init_complete=unproven dedicated_ack=not_required retry=0
+[  400.198870] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: INIT_INDEX_OBSERVATIONS h2m_consumer_advanced=1 h2m_read_before=0 h2m_read_after=5 m2h_indices_changed=0 m2h_read_before=0 m2h_write_before=0 m2h_read_after=0 m2h_write_after=0; these are observations only
+[  400.227889] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: INIT_TRANSPORT_CONSUMED=1 semantic_init_complete=unproven
+[  400.242222] a1599-first-ready: symbol-independent overlay applied id=1; genpd attach is deferred to preflight-complete probe
+[  433.074719] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: RING_SNAPSHOT_SYSFS_READ raw_h2m_desc=0x60cc01cc raw_m2h_desc=0x60000033 h2m_offset_bytes=0x60cc h2m_capacity_words=460 h2m_read_word=5 h2m_write_word=5 m2h_offset_bytes=0x6000 m2h_capacity_words=51 m2h_read_word=0 m2h_write_word=0 bounds_h2m=[0x80cc,0x87fc) bounds_m2h=[0x8000,0x80cc) validation=0 resource_bounded=1 comm_ram_proven=0 async_payload_captured=0
+[  443.185683] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: RING_SNAPSHOT_BEFORE_ID81 raw_h2m_desc=0x60cc01cc raw_m2h_desc=0x60000033 h2m_offset_bytes=0x60cc h2m_capacity_words=460 h2m_read_word=5 h2m_write_word=5 m2h_offset_bytes=0x6000 m2h_capacity_words=51 m2h_read_word=0 m2h_write_word=0 bounds_h2m=[0x80cc,0x87fc) bounds_m2h=[0x8000,0x80cc) validation=0 resource_bounded=1 comm_ram_proven=0 async_payload_captured=0
+[  443.238903] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_RESOURCE_MAP index=0 name=staging iova=0x40000000 bytes=57344 system_dma=0x0000000800640000
+[  443.257898] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_RESOURCE_MAP index=1 name=extra iova=0x40010000 bytes=8192 system_dma=0x000000080064e000
+[  443.275883] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_RESOURCE_MAP index=2 name=context_large iova=0x40100000 bytes=1048576 system_dma=0x0000000800700000
+[  443.294885] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_RESOURCE_MAP index=3 name=context_medium iova=0x40300000 bytes=262144 system_dma=0x0000000800680000
+[  443.313880] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_RESOURCE_MAP index=4 name=context_small iova=0x40340000 bytes=4096 system_dma=0x000000080208f000
+[  443.331883] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_RESOURCE_MAP index=5 name=preload iova=0x40012000 bytes=4096 system_dma=0x00000008020b5000
+[  443.349885] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_RESOURCE_MAP index=6 name=vlc iova=0x40013000 bytes=4096 system_dma=0x0000000804739000
+[  443.366889] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_RESOURCE_MAP index=7 name=bitstream iova=0x40014000 bytes=4096 system_dma=0x0000000804733000
+[  443.384871] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_RESOURCE_MAP index=8 name=current_picture iova=0x40015000 bytes=16384 system_dma=0x0000000800650000
+[  443.403877] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_RESOURCE_MAP index=9 name=intra iova=0x40019000 bytes=65536 system_dma=0x0000000800660000
+[  443.421877] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_RESOURCE_MAP index=10 name=output iova=0x40029000 bytes=4096 system_dma=0x000000080425f000
+[  443.439871] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_RESOURCE_MAP index=11 name=command iova=0x4002a000 bytes=4096 system_dma=0x000000080206a000
+[  443.457884] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_PAGE_TABLE root_dma=0x00000008006c0000 root_bytes=4096 tables_crc32=0x9a8ab668
+[  443.474871] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_PAGE_TABLE_LEAF index=0 root_index=256 dma=0x0000000804253000 bytes=4096
+[  443.490876] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_PAGE_TABLE_LEAF index=1 root_index=65535 dma=0x000000080473a000 bytes=4096
+[  443.506883] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_PAGE_TABLE_LEAF index=2 root_index=65535 dma=0x00000008020e4000 bytes=4096
+[  443.522877] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_PAGE_TABLE_LEAF index=3 root_index=65535 dma=0x000000080208d000 bytes=4096
+[  443.538880] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_COMMAND_BACKING bytes=544 words=136 iova=0x4002a000 dump_bytes=544
+[  443.554866] a1599-first-ready ID81_COMMAND 00000000: 00 00 00 90 04 10 00 00 00 20 01 40 40 00 40 00
+[  443.566867] a1599-first-ready ID81_COMMAND 00000010: 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[  443.578866] a1599-first-ready ID81_COMMAND 00000020: 01 00 00 00 40 04 00 e0 00 30 01 40 ec 08 17 10
+[  443.590861] a1599-first-ready ID81_COMMAND 00000030: 00 60 02 00 a0 38 07 00 f4 28 08 00 2d 31 0a 00
+[  443.602859] a1599-first-ready ID81_COMMAND 00000040: 59 59 0b 00 7b 51 0c 00 96 11 0d 00 ad b1 0d 00
+[  443.614863] a1599-first-ready ID81_COMMAND 00000050: be 21 0e 00 c8 59 0e 00 cd 79 0e 00 d3 b1 0e 00
+[  443.626859] a1599-first-ready ID81_COMMAND 00000060: d8 d1 0e 00 dd 09 0f 00 e7 71 0f 00 f6 41 10 00
+[  443.638864] a1599-first-ready ID81_COMMAND 00000070: dd a4 56 12 92 92 48 01 50 80 24 11 a2 22 00 00
+[  443.650859] a1599-first-ready ID81_COMMAND 00000080: 02 2a 00 00 2a 28 08 81 12 00 00 00 c0 09 03 10
+[  443.662856] a1599-first-ready ID81_COMMAND 00000090: 0e 92 10 00 16 d2 10 00 1c f2 10 00 01 00 00 b0
+[  443.674857] a1599-first-ready ID81_COMMAND 000000a0: 00 00 00 00 11 00 00 00 11 00 00 a0 04 40 01 40
+[  443.686859] a1599-first-ready ID81_COMMAND 000000b0: 0c 08 01 10 11 00 00 00 00 0a 05 10 01 77 00 00
+[  443.698858] a1599-first-ready ID81_COMMAND 000000c0: 00 00 00 00 08 01 03 00 00 00 04 10 00 50 00 00
+[  443.710860] a1599-first-ready ID81_COMMAND 000000d0: 18 0a 01 10 00 00 00 00 10 08 01 50 11 00 00 00
+[  443.722864] a1599-first-ready ID81_COMMAND 000000e0: d8 0a 07 50 01 77 00 00 00 00 00 00 08 01 03 00
+[  443.734861] a1599-first-ready ID81_COMMAND 000000f0: 00 00 04 10 00 50 00 00 00 50 01 40 00 00 00 00
+[  443.746859] a1599-first-ready ID81_COMMAND 00000100: 00 07 38 50 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.758860] a1599-first-ready ID81_COMMAND 00000110: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.770860] a1599-first-ready ID81_COMMAND 00000120: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.782862] a1599-first-ready ID81_COMMAND 00000130: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.794857] a1599-first-ready ID81_COMMAND 00000140: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.806859] a1599-first-ready ID81_COMMAND 00000150: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.818859] a1599-first-ready ID81_COMMAND 00000160: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.830864] a1599-first-ready ID81_COMMAND 00000170: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.842862] a1599-first-ready ID81_COMMAND 00000180: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.854860] a1599-first-ready ID81_COMMAND 00000190: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.866858] a1599-first-ready ID81_COMMAND 000001a0: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.878857] a1599-first-ready ID81_COMMAND 000001b0: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.890857] a1599-first-ready ID81_COMMAND 000001c0: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.902859] a1599-first-ready ID81_COMMAND 000001d0: 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+[  443.914859] a1599-first-ready ID81_COMMAND 000001e0: 10 10 10 10 00 10 05 50 1f f0 01 00 1f f0 01 00
+[  443.926859] a1599-first-ready ID81_COMMAND 000001f0: 00 10 21 10 00 90 02 40 00 98 02 40 18 10 01 50
+[  443.938866] a1599-first-ready ID81_COMMAND 00000200: 00 90 01 40 24 10 01 50 55 00 00 00 40 10 01 50
+[  443.950864] a1599-first-ready ID81_COMMAND 00000210: 40 00 00 00 b4 11 01 50 01 00 00 00 00 00 00 60
+[  444.297485] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: ID81_ENVELOPE published=1 bytes=20
+[  444.313903] a1599-first-ready ID81_ENVELOPE 00000000: 14 81 01 00 15 40 88 00 00 a0 02 40 00 6c 00 08
+[  444.328790] a1599-first-ready ID81_ENVELOPE 00000010: 00 10 21 10
+[  444.340494] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: RING_SNAPSHOT_AFTER_ID81 raw_h2m_desc=0x60cc01cc raw_m2h_desc=0x60000033 h2m_offset_bytes=0x60cc h2m_capacity_words=460 h2m_read_word=10 h2m_write_word=10 m2h_offset_bytes=0x6000 m2h_capacity_words=51 m2h_read_word=0 m2h_write_word=8 bounds_h2m=[0x80cc,0x87fc) bounds_m2h=[0x8000,0x80cc) validation=0 resource_bounded=1 comm_ram_proven=0 async_payload_captured=0
+[  444.390873] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: C0_CAPTURE actual_length=16 raw_length=16 response_received=1 record_valid=1 message_read=0 message_write=8 last_mb_present=1 last_mb_offset=+4 last_mb=0x0 flags_present=1 flags_offset=+8 flags=0x48064455 detail_present=1 detail_offset=+12 detail=0x0 parsed_detail_present=1 guard_checked=0 guard_state=not_checked
+[  444.433871] a1599-first-ready C0_RAW 00000000: 10 c0 01 00 00 00 00 00 55 44 06 48 00 00 00 00
+[  444.445876] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: DECODE_ONE_SHOT consumed=1 ret=-121 published=1 h2m_consumed=1 response_received=1 fence=1 expected_fence=1 c0_record_valid=1 c0_status_class=error-detail c0_status_error=1 c0_status=0x48064455 c0_detail_present=1 c0_detail=0x0 guard_checked=0 guard_state=not_checked output_snapshot_ready=0 output_stability_checked=0 output_stable_50ms=0 pixels_compared=0 decode_success=unclaimed output_dma=0x000000080425f000 output_bytes=4096 response_ring_consumer_advanced=0 retry=0 init_transport_consumed=1 semantic_init_complete=unproven resources_pinned=1
+RINGnvalidation=0 h2m_desc=0x60cc01cc m2h_desc=0x60000033
+h2m_offset_bytes=0x60cc h2m_capacity_words=460 h2m_read_word=10 h2m_write_word=10
+m2h_offset_bytes=0x6000 m2h_capacity_words=51 m2h_read_word=0 m2h_write_word=8
+bounds_h2m=[0x80cc,0x87fc) bounds_m2h=[0x8000,0x80cc) comm_ram_proven=0 async_payload_captured=0
+STATUSnactive
+POST_DECODE_20261014
+2026-10-14T09:32:03Z pid=3967339 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:32:03Z pid=3967339 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+printf SAFE_READONLY\n; uptime; pidof file-recv; pidof displayd; grep a1599_
+fw_candidate /proc/modules; cat /sys/devices/platform/soc/207f00000.vxd-first-re
+ady/power/runtime_status; cat /sys/devices/platform/soc/207f00000.vxd-first-read
+y/power/runtime_usage; cat /sys/devices/platform/soc/207f00000.vxd-first-ready/r
+ing_snapshot; printf '%s%s\n' FINAL_ READONLY_20261014
+SAFE_READONLYn 09:32:04 up 8 min,  0 users,  load average: 0.01, 0.00, 0.00
+161
+107
+a1599_fw_candidate 57344 - - Live 0xffffcc7ad6221000 (O)
+active
+1
+validation=0 h2m_desc=0x60cc01cc m2h_desc=0x60000033
+h2m_offset_bytes=0x60cc h2m_capacity_words=460 h2m_read_word=10 h2m_write_word=10
+m2h_offset_bytes=0x6000 m2h_capacity_words=51 m2h_read_word=0 m2h_write_word=8
+bounds_h2m=[0x80cc,0x87fc) bounds_m2h=[0x8000,0x80cc) comm_ram_proven=0 async_payload_captured=0
+FINAL_READONLY_20261014
+2026-10-14T09:40:23Z pid=141231 ACM0 termios before sync: iflag=0x500 oflag=0x5 cflag=0xd0cbd lflag=0x8a3b VMIN=b'\x01' VTIME=b'\x00'
+2026-10-14T09:40:23Z pid=141231 ACM0 modem lines after open: DTR=True RTS=True bits=0x166
+printf RESOURCE_SYSFS\n; cat /sys/devices/platform/soc/207f00000.vxd-first-r
+eady/resource; printf IOMEM_OWNER\n; grep -i 207f /proc/iomem; printf NODE_EXIST
+ENCE\n; ls -ld /dev/mem /sys/devices/platform/soc/207f00000.vxd-first-ready/reso
+urce0 2>&1; printf DRIVER\n; readlink -f /sys/devices/platform/soc/207f00000.vxd
+-first-ready/driver; printf '%s%s\n' METADATA_ CHECK_20261014
+RESOURCE_SYSFSncat: can't open '/sys/devices/platform/soc/207f00000.vxd-first-ready/resource': No such file or directory
+IOMEM_OWNERn207f00000-207ffffff : 207f00000.vxd-first-ready vxd-first-ready@207f00000
+NODE_EXISTENCEnls: /sys/devices/platform/soc/207f00000.vxd-first-ready/resource0: No such file or directory
+crw-rw----    1 root     root        1,   1 Jan  1  1970 [1;35m/dev/mem[m
+DRIVERn/sys/bus/platform/drivers/a1599-vxd-first-ready-experiment
+METADATA_CHECK_20261014

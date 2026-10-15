@@ -1,0 +1,4 @@
+Known NV21 extracted as correct Y,U,V: True
+Known NV21 extracted incorrectly as Y,V,U: False
+Correct NV21 exact matches in finite screen: [{'name': 'NV21', 'y_offset': 0, 'y_stride': 64, 'u_offset': 2048, 'v_offset': 2048, 'c_stride': 32, 'semiplanar': True}]
+Known NV12 spuriously also labeled NV21: False

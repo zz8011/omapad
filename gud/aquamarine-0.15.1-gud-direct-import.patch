@@ -1,0 +1,83 @@
+diff --git i/include/aquamarine/backend/DRM.hpp w/include/aquamarine/backend/DRM.hpp
+index 281f13f..d9c241a 100644
+--- i/include/aquamarine/backend/DRM.hpp
++++ w/include/aquamarine/backend/DRM.hpp
+@@ -505,6 +505,9 @@ namespace Aquamarine {
+         bool     updateSecondaryRendererState(DRMFBList* retired = nullptr);
+         bool     grabFormats();
+         bool     shouldBlit();
++        // A1599/GUD：副 GPU 无法建立渲染器（纯 KMS 设备如 gud/evdi/vkms）时，
++        // 直接把主 GPU 渲染的线性缓冲导入本设备扫描输出，不做 blit。
++        bool     mgpuDirectImport(); // 非虚成员函数，不改变类布局（ABI 兼容）
+         void     scanConnectors();
+         void     scanLeases();
+         void     restoreAfterVT();
+diff --git i/src/backend/drm/DRM.cpp w/src/backend/drm/DRM.cpp
+index 431247b..1a8229a 100644
+--- i/src/backend/drm/DRM.cpp
++++ w/src/backend/drm/DRM.cpp
+@@ -666,7 +666,7 @@ void Aquamarine::CDRMBackend::restoreAfterVT() {
+             // If this backend requires blit (multi-GPU), the STATE.buffer was
+             // rendered on a different GPU and cannot be directly imported here.
+             // Skip the import and request a re-render through the proper blit pipeline.
+-            if (!shouldBlit()) {
++            if (!shouldBlit() || mgpuDirectImport()) {
+                 auto buf   = STATE.buffer;
+                 bool isNew = false;
+                 drmFB      = CDRMFB::create(buf, self, &isNew);
+@@ -857,6 +857,24 @@ bool Aquamarine::CDRMBackend::shouldBlit() {
+     return !!primary;
+ }
+ 
++// 每个后端的判定结果：0 未判定，1 直接导入，-1 使用 blit（放在类外以保持 ABI）
++static std::unordered_map<const Aquamarine::CDRMBackend*, int> directImportStates;
++
++bool Aquamarine::CDRMBackend::mgpuDirectImport() {
++    if (!primary)
++        return false;
++    int& directImportState = directImportStates[this];
++    if (directImportState == 0) {
++        if (rendererState.renderer || (initMgpu() && rendererState.renderer && rendererState.allocator))
++            directImportState = -1;
++        else {
++            directImportState = 1;
++            backend->log(AQ_LOG_WARNING, std::format("drm: {} has no renderer, importing primary GPU linear buffers directly", gpu->path));
++        }
++    }
++    return directImportState == 1;
++}
++
+ bool Aquamarine::CDRMBackend::initMgpu() {
+     if (!rendererRequired)
+         return true;
+@@ -905,9 +923,11 @@ bool Aquamarine::CDRMBackend::updateSecondaryRendererState(DRMFBList* deferred)
+     if (hasEnabledOutputs) {
+         if (rendererState.renderer && rendererState.allocator)
+             return true;
++        if (directImportStates[this] == 1)
++            return true;
+ 
+         backend->log(AQ_LOG_DEBUG, std::format("drm: Initializing secondary renderer on {}, has enabled outputs", gpu->path));
+-        return initMgpu();
++        return initMgpu() || mgpuDirectImport();
+     }
+ 
+     if (!rendererState.renderer && !rendererState.allocator)
+@@ -2393,7 +2413,7 @@ bool Aquamarine::CDRMOutput::prepareAsyncCommitData(const COutputState::CSnapsho
+     data.cursorVisible = cursorVisible;
+ 
+     SP<CDRMFB> drmFB;
+-    if (backend->shouldBlit()) {
++    if (backend->shouldBlit() && !backend->mgpuDirectImport()) {
+         if (!backend->rendererState.renderer) {
+             backend->log(AQ_LOG_DEBUG, "drm: No renderer attached to backend when required for asynchronous blitting, initializing");
+             if (!backend->initMgpu() || !backend->rendererState.renderer || !backend->rendererState.allocator) {
+@@ -2642,7 +2662,7 @@ bool Aquamarine::CDRMOutput::commitState(bool onlyTest) {
+ 
+         if (blittedFB)
+             drmFB = blittedFB;
+-        else if (backend->shouldBlit()) {
++        else if (backend->shouldBlit() && !backend->mgpuDirectImport()) {
+             if (!backend->rendererState.renderer) {
+                 backend->backend->log(AQ_LOG_DEBUG, "drm: No renderer attached to backend when required for blitting, initializing");
+                 if (!backend->initMgpu() || !backend->rendererState.renderer || !backend->rendererState.allocator) {

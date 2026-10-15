@@ -1,0 +1,29 @@
+--- frozen/a1599_fw_decode_stream.c
++++ progressive/a1599_fw_decode_stream.c
+@@ -159,7 +159,7 @@
+ 	struct register_pair fe_pairs[] = {
+ 		{0x0480080c, 0x11}, {0x04800a00, 0x7701},
+ 		{0x04800a04, 0}, {0x04800a08, 0x30108},
+-		{0x04800a0c, 0x10040000}, {0x04800a10, 0x5000},
++		{0x04800a0c, 0x10080000}, {0x04800a10, 0x5000},
+ 		{0x04800a18, 0},
+ 	};
+ 	unsigned char *out = output;
+@@ -197,7 +197,7 @@
+ #define APP(v) do { ret = append_word(out, &n, output_capacity / 4, (v)); \
+ 		if (ret) return ret; } while (0)
+ 	/* 36-byte control header; current fixture is 32x32, 8-bit, 4:2:0. */
+-	APP(0x90000000); APP(0x00001004); APP(r->preload.codec_iova);
++	APP(0x90000000); APP(0x00001008); APP(r->preload.codec_iova);
+ 	APP(0x00400040); APP(0x00000101); APP(0); APP(0); APP(0); APP(1);
+ 	APP(0xe0000440); APP(r->vlc.codec_iova);
+ 	ret = append_pairs(out, &n, output_capacity / 4,
+@@ -211,7 +211,7 @@
+ 	/* Exact 81-word main emitter for the closed 2x2-MB fixture branch. */
+ 	words[w++] = 0x50010810; words[w++] = 0x11;
+ 	words[w++] = 0x50070ad8; words[w++] = 0x7701; words[w++] = 0;
+-	words[w++] = 0x30108; words[w++] = 0x10040000; words[w++] = 0x5000;
++	words[w++] = 0x30108; words[w++] = 0x10080000; words[w++] = 0x5000;
+ 	words[w++] = r->current_picture.codec_iova; words[w++] = 0;
+ 	words[w++] = 0x50380700;
+ 	for (i = 0; i < 56; i++) words[w++] = 0x10101010;

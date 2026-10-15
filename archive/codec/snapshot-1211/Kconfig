@@ -1,0 +1,10 @@
+config A1599_FW_EXPLICIT_EXPERIMENT
+	bool "Enable the explicit A1599 first-ready experiment entry"
+	depends on EXPERT
+	default n
+	help
+	  Build the separately named, one-shot experimental first-ready entry.
+	  This does not verify A1599 DMA fabric reachability, VXD MMU behavior,
+	  table visibility, or initial TLB state. Those may only be represented as
+	  explicit experimental assumptions after independent review. Do not enable
+	  for ordinary builds.

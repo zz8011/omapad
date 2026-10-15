@@ -1,0 +1,68 @@
+A1599 15:13 UTC 传输停点与同 RAM 恢复审核材料
+
+本文件只分析 20261014T151302Z-891c529e0474 / 1211 模块试验；不将旧 C0 转录当作本轮结果。
+
+1. 已证实的停点
+15:13:02 checkra1n_start；15:13:06 exit 0。
+15:13:26 Pongo banner、fixed payload uploaded marker 通过；15:13:32 bootm_sent，随后同 1-9.3 gadget 绑定成功。
+会话 state=gadget_bound，trial_command_sent 不存在，只有 upload/send attempt 标记。
+transfer.rc=1；错误 STOP: Receiver refused file。
+精确 TX（48 bytes）= HELLO\nPUT a1599_fw_candidate.ko 872744 259b6d4d\n
+TX SHA256=450edf6420c3e25a4cddb9223c19dccb1d7b0c68cba89e534f3ba00db3f3bdce
+精确 RX（35 bytes）= FILE-RECV 1 READY\nFILE-ERR request\n
+RX SHA256=5fa798186fda7b44bbb4d273d15f488da13ea22d19fea3cb324a9590ab3d54b8
+原文件在 ../evidence/a1599-snapshot-next-trial-1211/transfer/。
+逐事件时间线、原字节 hex、文件 mtime、证据边界在该目录 TRANSFER-STOP-RESULT.json。
+原始收发没有逐块时间戳；不能把 mtime 当精确字节到达时间。
+模块载荷发送量=0；本操作者没有发送 insmod 或 decode 命令；未运行 target-once，未取得像素。
+尚未查询失败后的目标 /proc/modules 或 /run/incoming；不能把宿主记录升级为当前目标状态采样。
+serial-tx.raw 只记录应用 os.write，不覆盖 tty line discipline 的自动回显；因此 0 模块载荷不等于目标从未收到额外协议文本，也不能据此断言不存在 .part 文件。
+
+2. FILE-ERR request 的确切含义与不确定性
+固定镜像接收器启动即发 READY，收到 HELLO 再发 READY。
+非法请求语法/文件名/长度产生 FILE-ERR request。合法 PUT 进入 receive_file，先发 FILE-READY，之后等待载荷。
+原发送器把首次读取到的 READY 作为 HELLO 响应，随后立即发 PUT。它允许额外一次 READY，但不允许 ERR request；遇到后立即停止，因此可能仍有未读响应。
+已捕获 ERR request 确实是协议错误行，不能简单说只是多余 READY。
+然而协议没有 request ID，该错误行无法从当前前缀归属到本次 HELLO 或 PUT。首个 READY 也可能是启动时留下的。
+仅凭当前前缀，不能回答“PUT 已获准”或“目标拒绝本次 PUT”；两种判断都会越过证据。
+不能断言当前仍等待 payload。若已获准，原实现有 30000ms 无数据超时，但实时进程/队列状态未采样。
+
+3. 独立离线复现（已执行，非协议模型替代）
+从固定 gadget-fix initramfs cpio 解出 sbin/file-recv，SHA256=7515a14756613d825258a4022318fc2c127a1b53357470010b146181d5e08d05。
+原 AArch64 ELF 经现有 qemu-aarch64-static + 同版本 musl 在软件 PTY 中执行，仅写临时目录；没有 USB、内核模块加载或固件执行。
+正常输入完全相同的 48-byte TX：READY(startup), READY(HELLO), FILE-READY。由此排除该确定字节串本身被固定 parser 拒绝。
+显式注入一份启动 READY 的 CRLF 回显后，再发相同 TX：READY, ERR request, READY, FILE-READY。前 35 bytes 与实机完全一致。
+注入是一个可行机制的反例，不是实机 host ECHO=1 的证据；现场打开前 termios 未记录，也没有设备收到的请求副本。
+等待原二进制完整 30 秒超时，取得 FILE-ERR transfer，临时目录为空；同一进程 HELLO→READY，新的单次 PUT→FILE-READY，收到原 1211 模块 872744 bytes 后 CRC ACK 正确，目标临时文件 SHA 与原模块一致。测试随后结束并清理软件临时目录；没有加载模块。
+REPRODUCTION.json 保留每条响应及相对时间。reproduce.py 可复现以上两个情形。
+这说明同 RAM/同进程恢复在协议实现上可行，不意味着现场前置条件已经满足。
+
+4. 最小下一步与恢复边界（待独立审核，未执行）
+第一步应只采集同一冻结 binding 的待收 RX，不发送 HELLO/PUT/payload：
+- 使用原 root 会话、原 port 1-9.3、原 gadget 及 tty inode/rdev/host boot/hub token；任何变化停止，不重绑。
+- 读取前记录该接口 termios；保留原 raw 收发文件，新建独立 receive-only trace 和一次性诊断标记。
+- 原全局锁和 TIOCEXCL、既有 FD 持有者检查全部保留；逐块 RX 在身份复核前落盘；不 tcflush。
+- 有界接收（建议 2 秒、总 4096 bytes 上限），TX 必须为空。保存所有字节后分析，不把未知行当可忽略噪声。
+- 若获得 FILE-READY 后 FILE-ERR transfer，可支持“此前请求已获准但无载荷超时”，前提是确认唯一操作者及仅一条有效 PUT。
+- 若没有足够尾部，只能保留未知；不能用读取超时推断目标就绪。
+第二步通过同一绑定维护控制台取得独立前置状态：无候选模块、无 trial 目录/哨兵、/run/incoming 为 RAM 普通目录且没有目标文件或 .part 文件，唯一 file-recv 进程、cmdline/exe hash 与固定镜像一致。记录 boot_id 与原运行实例证据。只读状态，不启动脚本或改服务。
+上述前置条件全部成立后，再审核一个单独保存的恢复入口：
+- 原 bound-send-attempt 标记不可删除/改写；新 O_EXCL recovery-attempt 标记将恢复限制为一次，清楚记录它是第二次传输尝试但仍未发生 decode。
+- 保留同一实例及所有身份/文件 hash 门禁；在文件链路保持 raw、记录完整队列，先完成有界排空和安静期，禁止靠清空缓冲掩盖错误。
+- 确认命令态后只发一次 HELLO，必须精确 READY；之后仍使用固定三个文件和严格 FILE-READY / CRC ACK。PUT 以后任何异常立即停止，不能泛化为忽略 ERR。
+- 若控制台状态、排空上限、文件状态、进程状态或应答不满足，停止，不自动重启服务、不换接口、不重进 DFU、不清理目标残留。
+- 传输成功不自动意味着可加载模块；仍保留原 target-once 的唯一 insmod/INIT/decode 和像素门禁。
+目前尚未编写或执行可操作设备的恢复入口：关键缺口是现场队列尾部与接收器/目标文件状态，而不是缺一个无条件重试开关。
+这不是要求重做整个试验；应先补上述最小证据，再决定是否在原 RAM 实例继续已批准的唯一 decode。
+
+5. 冻结与交付
+原准备包 DELIVERY.sha256 70 项再次核验通过，未改。旧候选、目标脚本、接收器、启动镜像均未改。
+本目录只含离线复现/审核材料。独立审核应特别检查：回显机制不是已证实根因；接收器超时不等于现场已经就绪；恢复必须保留原尝试证据且不能隐式重复 decode。
+
+6. 独立终审修订（优先于第4节的简略建议）
+审核全文见 INDEPENDENT-REVIEW.txt。诊断结论获支持；尚无可直接执行的恢复实现。
+- “receive-only”只表示不调用应用 write，不能保证线路零 TX：打开到设 raw 的窗口和关闭时恢复 ECHO 都可能自动回显。不得直接复用原 RecordedLink 并宣称纯被动；必须明确 termios/close 策略及风险。
+- 2 秒/4096B 只是读阶段建议。实现需整体监督期限，涵盖初始化、身份检查、fsync、restore/close；超时不能触发重开或重试。原 read 一次8192B，若越过总上限应完整落盘该块后失败，不截断证据。
+- 目标接收器由 init respawn；记录 PID/starttime/exe/FD/wait 状态。没有前次 PID/starttime 时，只能确认同 RAM，不能确认同进程。
+- 空 incoming 目录、唯一进程或一般 poll/read 等待均不足确认 parser 命令态；必须结合队列尾部和接收器状态闭合。未闭合时不能发 HELLO，更不能 PUT。
+本阶段完成的是原字节诊断、固定二进制离线反例与同进程恢复能力验证，以及独立复核。现场命令态仍未证实。没有为了获得结论而执行新 USB 操作。

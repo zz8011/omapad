@@ -1,0 +1,10 @@
+exit=1
+gate: /tmp/a1599-output-gate-0s56iann/gate.c:80: run_case: Assertion `memory_reads==0' failed.
+Traceback (most recent call last):
+  File "/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_output_gate_source.py", line 79, in <module>
+    subprocess.run([str(e)],check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/tmp/a1599-output-gate-0s56iann/gate']' died with <Signals.SIGABRT: 6>.

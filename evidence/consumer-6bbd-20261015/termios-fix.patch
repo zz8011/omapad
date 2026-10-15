@@ -1,0 +1,14 @@
+--- /home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_consumer_trial_ready_20261014/bound_transport.py	2026-10-15 00:35:03.522300344 +0800
++++ /home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_consumer_trial_ready_20261015_termiosfix/bound_transport.py	2026-10-15 02:27:08.573145920 +0800
+@@ -74,7 +74,10 @@
+             termios.tcsetattr(self.fd,termios.TCSANOW,raw)
+             actual=termios.tcgetattr(self.fd)
+             self.event("termios_after", flags=actual[:6])
+-            if actual[:6]!=raw[:6]:raise BindingError("raw/no-echo termios readback mismatch")
++            # 内核会把 B115200 写入 c_cflag 的 CBAUD/CIBAUD 位；比较时屏蔽，速度另由 [4]/[5] 核对。
++            baud=termios.CBAUD|(termios.CBAUD<<16)
++            got=actual[:6];got[2]&=~baud;want=raw[:6];want[2]&=~baud
++            if got!=want:raise BindingError("raw/no-echo termios readback mismatch")
+             # No input flush: retain greeting, prompts and all received evidence.
+         except BaseException:
+             self.close();raise

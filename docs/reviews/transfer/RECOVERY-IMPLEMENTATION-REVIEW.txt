@@ -1,0 +1,51 @@
+Independent review: recover_same_session.py
+
+Reviewed revision SHA256:
+704efb2233d0b8db14ebe7a5059676abfd9772de3cbe3aa2b05343debbfb5dc4
+
+Scope: code and saved-file reads only. The root-owned target-state capture
+was read with an approved sudo cat of the existing file; no device, tty,
+USB, module or target command was used by this reviewer. Tests were inspected,
+not independently rerun.
+
+State evidence supports proceeding to a bounded recovery handshake:
+- /proc/modules empty; /run/incoming contains only dot/dotdot; no trial path.
+- /run is tmpfs; receiver PID 104 has the expected command and executable hash
+  7515a14756613d825258a4022318fc2c127a1b53357470010b146181d5e08d05.
+- Receiver syscall is 73 with ppoll timeout pointer NULL and only console,
+  ttyGS1 and incoming directory descriptors. No payload file is open.
+- Fixed musl poll disassembly converts negative poll timeout to NULL. Receiver
+  source's line_read uses poll(-1); receive_file uses poll(30000), hence a
+  non-NULL timeout. Together with missing payload fd this supports command
+  reading at the captured instant, not active file payload reception.
+- This does not prove an empty partial command buffer. A fresh HELLO must
+  still succeed exactly; any error must stop before PUT.
+
+Implementation controls found:
+- Pins all reviewed original/tail/state capture hashes and state events, with
+  a 15-minute freshness limit. Preserves original attempt and prohibits trial
+  already attempted; creates a separate O_EXCL recovery-attempt record.
+- Revalidates original private session/binding and exact tty instance. Retains
+  global cooperating lock, prior-opener check and TIOCEXCL. Requires retained
+  raw/no-echo termios; no setting change or inherited-ECHO restoration.
+- Drains for two seconds with recorded bytes and no application writes. Any
+  byte causes failure before HELLO. Then uses frozen send_reviewed: one HELLO,
+  each PUT once, payload only after FILE-READY, exact file CRC acknowledgments.
+- Saves actual writes and reads; caps RX; marks completion only after all
+  three file ACKs. No reboot, receiver restart, insmod or decode entry exists.
+- External 90-second supervision and no automatic retry remain required.
+  Timeout does not prove target stopped; preserve partial transfer evidence.
+
+One required closure before execution of this revision:
+prepared_packets dynamically reads INPUTS.json and compares target-once.sh
+against the current original file. The present dependency pins alone do not
+lock those originals to the approved fixed files. Add fixed checks before
+opening the tty, or independently verify and save the entire frozen manifest
+immediately before execution:
+INPUTS.json da62d69c8d5742d7c9008a2c1b21ba064458f72b898a9e52feb27c6ba8fb73c5
+target-once.sh 718e030a7ace32ad09fbfd2baedc2ebcd09308dfa88807813c5a2eb2bebf3fe8
+bound_launcher.py df6b5d3969a60a47c0aa82f242914ebb10c03f119207f28456b2a6a26f3e0fa3
+
+With that closure and the described fail-stop supervisor, no other blocking
+issue was found for one recovery transfer in this session. This review does
+not authorize a second decode or claim recovery transfer already succeeded.

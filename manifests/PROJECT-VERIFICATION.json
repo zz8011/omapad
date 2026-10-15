@@ -1,0 +1,24 @@
+{
+  "copied_files_verified_against_sources": 384,
+  "source_content_changed": false,
+  "handoff_readback_bytes": 15232,
+  "handoff_sha256": "4262cce68b82e4c03237c805b0772553ed6115bcde75bfb889af7e6005762dd7",
+  "handoff_local_links_valid": true,
+  "new_document_files": [
+    "HANDOFF.md",
+    "README.md",
+    "AGENTS.md",
+    ".gitignore",
+    "docs/historical/NOTICE.md",
+    "archive/NOTICE.md"
+  ],
+  "external_references": 22,
+  "project_files_before_final_manifest": 394,
+  "logical_bytes_before_final_manifest": 2648327,
+  "device_actions": 0,
+  "builds_or_tests_run": 0,
+  "platform_block_unresolved": true,
+  "final_regular_files": 396,
+  "final_symlinks": 2,
+  "final_file_content_bytes": 2697304
+}

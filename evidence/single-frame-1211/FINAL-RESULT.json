@@ -1,0 +1,56 @@
+{
+  "result": "PASS_SINGLE_FIXTURE_HARDWARE_DECODE_PIXELS",
+  "session": "20261014T151302Z-891c529e0474",
+  "target_boot_id": "aa750945-a330-48f2-8efb-ca451a8df092",
+  "module_sha256": "1211a6abbf026a9354f05a44e710c16ec7e8286cb0708b86b9ee260aa59bbbaa",
+  "bootm_utc": "2026-10-14T15:13:32+00:00",
+  "same_session_recovery_completed_utc": "2026-10-14T15:42:38.270511+00:00",
+  "trial_attempt_utc": "2026-10-14T15:43:20.848247+00:00",
+  "trial_console_completed_by_utc": "2026-10-14T15:43:24.015467+00:00",
+  "ram_boot_count": 1,
+  "original_failed_module_put_count": 1,
+  "original_module_payload_bytes": 0,
+  "recovery_transfer_attempt_count": 1,
+  "decode_submission_count": 1,
+  "first_ready_ms": 131,
+  "init_transport_consumed": true,
+  "c0": {
+    "file": "c0-001.bin",
+    "bytes": 12,
+    "hex": "8cc0010003000000d5440660",
+    "source": "verified dmesg.after.txt C0_RAW; diagnostic capture only",
+    "flags": "0x600644d5",
+    "fence": 1,
+    "native_class": "0x10"
+  },
+  "snapshot_bytes": 4096,
+  "snapshot_sha256": "9f4d0fe4b48d7ae835608a1a686a7a075e9ab8eb136bd7e5c10e6bc290849557",
+  "guard": "intact",
+  "output_copies": 2,
+  "output_ring_checks": 3,
+  "stable_50ms": true,
+  "pixel_result": {
+    "layout": {
+      "name": "NV12",
+      "y_offset": 0,
+      "y_stride": 64,
+      "u_offset": 2048,
+      "v_offset": 2048,
+      "c_stride": 64,
+      "semiplanar": true
+    },
+    "exact": true,
+    "equal_bytes": 1536,
+    "bytes": 1536,
+    "mae": 0.0,
+    "max_abs_error": 0
+  },
+  "script_rc": 0,
+  "comparator_rc": 0,
+  "limitations": [
+    "Only the fixed 57-byte 32x32 progressive CAVLC IDR fixture, one frame, one boot.",
+    "Future DMA quiescence, long-term determinism, repeated frames and other streams are unproven.",
+    "Mappings/resources remain pinned; no module unload, reboot or further decode was performed.",
+    "Initial transport failure causal attribution to echo remains unproven; inherited ECHO and a matching offline mechanism were established."
+  ]
+}

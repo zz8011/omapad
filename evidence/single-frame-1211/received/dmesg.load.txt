@@ -1,0 +1,222 @@
+[    0.000000] Booting Linux on physical CPU 0x0000000000 [0x611f0011]
+[    0.000000] Linux version 7.3.0-rc1 (zz8011@omarchy) (clang version 22.1.8, LLD 22.1.8) #4 SMP PREEMPT Mon Oct 12 00:34:11 CST 2026
+[    0.000000] KASLR enabled
+[    0.000000] random: crng init done
+[    0.000000] Machine model: Apple iPad mini 3 (Wi-Fi)
+[    0.000000] efi: UEFI not found.
+[    0.000000] OF: reserved mem: 0x000000083cffc000..0x000000083cffffff (16 KiB) map non-reusable flash@83cffc000
+[    0.000000] OF: reserved mem: 0x00000008058a0000..0x00000008058bbfff (112 KiB) map non-reusable flash@8058a0000
+[    0.000000] cma: Reserved 16 MiB at 0x0000000800600000
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000800600000-0x000000083cffffff]
+[    0.000000]   DMA32    empty
+[    0.000000]   Normal   empty
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000800600000-0x000000083cff7fff]
+[    0.000000]   node   0: [mem 0x000000083cffc000-0x000000083cffffff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000800600000-0x000000083cffffff]
+[    0.000000] On node 0, zone DMA: 1536 pages in unavailable ranges
+[    0.000000] On node 0, zone DMA: 4 pages in unavailable ranges
+[    0.000000] On node 0, zone DMA: 12288 pages in unavailable ranges
+[    0.000000] percpu: Embedded 32 pages/cpu s92056 r8192 d30824 u131072
+[    0.000000] pcpu-alloc: s92056 r8192 d30824 u131072 alloc=32*4096
+[    0.000000] pcpu-alloc: [0] 0 [0] 1 
+[    0.000000] Detected PIPT I-cache on CPU0
+[    0.000000] CPU features: detected: Spectre-v2
+[    0.000000] CPU features: detected: Spectre-v4
+[    0.000000] CPU features: detected: Spectre-BHB
+[    0.000000] CPU features: kernel page table isolation forced ON by KASLR
+[    0.000000] CPU features: detected: Kernel page table isolation (KPTI)
+[    0.000000] alternatives: applying boot alternatives
+[    0.000000] Kernel command line: init=/init loglevel=7
+[    0.000000] printk: log buffer data + meta data: 131072 + 458752 = 589824 bytes
+[    0.000000] Dentry cache hash table entries: 131072 (order: 8, 1048576 bytes, linear)
+[    0.000000] Inode-cache hash table entries: 65536 (order: 7, 524288 bytes, linear)
+[    0.000000] software IO TLB: SWIOTLB bounce buffer size adjusted to 0MB
+[    0.000000] software IO TLB: area num 2.
+[    0.000000] software IO TLB: mapped [mem 0x000000083bb00000-0x000000083bc00000] (1MB)
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 248316
+[    0.000000] mem auto-init: stack:off, heap alloc:off, heap free:off
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=2, Nodes=1
+[    0.000000] rcu: Preemptible hierarchical RCU implementation.
+[    0.000000] rcu: 	RCU event tracing is enabled.
+[    0.000000] rcu: 	RCU restricting CPUs from NR_CPUS=8 to nr_cpu_ids=2.
+[    0.000000] 	Trampoline variant of Tasks RCU enabled.
+[    0.000000] 	Tracing variant of Tasks RCU enabled.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 100 jiffies.
+[    0.000000] rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=2
+[    0.000000] RCU Tasks: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=2.
+[    0.000000] NR_IRQS: 64, nr_irqs: 64, preallocated irqs: 0
+[    0.000000] Root IRQ handler: aic_handle_irq
+[    0.000000] Root FIQ handler: aic_handle_fiq
+[    0.000000] irq_apple_aic: Kernel running in EL1, mapping interrupts
+[    0.000000] irq_apple_aic: Initialized with 192/1024 IRQs * 1/1 die(s), 7 FIQs, 32 vIPIs
+[    0.000000] rcu: srcu_init: Setting srcu_struct sizes based on contention.
+[    0.000000] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1911260446275000 ns
+[    0.000000] arch_timer: cp15 timer running at 24.00MHz (virt).
+[    0.000000] clocksource: arch_sys_counter: mask: 0xffffffffffffff max_cycles: 0x588fe9dc0, max_idle_ns: 440795202592 ns
+[    0.000000] sched_clock: 56 bits at 24MHz, resolution 41ns, wraps every 4398046511097ns
+[    0.000178] Console: colour dummy device 80x25
+[    0.000187] printk: legacy console [tty0] enabled
+[    0.000443] Calibrating delay loop (skipped), value calculated using timer frequency.. 48.00 BogoMIPS (lpj=24000)
+[    0.000458] pid_max: default: 32768 minimum: 301
+[    0.000663] Mount-cache hash table entries: 2048 (order: 2, 16384 bytes, linear)
+[    0.000677] Mountpoint-cache hash table entries: 2048 (order: 2, 16384 bytes, linear)
+[    0.000864] VFS: Finished mounting rootfs on nullfs
+[    0.002033] rcu: Hierarchical SRCU implementation.
+[    0.002049] rcu: 	Max phase no-delay instances is 400.
+[    0.002189] Timer migration: 1 hierarchy levels; 8 children per group; 1 crossnode level
+[    0.002434] EFI services will not be available.
+[    0.002518] smp: Bringing up secondary CPUs ...
+[    0.002807] Detected PIPT I-cache on CPU1
+[    0.002887] CPU1: Booted secondary processor 0x0000000001 [0x611f0011]
+[    0.002996] smp: Brought up 1 node, 2 CPUs
+[    0.003014] SMP: Total of 2 processors activated.
+[    0.003021] CPU: All CPU(s) started at EL1
+[    0.003064] CPU features: detected: 32-bit EL0 Support
+[    0.003104] alternatives: applying system-wide alternatives
+[    0.003446] Memory: 917896K/993264K available (11200K kernel code, 1742K rwdata, 4544K rodata, 960K init, 409K bss, 55664K reserved, 16384K cma-reserved)
+[    0.003908] devtmpfs: initialized
+[    0.006821] posixtimers hash table entries: 1024 (order: 2, 16384 bytes, linear)
+[    0.006866] futex hash table entries: 512 (32768 bytes on 1 NUMA nodes, total 32 KiB, linear).
+[    0.007034] 2G module region forced by RANDOMIZE_MODULE_REGION_FULL
+[    0.007044] 0 pages in range for non-PLT usage
+[    0.007046] 519520 pages in range for PLT usage
+[    0.007398] DMI: not present or invalid.
+[    0.007588] NET: Registered PF_NETLINK/PF_ROUTE protocol family
+[    0.008307] DMA: preallocated 128 KiB GFP_KERNEL|GFP_DMA pool for atomic allocations
+[    0.008346] audit: initializing netlink subsys (disabled)
+[    0.008511] audit: type=2000 audit(0.008:1): state=initialized audit_enabled=0 res=1
+[    0.008818] thermal_sys: Registered thermal governor 'step_wise'
+[    0.008854] cpuidle: using governor menu
+[    0.008925] hw-breakpoint: found 6 breakpoint and 4 watchpoint registers.
+[    0.008970] ASID allocator initialised with 32768 entries
+[    0.018209] HugeTLB: registered 1.00 GiB page size, pre-allocated 0 pages
+[    0.018233] HugeTLB: 0 KiB vmemmap can be freed for a 1.00 GiB page
+[    0.018242] HugeTLB: registered 32.0 MiB page size, pre-allocated 0 pages
+[    0.018249] HugeTLB: 0 KiB vmemmap can be freed for a 32.0 MiB page
+[    0.018256] HugeTLB: registered 2.00 MiB page size, pre-allocated 0 pages
+[    0.018264] HugeTLB: 0 KiB vmemmap can be freed for a 2.00 MiB page
+[    0.018272] HugeTLB: registered 64.0 KiB page size, pre-allocated 0 pages
+[    0.018278] HugeTLB: 0 KiB vmemmap can be freed for a 64.0 KiB page
+[    0.019285] fbcon: Taking over console
+[    0.019322] iommu: Default domain type: Translated
+[    0.019330] iommu: DMA domain TLB invalidation policy: strict mode
+[    0.020108] usbcore: registered new interface driver usbfs
+[    0.020138] usbcore: registered new interface driver hub
+[    0.020173] usbcore: registered new device driver usb
+[    0.021513] Bluetooth: Core ver 2.22
+[    0.021535] NET: Registered PF_BLUETOOTH protocol family
+[    0.021543] Bluetooth: HCI device and connection manager initialized
+[    0.021554] Bluetooth: HCI socket layer initialized
+[    0.021563] Bluetooth: L2CAP socket layer initialized
+[    0.021576] Bluetooth: SCO socket layer initialized
+[    0.021702] vgaarb: loaded
+[    0.022109] clocksource: Switched to clocksource arch_sys_counter
+[    0.022460] VFS: Disk quotas dquot_6.6.0
+[    0.022480] VFS: Dquot-cache hash table entries: 512 (4096 bytes)
+[    0.029725] NET: Registered PF_INET protocol family
+[    0.029831] IP idents hash table entries: 16384 (order: 5, 131072 bytes, linear)
+[    0.030424] tcp_listen_portaddr_hash hash table entries: 512 (order: 1, 8192 bytes, linear)
+[    0.030441] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    0.030454] TCP established hash table entries: 8192 (order: 4, 65536 bytes, linear)
+[    0.030483] TCP bind hash table entries: 8192 (order: 6, 262144 bytes, linear)
+[    0.030550] TCP: Hash tables configured (established 8192 bind 8192)
+[    0.030600] UDP hash table entries: 512 (order: 3, 32768 bytes, linear)
+[    0.030677] NET: Registered PF_UNIX/PF_LOCAL protocol family
+[    0.030705] PCI: CLS 0 bytes, default 64
+[    0.031065] Unpacking initramfs...
+[    0.031623] Initialise system trusted keyrings
+[    0.034162] workingset: timestamp_bits=46 (anon: 41) max_order=18 bucket_order=0 (anon: 0)
+[    0.035243] cryptd: max_cpu_qlen set to 1000
+[    0.058194] Freeing initrd memory: 13684K
+[    0.069401] NET: Registered PF_ALG protocol family
+[    0.069451] Key type asymmetric registered
+[    0.069459] Asymmetric key parser 'x509' registered
+[    0.069505] io scheduler mq-deadline registered
+[    0.069516] io scheduler kyber registered
+[    0.079456] [drm] Initialized simpledrm 1.0.0 for 83d000000.framebuffer on minor 0
+[    0.090974] Console: switching to colour frame buffer device 192x128
+[    0.102329] simple-framebuffer 83d000000.framebuffer: [drm] fb0: simpledrmdrmfb frame buffer device
+[    0.108265] loop: module loaded
+[    0.118237] zram: Added device: zram0
+[    0.123088] tun: Universal TUN/TAP device driver, 1.6
+[    0.124922] Driver for 1-wire Dallas network protocol.
+[    0.125822] device-mapper: ioctl: 4.50.0-ioctl (2025-04-28) initialised: dm-devel@lists.linux.dev
+[    0.125869] Bluetooth: HCI UART driver ver 2.3
+[    0.125894] Bluetooth: HCI UART protocol H4 registered
+[    0.125993] Bluetooth: HCI UART protocol Broadcom registered
+[    0.126781] usbcore: registered new interface driver usbhid
+[    0.126814] usbhid: USB HID core driver
+[    0.128163] hw perfevents: enabled with apple_cyclone_pmu PMU driver, 8 (0,000000ff) counters available
+[    0.128584]  cs_system_cfg: CoreSight Configuration manager initialised
+[    0.130450] NET: Registered PF_INET6 protocol family
+[    0.131076] Segment Routing with IPv6
+[    0.131199] In-situ OAM (IOAM) with IPv6
+[    0.131321] sit: IPv6, IPv4 and MPLS over IPv4 tunneling driver
+[    0.131735] NET: Registered PF_PACKET protocol family
+[    0.131812] Bluetooth: BNEP (Ethernet Emulation) ver 1.3
+[    0.131876] Bluetooth: BNEP filters: protocol multicast
+[    0.131942] Bluetooth: BNEP socket layer initialized
+[    0.132003] Bluetooth: HIDP (Human Interface Emulation) ver 1.2
+[    0.132070] Bluetooth: HIDP socket layer initialized
+[    0.132184] Key type dns_resolver registered
+[    0.137318] registered taskstats version 1
+[    0.137510] Loading compiled-in X.509 certificates
+[    0.144143] zswap: loaded using pool zstd
+[    0.148213] dwc2 20c100000.usbdev: EPs: 9, dedicated fifos, 2024 entries in SPRAM
+[    0.156431] 20a0a0000.serial: ttySAC0 MMIO32:0x000000020a0a0000 (irq = 45, base_baud = 0) is a APPLE S5L
+[    0.156638] printk: legacy console [ttySAC0] enabled
+[    1.131588] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.136668] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.142650] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.148213] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.155156] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.159716] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.165700] OF: Bad cell count for /soc/i2c@20a110000/pmic@3c
+[    1.173546] rtc-apple-pmic 20a110000.i2c:pmic@3c:rtc@5c0: registered as rtc0
+[    1.180241] rtc-apple-pmic 20a110000.i2c:pmic@3c:rtc@5c0: setting system clock to 2026-10-14T15:13:34 UTC (1791990814)
+[    1.191094] input: gpio-keys as /devices/platform/gpio-keys/input/input0
+[    1.197376] clk: Disabling unused clocks
+[    1.200593] PM: genpd: Disabling unused power domains
+[    1.206320] Freeing unused kernel memory: 960K
+[    1.210287] Run /init as init process
+[    1.213751]   with arguments:
+[    1.213758]     /init
+[    1.213762]   with environment:
+[    1.213766]     HOME=/
+[    1.213769]     TERM=linux
+[    1.312179] dwc2 20c100000.usbdev: bound driver configfs-gadget.a1599
+[    1.493692] dwc2 20c100000.usbdev: new device is high-speed
+[    1.570173] dwc2 20c100000.usbdev: new device is high-speed
+[    1.627966] dwc2 20c100000.usbdev: new address 58
+[ 1789.102994] a1599_fw_candidate: loading out-of-tree module taints kernel.
+[ 1789.109398] a1599-first-ready: LIVE_DT_PREFLIGHT soc=present vxd_node=absent vdec_provider=verified-by-path provider_phandle=absent live_symbols=absent overlay_fixups=none
+[ 1789.124569] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: OF DMA preflight: mask=0xffffffff coherent_mask=0xffffffff coherent=0 dma_range_map=absent iommu_domain=absent pm_domain_unattached=1 runtime_suspended=1 resource=[0x0000000207f00000-0x0000000207ffffff] exclusive=devm_ioremap_resource
+[ 1789.152630] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: DECODE_RESOURCES_READY allocations=7 maps=12 command_words=136 command_bytes=544 iovas=(preload:0x40012000 vlc:0x40013000 bitstream:0x40014004 current_picture:0x40015000 intra:0x40019000 output:0x40029000 command:0x4002a000) bitstream_payload_offset=4 output_planes=(0,2048) output_guard=[3072,4096) submission_gate=open_one_shot_only
+[ 1789.187306] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: DMA_ALLOCATED_EXPERIMENTAL mask=0xfffffffff staging_dma=0x0000000800640000 staging_bytes=57344 root_dma=0x00000008006c0000 root_bytes=4096 contexts=(0x0000000800700000,0x0000000800680000,0x000000080550f000) leaves=(0x0000000804308000,0x000000080360c000,0x0000000805514000,0x000000080550c000)
+[ 1789.219498] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: PREFLIGHT_VALIDATED firmware_sha256=6b274c576a7952d7a4f22f65adf5b1041c4329c3dfc7ce761de53668cfd4a41e vxd_maps=(staging:0x40000000+e000 extra:0x40010000+2000 context_large:0x40100000+100000 context_medium:0x40300000+40000 context_small:0x40340000+400) dma_handles_are_separate=1 dma_mask_hypothesis=0xfffffffff
+[ 1789.253024] a1599-first-ready: VDEC_GENPD_ATTACHED provider=verified-live-node domain_on=0 runtime_pm=disabled usage=0
+[ 1789.263541] a1599-first-ready: VDEC_RUNTIME_PM_ENABLED active=0 domain_on=0 usage=0
+[ 1789.271346] a1599-first-ready: VDEC_PM_RESUME_HELD ret=0 active=1 domain_on=1 usage=1
+[ 1789.280420] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: FIRST_READY_COMMIT: DMA lifetime pinned before first codec MMIO
+[ 1789.291288] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: CORE_RESET_BEGIN
+[ 1789.299482] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: CORE_RESET_DONE
+[ 1789.307465] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: FIRMWARE_UPLOAD_BEGIN bytes=57344 words=0x3800 staging_iova=0x40000000
+[ 1789.322520] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: FIRMWARE_UPLOAD_DONE
+[ 1789.329596] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_PC_WRITE_BEGIN pc=0x80900000 selector=5
+[ 1789.340068] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_PC_WRITE_DONE
+[ 1789.348249] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_PC_READ_BEGIN selector=5
+[ 1789.357414] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_PC_READ_DONE pc=0x80900000
+[ 1789.366743] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: MTX_START_WRITE_BEGIN offset=0x0 value=1
+[ 1789.380261] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: READY_SIGNATURE_POLL_BEGIN offset=0x2fe0 expected=0xa5a5a5a5 timeout_ms=2000
+[ 1789.396248] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: READY_SIGNATURE_MATCH offset=0x2fe0 value=0xa5a5a5a5
+[ 1789.410294] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: FIRST_READY: signature=0xa5a5a5a5 at logical offset 0x2fe0 elapsed_ms=131; no INIT or decode message sent; DMA mappings remain pinned
+[ 1789.433372] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: RING_SNAPSHOT_INIT_TRIGGER raw_h2m_desc=0x60cc01cc raw_m2h_desc=0x60000033 h2m_offset_bytes=0x60cc h2m_capacity_words=460 h2m_read_word=0 h2m_write_word=0 m2h_offset_bytes=0x6000 m2h_capacity_words=51 m2h_read_word=0 m2h_write_word=0 bounds_h2m=[0x80cc,0x87fc) bounds_m2h=[0x8000,0x80cc) validation=0 resource_bounded=1 comm_ram_proven=0 async_payload_captured=0
+[ 1789.478239] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: INIT_RANGE_AUTHORITY=firmware-ABI-live-ring-descriptors h2m=[0x80cc,0x87fc) m2h=[0x8000,0x80cc) resource_bounded=1 independent_silicon_comm_ram_extent=unproven experimental_gate=1
+[ 1789.505927] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: RING_SNAPSHOT_AFTER_INIT_KICK raw_h2m_desc=0x60cc01cc raw_m2h_desc=0x60000033 h2m_offset_bytes=0x60cc h2m_capacity_words=460 h2m_read_word=5 h2m_write_word=5 m2h_offset_bytes=0x6000 m2h_capacity_words=51 m2h_read_word=0 m2h_write_word=0 bounds_h2m=[0x80cc,0x87fc) bounds_m2h=[0x8000,0x80cc) validation=0 resource_bounded=1 comm_ram_proven=0 async_payload_captured=0
+[ 1789.551238] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: INIT_WIRE_SEND=published_and_kicked_once producer_write_word=5 producer_readback=5 producer_readback_match=1 h2m_consumer_before_kick=0 h2m_consumer_after_poll=5 consume_poll_ret=0 consume_poll_elapsed_ms=0 poll_timeout_ms=2000 m2h_sender_readback=(0,0) m2h_before=(0,0) after_kick_snapshot=see-RING_SNAPSHOT_AFTER_INIT_KICK semantic_init_complete=unproven dedicated_ack=not_required retry=0
+[ 1789.599242] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: INIT_INDEX_OBSERVATIONS h2m_consumer_advanced=1 h2m_read_before=0 h2m_read_after=5 m2h_indices_changed=0 m2h_read_before=0 m2h_write_before=0 m2h_read_after=0 m2h_write_after=0; these are observations only
+[ 1789.628246] a1599-vxd-first-ready-experiment 207f00000.vxd-first-ready: INIT_TRANSPORT_CONSUMED=1 semantic_init_complete=unproven
+[ 1789.642490] a1599-first-ready: symbol-independent overlay applied id=1; genpd attach is deferred to preflight-complete probe

@@ -1,0 +1,10 @@
+{
+  "original_manifest_still_unchanged": true,
+  "original_manifest_sha256": "88985614ae72ae1b3e37f5c906d6f8cdc4866ce56edcad0ab3af366f9eb1b4ac",
+  "frozen_files": 44,
+  "additional_checks": 13,
+  "all_additional_checks_passed": true,
+  "qemu_rx_tx_match_author_frozen_record": true,
+  "review_staging_hashes_passed": true,
+  "hardware_access": false
+}

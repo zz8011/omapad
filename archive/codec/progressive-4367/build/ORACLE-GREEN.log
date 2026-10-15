@@ -1,0 +1,9 @@
+Raw producer replay: 5 picture paths, metadata store, B28 carryover, QP perturbation: PASS
+{
+  "compared_words": 136,
+  "differences": []
+}
+PASS: all 136 candidate words equal the independent original-instruction oracle.
+PASS: actual candidate resource layout, all 544 bytes equal original producer; SHA256=c4445322027a187cae85358dcce3c8cdd39fa7220ea45de62904c75612977e9c
+
+EXIT_STATUS=0

@@ -1,0 +1,10 @@
+{
+  "id81_host_contract/id81_contract.h": "b66cddad26c0e173ceeaa6c6ac39daa1eaad4de591d59cf7a801159c28a24e77",
+  "id81_host_contract/id81_contract.c": "017d94b90c2d888d7d8ea81c8c3383fd593c84eb91acbb6fe160860f364b2a08",
+  "id81_host_contract/surface_bounds.h": "d00ea3d5566ba3dbc4cdca142e59193f7e3bf79bb98af69ead6cfb8cf7edd488",
+  "id81_host_contract/surface_bounds.c": "c93d3d8ce7e57ada21e3304a67bc46fde914137bdb0aa8d7a3c9c9619aa54c59",
+  "id81_host_contract/conditional_header.h": "820dbaeeca82b8dc28cd3ef8d80e268f1058bb0cfc11b345297e4a7067bdb948",
+  "id81_host_contract/conditional_header.c": "79f55e61ec02a7e3a67e1529dd5042ac992255de1a1d83d411ff8d16841ac21d",
+  "id81_host_contract/resource_contract.h": "10ffaea45bcdb46140abdf71cb3e1f0bef9814514c7ba337cc2b901f4b58aa0f",
+  "id81_host_contract/resource_contract.c": "ee301c88b0f6cdb10caebb33b6d7a0346d44f473248ee6887fc8cf51fd6c6e1d"
+}

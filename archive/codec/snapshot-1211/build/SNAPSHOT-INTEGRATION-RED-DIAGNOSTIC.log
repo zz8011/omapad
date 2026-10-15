@@ -1,0 +1,18 @@
+['cc', '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_output_snapshot.c', '-o', 'a1599_first_decode_candidate_c0_classification_20261014/build/test_output_snapshot']
+exit=0
+
+['a1599_first_decode_candidate_c0_classification_20261014/build/test_output_snapshot']
+exit=0
+bounded coherent snapshot: PASS (normal/nonzero flags, gates, late message/error, guard mutation, data mutation, exact read limits)
+
+['python', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_output_gate_source.py']
+exit=1
+gate: /tmp/a1599-output-gate-92vpk4uw/gate.c:116: run_case: Assertion `diagnostic.guard_state==A1599_GUARD_INTACT' failed.
+Traceback (most recent call last):
+  File "/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_output_gate_source.py", line 108, in <module>
+    subprocess.run([str(e)],check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/tmp/a1599-output-gate-92vpk4uw/gate']' died with <Signals.SIGABRT: 6>.

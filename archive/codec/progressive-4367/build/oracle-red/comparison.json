@@ -1,0 +1,25 @@
+{
+  "compared_words": 136,
+  "differences": [
+    {
+      "word": 1,
+      "byte_offset": "0x4",
+      "candidate": "00001004",
+      "apple": "00001008"
+    },
+    {
+      "word": 50,
+      "byte_offset": "0xc8",
+      "candidate": "10040000",
+      "apple": "10080000"
+    },
+    {
+      "word": 60,
+      "byte_offset": "0xf0",
+      "candidate": "10040000",
+      "apple": "10080000"
+    }
+  ],
+  "apple_sha256": "5c994d790317a0d8eae21a84b0277e6334c582ce3e86fa5d8c889fa77b0dfbc7",
+  "candidate_sha256": "ed389fa8c64d84cdb57b0e6600b8abcf96cac5bf2947f81fd394b1036b576aa7"
+}

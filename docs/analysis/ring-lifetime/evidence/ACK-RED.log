@@ -1,0 +1,3 @@
+test_c0_ack_red: a1599_consumer_observation_candidate_20261014/host-regressions/test_c0_ack.c:51: main: Assertion `a1599_c0_ack_once(&ack_ops,&f,&m,true,true,true,&s)==0' failed.
+
+exit=-6

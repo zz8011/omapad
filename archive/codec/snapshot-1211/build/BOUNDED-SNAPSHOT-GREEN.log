@@ -1,0 +1,11 @@
+['a1599_first_decode_candidate_c0_classification_20261014/build/host-regressions/test_output_snapshot']
+exit=0
+bounded coherent snapshot: PASS (normal/nonzero flags, gates, late message/error, guard mutation, data mutation, exact read limits)
+
+['python', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_output_gate_source.py']
+exit=0
+production output integration: PASS (16 cases; independent coherent/lifetime/response/authorization gates, two bounded copies, release publication)
+
+['python', 'a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_output_export_source.py']
+exit=0
+production output export callback: PASS (gates, bounds, immutable snapshot; inaccessible DMA backing)

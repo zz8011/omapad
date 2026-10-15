@@ -1,0 +1,170 @@
+[
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux",
+    "reason": "Full kernel source tree remains outside project",
+    "copied": false,
+    "exists": true,
+    "kind": "directory; no claim of complete tree hash"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux-6831bc7.tar.gz",
+    "reason": "Original kernel source archive; version label is filename, not complete working-tree identity",
+    "copied": false,
+    "exists": true,
+    "bytes": 269810567,
+    "sha256": "5eca8c1a096009ef867451d08433735ff29548220adb880f85b9840de65bf15f"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/m1n1",
+    "reason": "Existing boot source/toolchain dependency",
+    "copied": false,
+    "exists": true,
+    "kind": "directory; no claim of complete tree hash"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/pongoOS",
+    "reason": "Existing boot source dependency; not executed",
+    "copied": false,
+    "exists": true,
+    "kind": "directory; no claim of complete tree hash"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/cctools-port",
+    "reason": "Existing toolchain dependency",
+    "copied": false,
+    "exists": true,
+    "kind": "directory; no claim of complete tree hash"
+  },
+  {
+    "path": "/tmp/a1599-kbuild-decode",
+    "reason": "Volatile existing kernel build output; copied .config alone does not make build self-contained",
+    "copied": false,
+    "exists": true,
+    "kind": "directory; no claim of complete tree hash"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-12/task-2/a1599-alpine-fixed/runtime",
+    "reason": "Original userland tree and libraries",
+    "copied": false,
+    "exists": true,
+    "kind": "directory; no claim of complete tree hash"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-12/task-2/a1599-alpine-fixed/diagnostic-v2/runtime",
+    "reason": "Original diagnostic userland tree and libraries",
+    "copied": false,
+    "exists": true,
+    "kind": "directory; no claim of complete tree hash"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-12/task-3/vendor/alpine-v3.24-aarch64/manifest.json",
+    "reason": "Existing APK cache manifest",
+    "copied": false,
+    "exists": true,
+    "bytes": 36070,
+    "sha256": "0b2291a09be881086bceb08f26e49cd04acf8f84b8caa786fd67add988dc2646"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-12/task-2/a1599-alpine-fixed/diagnostic-v2/gadget-fix/out/a1599-alpine-m1n1-linux-gadget-fix.bundle",
+    "reason": "Existing successful RAM image; archival reference only",
+    "copied": false,
+    "exists": true,
+    "bytes": 13825798,
+    "sha256": "a069bf7743ac234a463e106f6eacce366fd5a89ca8d10a467e1cf93b790bb074"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-12/task-2/a1599-alpine-fixed/diagnostic-v2/gadget-fix/out/a1599-alpine-rootfs-gadget-fix.cpio.gz",
+    "reason": "Existing RAM filesystem",
+    "copied": false,
+    "exists": true,
+    "bytes": 4272268,
+    "sha256": "cbf49193f14c61acbb379a6964915f997c7ff7865ae9633853f7eba641164a4b"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/v2.4/out/kernel/Image-v2.4.gz",
+    "reason": "Original kernel image",
+    "copied": false,
+    "exists": true,
+    "bytes": 8337556,
+    "sha256": "18138b1150589fffed7266d0ca687363a7745945b09dc73f1e3815356945597d"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-13/task-6/evidence/a1599-usb-reenum-20261013/firmware-12.5.8-16H88/kernelcache.release.ipad4bm.decompressed",
+    "reason": "Original Apple reverse-analysis input",
+    "copied": false,
+    "exists": true,
+    "bytes": 27192152,
+    "sha256": "76269e79b4715783b95407acbb54df2369116c76709a03f24e0fe95924199eb9"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-14/task-3/evidence/a1599-snapshot-next-trial-1211/staging/vxd-staging-12.5.8-16H88.bin",
+    "reason": "Original firmware extracted for historical trial",
+    "copied": false,
+    "exists": true,
+    "bytes": 57344,
+    "sha256": "6b274c576a7952d7a4f22f65adf5b1041c4329c3dfc7ce761de53668cfd4a41e"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-13/task-6/a1599_first_decode_candidate_m2h_snapshot_20261014/build/a1599_fw_candidate.ko",
+    "reason": "Historical c97 failed-trial module",
+    "copied": false,
+    "exists": true,
+    "bytes": 866224,
+    "sha256": "c97fb883bbe39269bb9f16a9074305ce870e3366f563c72bf4b5ba77d6745fb2"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_first_decode_candidate_progressive_mode_20261014/build/a1599_fw_candidate.ko",
+    "reason": "Historical progressive candidate",
+    "copied": false,
+    "exists": true,
+    "bytes": 866280,
+    "sha256": "4367df89658bdbcee535129f768180c2fc239baf1eaae87896079a2061687b4c"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_first_decode_candidate_c0_classification_20261014/build/a1599_fw_candidate.ko",
+    "reason": "Historical verified 1211 module",
+    "copied": false,
+    "exists": true,
+    "bytes": 872744,
+    "sha256": "1211a6abbf026a9354f05a44e710c16ec7e8286cb0708b86b9ee260aa59bbbaa"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_consumer_observation_candidate_20261014/build/module/a1599_fw_candidate.ko",
+    "reason": "Paused consumer module; never copied or executed here",
+    "copied": false,
+    "exists": true,
+    "bytes": 889384,
+    "sha256": "6bbdcdf835923dbd57c1e00a7a8180307c3c856ac0694a8cf83b9d41869e8193"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_consumer_trial_ready_20261014/DELIVERY.sha256",
+    "reason": "Paused 44-file execution package; not copied or refreshed",
+    "copied": false,
+    "exists": true,
+    "bytes": 3850,
+    "sha256": "88985614ae72ae1b3e37f5c906d6f8cdc4866ce56edcad0ab3af366f9eb1b4ac"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-14/task-3/a1599_consumer_trial_ready_20261014/out/a1599-consumer.bundle",
+    "reason": "Paused image; not copied or refreshed",
+    "copied": false,
+    "exists": true,
+    "bytes": 13826458,
+    "sha256": "94068c0d4a606f2edb7517fca455fdbf19c3de1adba766fa6554d4b71346b1af"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-14/task-3/next_stage_plan_20261014/PLAN.md",
+    "reason": "Historical plan; not an authorization or current executable procedure",
+    "copied": false,
+    "exists": true,
+    "bytes": 19443,
+    "sha256": "0eba0064297697e4af8a5dbcfde362d093d506e0a2987dba0058ef22af5abf8c"
+  },
+  {
+    "path": "/home/zz8011/Documents/Codex/2026-10-14/task-3/evidence/a1599-snapshot-next-trial-1211",
+    "reason": "Full original single-frame evidence, including redundant transport records",
+    "copied": false,
+    "exists": true,
+    "kind": "directory; no claim of complete tree hash"
+  }
+]

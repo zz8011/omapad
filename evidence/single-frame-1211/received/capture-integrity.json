@@ -1,0 +1,79 @@
+{
+  "transport_ok": true,
+  "files": {
+    "status.txt": {
+      "verified": true,
+      "announced_bytes": 638,
+      "announced_sha256": "58e80c205fd2639c107506ac41298a444c0ab077b705d57cfb4bc2da9aaec626",
+      "bytes": 638,
+      "sha256": "58e80c205fd2639c107506ac41298a444c0ab077b705d57cfb4bc2da9aaec626"
+    },
+    "dmesg.before.txt": {
+      "verified": true,
+      "announced_bytes": 12455,
+      "announced_sha256": "d5256c510f424a203feff86b2ad0942d7f2a56e4e61e91f638b473a7b72a6857",
+      "bytes": 12455,
+      "sha256": "d5256c510f424a203feff86b2ad0942d7f2a56e4e61e91f638b473a7b72a6857"
+    },
+    "dmesg.load.txt": {
+      "verified": true,
+      "announced_bytes": 18211,
+      "announced_sha256": "0a6bca8d49691a472f5b11a72f644de312b264bb36527e6a3218153305fe0363",
+      "bytes": 18211,
+      "sha256": "0a6bca8d49691a472f5b11a72f644de312b264bb36527e6a3218153305fe0363"
+    },
+    "dmesg.after.txt": {
+      "verified": true,
+      "announced_bytes": 27173,
+      "announced_sha256": "43765ac3f05def067fac417ac065a0350ace89606b00e9e39ef87a9bc8e483cd",
+      "bytes": 27173,
+      "sha256": "43765ac3f05def067fac417ac065a0350ace89606b00e9e39ef87a9bc8e483cd"
+    },
+    "insmod.txt": {
+      "verified": true,
+      "announced_bytes": 0,
+      "announced_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "decode.stderr.txt": {
+      "verified": true,
+      "announced_bytes": 0,
+      "announced_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "export.stderr.txt": {
+      "verified": true,
+      "announced_bytes": 85,
+      "announced_sha256": "776785703580a13a716c25ca83c28f4b6dbcea172a8c3a796463b2289ac2e3eb",
+      "bytes": 85,
+      "sha256": "776785703580a13a716c25ca83c28f4b6dbcea172a8c3a796463b2289ac2e3eb"
+    },
+    "decode-output.bin": {
+      "verified": true,
+      "announced_bytes": 4096,
+      "announced_sha256": "9f4d0fe4b48d7ae835608a1a686a7a075e9ab8eb136bd7e5c10e6bc290849557",
+      "bytes": 4096,
+      "sha256": "9f4d0fe4b48d7ae835608a1a686a7a075e9ab8eb136bd7e5c10e6bc290849557"
+    }
+  },
+  "errors": [],
+  "c0": [
+    {
+      "file": "c0-001.bin",
+      "bytes": 12,
+      "hex": "8cc0010003000000d5440660",
+      "source": "verified dmesg.after.txt C0_RAW; diagnostic capture only",
+      "flags": "0x600644d5",
+      "fence": 1,
+      "native_class": "0x10"
+    }
+  ],
+  "snapshot": {
+    "bytes": 4096,
+    "size_ok": true,
+    "guard_intact": true,
+    "transport_verified": true
+  }
+}

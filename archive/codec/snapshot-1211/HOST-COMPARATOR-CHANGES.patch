@@ -1,0 +1,62 @@
+--- a/host-regressions/test_compare_output.py
++++ b/host-regressions/test_compare_output.py
+@@ -29,6 +29,48 @@
+ 
+ 
+ class CompareOutputTests(unittest.TestCase):
++    def literal_semiplanar_fixture(self, chroma_row):
++        # Independent byte fixture: Y stride 64, chroma base 2048/stride 64.
++        # No production layout builder or extraction logic creates these bytes.
++        backing = bytearray([0xA5] * 4096)
++        for row in range(32):
++            backing[row * 64:row * 64 + 32] = bytes(range(32))
++        for row in range(16):
++            start = 2048 + row * 64
++            backing[start:start + 32] = chroma_row
++        planes = (bytes(range(32)) * 32, b"\x11" * 256, b"\xcb" * 256)
++        return bytes(backing), planes
++
++    def test_nv12_extracts_uv_and_nv21_interpretation_swaps_planes(self):
++        backing, expected = self.literal_semiplanar_fixture(b"\x11\xcb" * 16)
++        nv12 = compare_output.Layout("NV12", 0, 64, 2048, 2048, 64, True)
++        nv21 = compare_output.Layout("NV21", 0, 64, 2048, 2048, 64, True)
++        self.assertEqual(compare_output.extract_planes(backing, nv12), expected)
++        self.assertEqual(compare_output.extract_planes(backing, nv21),
++                         (expected[0], expected[2], expected[1]))
++
++    def test_nv21_extracts_vu_and_nv12_interpretation_swaps_planes(self):
++        backing, expected = self.literal_semiplanar_fixture(b"\xcb\x11" * 16)
++        nv12 = compare_output.Layout("NV12", 0, 64, 2048, 2048, 64, True)
++        nv21 = compare_output.Layout("NV21", 0, 64, 2048, 2048, 64, True)
++        self.assertEqual(compare_output.extract_planes(backing, nv21), expected)
++        self.assertEqual(compare_output.extract_planes(backing, nv12),
++                         (expected[0], expected[2], expected[1]))
++
++    def test_nv12_screen_matches_nv12_and_rejects_nv21(self):
++        backing, expected = self.literal_semiplanar_fixture(b"\x11\xcb" * 16)
++        matches = {item["layout"]["name"]
++                   for item in compare_output.compare(backing, b"".join(expected))
++                   if item["exact"]}
++        self.assertEqual(matches, {"NV12"})
++
++    def test_nv21_screen_matches_nv21_and_rejects_nv12(self):
++        backing, expected = self.literal_semiplanar_fixture(b"\xcb\x11" * 16)
++        matches = {item["layout"]["name"]
++                   for item in compare_output.compare(backing, b"".join(expected))
++                   if item["exact"]}
++        self.assertEqual(matches, {"NV21"})
++
+     def setUp(self):
+         self.y = bytes((i * 31 + 7) & 255 for i in range(1024))
+         self.u = bytes((i * 17 + 43) & 255 for i in range(256))
+--- a/tools/compare_output.py
++++ b/tools/compare_output.py
+@@ -75,6 +75,8 @@
+                        for row in range(c_height))
+         u = bytes(uv[i] for i in range(0, len(uv), 2))
+         v = bytes(uv[i] for i in range(1, len(uv), 2))
++        if layout.name == "NV21":
++            u, v = v, u
+     else:
+         u = b"".join(backing[layout.u_offset + row * layout.c_stride:
+                                layout.u_offset + row * layout.c_stride + WIDTH // 2]

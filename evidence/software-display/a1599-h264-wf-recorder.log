@@ -1,0 +1,14 @@
+selected region 3200,0 768x1024
+Setting codec option: g=5
+Setting codec option: preset=p4
+Setting codec option: qp=30
+Setting codec option: rc=constqp
+Setting codec option: tune=ll
+Framerate: 5
+Using video filter: fps=5
+Output #0, nut, to 'pipe:1':
+  Stream #0:0: Video: h264 (High), bgr0(pc), 1536x2048 [SAR 1:1 DAR 3:4], q=2-31, 2000 kb/s
+    Side data:
+      CPB properties: bitrate max/min/avg: 0/0/2000000 buffer size: 4000000 vbv_delay: N/A
+[Source @ 0x7ce734021380] Changing video frame properties on the fly is not supported by all filters.
+[Source @ 0x7ce734021380] filter context - w: 1536 h: 2048 fmt: 121 csp: gbr range: unknown alpha: unspecified, incoming frame - w: 1536 h: 2048 fmt: 121 csp: unknown range: unknown alpha: unspecified pts_time: 0

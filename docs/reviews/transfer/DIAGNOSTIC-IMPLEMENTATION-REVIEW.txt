@@ -1,0 +1,66 @@
+Independent review of diagnose_bound.py, target-state revision
+
+FINAL ADDENDUM — both reliability blockers below are resolved.
+Reviewed helper SHA256:
+5101229fd3fd2dbb99fc0bb35a6e8c91ad1d8616de4cbae9358b7a67d1b5e5b8
+Target-state is suitable for its single bounded read-only diagnostic execution,
+with the previously specified external 15-second timeout and no automatic
+retry. This is not approval to retransmit files or execute a decode.
+
+BUSYBOX-LINE-CAPACITY.json and test_busybox_line.py show the pinned BusyBox
+97d52efa149563c8d886e3670e2496d4140d3c54138017afd3a105e0397fae2e
+accepts a 1643-byte interactive line, prints 1600 bytes and executes a trailing
+marker assembled by printf (so plain input echo cannot satisfy that marker).
+This covers the current 1419-byte command. The updated DSR scanner keeps its
+last three bytes in Probe.dsr_tail across read_for calls and retains the total
+two-response bound. The added test explicitly spans the two calls. Each action
+also saves executed-helper.py. No remaining implementation blocker was found.
+
+The reviewer inspected the tests and supplied result artifacts, without running
+the receiver, shell or devices. DIAGNOSTIC-TESTS.log visible during this review
+still contained the earlier six-test result; the operator should separately
+retain the claimed ten-test result. All earlier interpretation limits remain.
+
+Historical review findings, retained below for audit:
+
+Read-only code review; no device was opened or operated by this reviewer.
+Reviewed current diagnose_bound.py and test_diagnose.py. Tests were inspected,
+not independently executed. A literal-only AST calculation measured BODY as
+1040 bytes and the generated command as 1419 bytes.
+
+rx-tail: no implementation blocker found for the previously specified bounded
+diagnostic with external timeout -s TERM -k 2s 15s. Exact binding, cooperating
+lock, existing opener scan, TIOCEXCL, separate one-attempt marker, raw evidence
+before post-read identity check, cap+1 overflow detection, and no restoration
+of inherited ECHO are present. Application TX absence is not proof of zero
+kernel-generated wire TX during the open-to-raw window. D-state termination
+is not guaranteed. Neither limitation permits automatic repetition.
+
+target-state: the earlier LF/CRLF completion issue is repaired. Completion
+uses full lines with BEGIN and END; the fixed base64 pipeline decodes exactly
+the read-only BODY. Only console mode answers DSR, with a fixed logged answer
+and a two-response total cap. No transfer, module or decode command is present.
+
+Two reliability items remain before consuming the unique target-state attempt:
+
+1. A generated command length below 4000 does not establish compatibility with
+   the fixed BusyBox ash interactive editing buffer. The current line is 1419
+   bytes; some BusyBox builds use a 1024-byte editing limit. That is an unverified
+   compatibility issue, not a claim that this exact image has that limit.
+   Verify this exact binary/config offline with the full line, or reduce the
+   line below a demonstrated limit. Truncation can leave an unfinished shell
+   command and consume the one-attempt marker without obtaining state.
+
+2. DSR detection survives chunks within one read_for call but not the boundary
+   between the startup read and the response read. Both data and handled_dsr
+   are local variables. A startup read ending in ESC[ followed by 6n in the
+   next call is missed. Preserve a bounded scanner suffix/cursor in Probe
+   across both calls; keep the overall count at two and record fixed replies.
+   Add a test spanning the two calls, not just two chunks of one call.
+
+Other limits: target_state_complete means the wrapper markers were observed,
+not that every shell query succeeded or that command reception is safe to
+resume. Individual query errors, absent fields, receiver state, directory
+contents, and module/trial evidence must still be reviewed before recovery.
+BEGIN/END receipt does not authorize a PUT. The outer host timeout does not
+guarantee the target's read-only shell has finished; do not resubmit on timeout.

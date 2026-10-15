@@ -1,0 +1,29 @@
+{
+  "changed": [
+    "a1599_fw_decode_stream.c"
+  ],
+  "unchanged": [
+    "Kconfig",
+    "Makefile",
+    "a1599-vxd-first-ready-overlay.dts",
+    "a1599_fw_candidate_kunit.c",
+    "a1599_fw_decode_diagnostics.h",
+    "a1599_fw_decode_layout.h",
+    "a1599_fw_decode_lifetime.h",
+    "a1599_fw_decode_stream.h",
+    "a1599_fw_decode_submit.h",
+    "a1599_fw_dma_mask.h",
+    "a1599_fw_first_ready_candidate.h",
+    "a1599_fw_first_ready_platform_harness.c",
+    "a1599_fw_first_ready_tables.c",
+    "a1599_fw_id81.c",
+    "a1599_fw_linux_backend_skeleton.c",
+    "a1599_fw_linux_backend_skeleton.h",
+    "a1599_fw_ring_capacity.h",
+    "a1599_fw_static_boot_memory.c",
+    "a1599_fw_static_boot_memory.h",
+    "a1599_fw_vlc_table.h",
+    "a1599_vxd_first_ready_dtbo.inc"
+  ],
+  "frozen_module_sha256": "c97fb883bbe39269bb9f16a9074305ce870e3366f563c72bf4b5ba77d6745fb2"
+}

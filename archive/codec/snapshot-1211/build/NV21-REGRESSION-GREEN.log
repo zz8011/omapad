@@ -1,0 +1,12 @@
+test_detects_nv12_candidate_without_assuming_it (__main__.CompareOutputTests.test_detects_nv12_candidate_without_assuming_it) ... ok
+test_detects_planar_candidate_and_rejects_guard_overlap (__main__.CompareOutputTests.test_detects_planar_candidate_and_rejects_guard_overlap) ... ok
+test_nv12_extracts_uv_and_nv21_interpretation_swaps_planes (__main__.CompareOutputTests.test_nv12_extracts_uv_and_nv21_interpretation_swaps_planes) ... ok
+test_nv12_screen_matches_nv12_and_rejects_nv21 (__main__.CompareOutputTests.test_nv12_screen_matches_nv12_and_rejects_nv21) ... ok
+test_nv21_extracts_vu_and_nv12_interpretation_swaps_planes (__main__.CompareOutputTests.test_nv21_extracts_vu_and_nv12_interpretation_swaps_planes) ... ok
+test_nv21_screen_matches_nv21_and_rejects_nv12 (__main__.CompareOutputTests.test_nv21_screen_matches_nv21_and_rejects_nv12) ... ok
+test_unmatched_output_is_explicit (__main__.CompareOutputTests.test_unmatched_output_is_explicit) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.032s
+
+OK

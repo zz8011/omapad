@@ -1,0 +1,3 @@
+compile_exit=0
+run_exit=-6
+test_decode_submit_red: a1599_first_decode_candidate_c0_classification_20261014/host-regressions/test_decode_submit_mock.c:179: main: Assertion `a1599_decode_submit_once(&fake_ops, &fake, &s, &p, 1, 5, &result) == 0' failed.

@@ -1,0 +1,6 @@
+2026-10-12T16:48:38Z pid=1438361 displayd snapshot active on ttyACM2; framebuffer unchanged until H.264 frame
+2026-10-12T16:48:38Z pid=1438361 target ffmpeg pid=132; paused file-recv pid=106; RAM log=/run/a1599-h264-target.log
+2026-10-12T16:48:38Z pid=1438361 wf-recorder pid=1438371 output=A1599-RAM resolution=1536x2048 target_fps=5 codec=h264_nvenc mux=nut ttyACM1=1-12:1d6b:0104
+2026-10-12T16:50:18Z pid=1438361 target cleanup unconfirmed: maintenance shell timed out waiting for A1599_TARGET_; output=[]
+2026-10-12T16:50:23Z pid=1438361 framebuffer restore unconfirmed: serial response timed out
+2026-10-12T16:51:03Z pid=1438361 FATAL LinkError: serial write timed out

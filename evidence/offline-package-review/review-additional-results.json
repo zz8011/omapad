@@ -1,0 +1,68 @@
+[
+  {
+    "case": "valid",
+    "accepted": true,
+    "pass": true
+  },
+  {
+    "case": "wrong_nonce",
+    "accepted": false,
+    "pass": true
+  },
+  {
+    "case": "wrong_boot",
+    "accepted": false,
+    "pass": true
+  },
+  {
+    "case": "wrong_output",
+    "accepted": false,
+    "pass": true
+  },
+  {
+    "case": "partial_readback",
+    "accepted": false,
+    "pass": true
+  },
+  {
+    "case": "late_producer",
+    "accepted": false,
+    "pass": true
+  },
+  {
+    "case": "duplicate_observation",
+    "accepted": false,
+    "pass": true
+  },
+  {
+    "case": "second_id81",
+    "accepted": false,
+    "pass": true
+  },
+  {
+    "case": "missing_done",
+    "accepted": false,
+    "pass": true
+  },
+  {
+    "case": "truncated_packet",
+    "accepted": false,
+    "pass": true
+  },
+  {
+    "case": "partial_stage_marker",
+    "sent_once": true,
+    "no_success_rc": true,
+    "pass": true
+  },
+  {
+    "case": "coalesced_extra",
+    "no_put_or_payload": true,
+    "pass": true
+  },
+  {
+    "case": "delayed_extra",
+    "no_put_or_payload": true,
+    "pass": true
+  }
+]

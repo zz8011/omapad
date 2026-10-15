@@ -1,0 +1,470 @@
+--- a/a1599_fw_decode_diagnostics.h
++++ b/a1599_fw_decode_diagnostics.h
+@@ -15,6 +15,8 @@
+ typedef uint16_t a1599_diag_u16;
+ typedef uint32_t a1599_diag_u32;
+ #endif
++
++#include "../id81_host_contract/id81_contract.h"
+ 
+ #define A1599_C0_DIAGNOSTIC_MAX_BYTES 127U
+ 
+@@ -53,7 +55,8 @@
+ 
+ /* Field presence describes bytes present in the captured C0, even when the
+  * C0 parser rejected the record. Guard state is separate: only a valid
+- * zero-status response followed by an actual guard read can establish it.
++ * native class-0x10 response followed by an actual guard observation can
++ * establish it; nonzero flags alone do not suppress an observation.
+  */
+ static inline void a1599_decode_diagnostic_capture_c0(
+ 		struct a1599_decode_diagnostic *out,
+@@ -88,7 +91,7 @@
+ 		out->detail_present = true;
+ 		out->detail = a1599_diag_read_le32(message + 12);
+ 	}
+-	if (record_valid && out->status_present && out->status == 0 &&
++	if (record_valid && out->status_present && !(out->status & C0_STATUS_DETAIL_BIT) &&
+ 	    guard_checked)
+ 		out->guard_state = guard_intact ? A1599_GUARD_INTACT :
+ 			A1599_GUARD_CHANGED;
+--- a/a1599_fw_decode_submit.h
++++ b/a1599_fw_decode_submit.h
+@@ -19,9 +19,9 @@
+ };
+ 
+ enum a1599_decode_c0_status_class {
+-	A1599_DECODE_C0_STATUS_ZERO,
+-	A1599_DECODE_C0_STATUS_NONZERO,
+-	A1599_DECODE_C0_STATUS_ERROR_DETAIL,
++	A1599_DECODE_C0_INVALID = 0,
++	A1599_DECODE_C0_CLASS_10 = 0x10,
++	A1599_DECODE_C0_CLASS_8010 = 0x8010,
+ };
+ 
+ struct a1599_decode_submit_result {
+@@ -34,7 +34,7 @@
+ 	bool consumed;
+ 	bool response_received;
+ 	bool response_record_valid;
+-	bool response_error;
++	bool response_error; /* native class 0x8010, not flags != 0 */
+ 	enum a1599_decode_c0_status_class status_class;
+ };
+ 
+@@ -101,13 +101,11 @@
+ 	if (parse_ret != C0_OK)
+ 		return -EBADMSG;
+ 	result->response_record_valid = true;
+-	if (result->response.status & C0_STATUS_DETAIL_BIT)
+-		result->status_class = A1599_DECODE_C0_STATUS_ERROR_DETAIL;
+-	else if (result->response.status)
+-		result->status_class = A1599_DECODE_C0_STATUS_NONZERO;
+-	else
+-		result->status_class = A1599_DECODE_C0_STATUS_ZERO;
+-	result->response_error = result->response.status != 0;
++	result->status_class = result->response.dispatch_class == C0_DISPATCH_8010 ?
++		A1599_DECODE_C0_CLASS_8010 : A1599_DECODE_C0_CLASS_10;
++	result->response_error = result->status_class == A1599_DECODE_C0_CLASS_8010;
++	/* Return 0 is native response classification only. Read-only coherent
++	 * output snapshots and pixel verification have separate contracts. */
+ 	return result->response_error ? -EREMOTEIO : 0;
+ }
+ 
+--- a/a1599_fw_first_ready_platform_harness.c
++++ b/a1599_fw_first_ready_platform_harness.c
+@@ -33,6 +33,7 @@
+ #include "a1599_fw_dma_mask.h"
+ #include "a1599_fw_decode_stream.h"
+ #include "a1599_fw_decode_submit.h"
++#include "a1599_fw_output_snapshot.h"
+ #include "a1599_fw_decode_diagnostics.h"
+ #include "a1599_fw_decode_layout.h"
+ #include "a1599_fw_ring_capacity.h"
+@@ -46,7 +47,6 @@
+ #define A1599_VERIFIED_COMM_RAM_END 0U
+ #define A1599_INIT_CONSUME_TIMEOUT_MS 2000U
+ #define A1599_DECODE_RESPONSE_TIMEOUT_MS 2000U
+-#define A1599_DECODE_OUTPUT_SETTLE_MS 50U
+ #define A1599_FW_NAME "a1599/vxd-staging-12.5.8-16H88.bin"
+ #define A1599_FW_SHA256 "6b274c576a7952d7a4f22f65adf5b1041c4329c3dfc7ce761de53668cfd4a41e"
+ #define A1599_PREFLIGHT_BUDGET_MS 10000U
+@@ -74,7 +74,7 @@
+ static bool allow_output_export;
+ module_param(allow_output_export, bool, 0400);
+ MODULE_PARM_DESC(allow_output_export,
+-		 "default-off read-only export of only the fixed 4-KiB decode output allocation after one decode attempt");
++		 "default-off: after a matching normal C0, take two bounded read-only coherent output snapshots; no pixel success is implied");
+ static ushort decode_flags = 0x4015;
+ module_param(decode_flags, ushort, 0400);
+ MODULE_PARM_DESC(decode_flags,
+@@ -97,9 +97,10 @@
+ static atomic_t a1599_decode_consumed = ATOMIC_INIT(0);
+ static atomic_t a1599_m2h_raw_consumed = ATOMIC_INIT(0);
+ static bool a1599_decode_result_valid;
+-static bool a1599_decode_response_zero_status;
++static bool a1599_decode_output_inspection_allowed;
+ static bool a1599_decode_output_snapshot_ready;
+ static u8 a1599_decode_output_snapshot[A1599_FW_DECODE_OUTPUT_BYTES];
++static u8 a1599_decode_output_second_sample[A1599_FW_DECODE_OUTPUT_BYTES];
+ static DEFINE_MUTEX(a1599_ring_lock);
+ static struct a1599_fw_static_boot_memory *a1599_memory;
+ static struct a1599_fw_reg_window a1599_live_window;
+@@ -710,6 +711,59 @@
+ 			       diagnostic->raw, diagnostic->raw_length, false);
+ }
+ 
++/* All decode allocations originate in alloc_span()->dma_alloc_coherent().
++ * Match the exact retained record; never translate/re-map a bus address to CPU.
++ */
++static bool a1599_output_allocation_matches(struct device *dev)
++{
++	const struct a1599_fw_static_allocation *a;
++	const struct a1599_decode_dma_view *v;
++
++	if (!a1599_memory || !a1599_memory->allocated)
++		return false;
++	a = &a1599_memory->decode[A1599_DECODE_OUTPUT];
++	v = &a1599_memory->decode_lifetime.buffers[A1599_DECODE_OUTPUT];
++	return a->dev == dev && a->cpu && a->cpu == a->alloc_cpu &&
++		a->dma == a->alloc_dma && a->bytes == A1599_FW_DECODE_OUTPUT_BYTES &&
++		a->alloc_bytes == a->bytes && v->cpu == a->cpu &&
++		v->dma == a->dma && v->bytes == a->bytes;
++}
++
++static int a1599_output_read_ring(void *context,
++				struct a1599_decode_ring_snapshot *ring)
++{
++	struct a1599_fw_ring_snapshot s;
++	int ret = a1599_ring_snapshot(context, &s);
++
++	if (ret)
++		return ret;
++	*ring = (struct a1599_decode_ring_snapshot) {
++		.h2m_descriptor = s.h2m_descriptor,
++		.m2h_descriptor = s.m2h_descriptor,
++		.h2m_read_index = s.h2m_read_index,
++		.h2m_write_index = s.h2m_write_index,
++		.m2h_read_index = s.m2h_read_index,
++		.m2h_write_index = s.m2h_write_index,
++		.h2m_capacity_words = s.h2m_capacity_words,
++		.m2h_capacity_words = s.m2h_capacity_words,
++		.h2m_start = s.h2m_start,
++		.m2h_start = s.m2h_start,
++	};
++	return 0;
++}
++
++static void a1599_output_wait_ms(void *context, unsigned int milliseconds)
++{
++	(void)context;
++	msleep(milliseconds);
++}
++
++static const struct a1599_output_snapshot_ops a1599_output_snapshot_ops = {
++	.read_ring = a1599_output_read_ring,
++	.read_barrier = a1599_mmio_read_barrier,
++	.wait_ms = a1599_output_wait_ms,
++};
++
+ static ssize_t decode_once_store(struct device *dev,
+ 				 struct device_attribute *attr,
+ 				 const char *buf, size_t count)
+@@ -720,9 +774,8 @@
+ 	struct a1599_decode_submit_result result;
+ 	struct a1599_decode_diagnostic diagnostic;
+ 	struct id81_pack_input pack;
+-	u8 *output;
+-	bool guard_checked = false, guard_intact = false;
+-	bool output_stability_checked = false, output_stable = false;
++	struct a1599_output_snapshot_result output_result = {};
++	int output_ret = -EACCES;
+ 	int ret, snap_ret, after_ret;
+ 
+ 	if (!sysfs_streq(buf, "1"))
+@@ -800,70 +853,63 @@
+ 	else
+ 		a1599_log_ring_snapshot(dev, &a1599_live_window, &after_decode, 0,
+ 					"AFTER_ID81");
+-	output = a1599_memory->decode[A1599_DECODE_OUTPUT].cpu;
+-	if (result.response_received && result.response_record_valid &&
+-	    result.response.status == 0) {
+-		guard_checked = true;
+-		guard_intact = !memchr_inv(output + 3072U, 0xa5, 1024U);
++	/* CPU-only snapshot publication is separate from native C0 classification. */
++	WRITE_ONCE(a1599_decode_output_snapshot_ready, false);
++	if (allow_output_export) {
++		struct a1599_output_snapshot_input input = {
++			.response = &result,
++			.cpu = a1599_memory->decode[A1599_DECODE_OUTPUT].cpu,
++			.bytes = a1599_memory->decode[A1599_DECODE_OUTPUT].bytes,
++			.authorized = allow_output_export,
++			.coherent_allocation = a1599_output_allocation_matches(dev),
++			.resources_pinned = a1599_memory->hardware_started &&
++				a1599_memory->decode_lifetime.started,
++		};
++
++		output_ret = ret ? ret : after_ret;
++		if (!output_ret)
++			output_ret = a1599_output_snapshot_once(&input,
++				&a1599_output_snapshot_ops, &a1599_live_window,
++				a1599_decode_output_snapshot,
++				a1599_decode_output_second_sample,
++				sizeof(a1599_decode_output_snapshot), &output_result);
+ 	}
+ 	a1599_decode_diagnostic_capture_c0(&diagnostic,
+ 		result.message.bytes, result.message.length,
+-		result.response_record_valid, guard_checked, guard_intact);
+-	WRITE_ONCE(a1599_decode_output_snapshot_ready, false);
+-	if (!ret && diagnostic.guard_state == A1599_GUARD_INTACT &&
+-	    allow_output_export) {
+-		/* Compare two complete backing reads 50 ms apart, then export only
+-		 * the immutable kernel snapshot. This is bounded evidence of a
+-		 * quiescent interval, not proof the device will never DMA again.
+-		 */
+-		msleep(A1599_DECODE_OUTPUT_SETTLE_MS);
+-		dma_rmb();
+-		memcpy(a1599_decode_output_snapshot, output,
+-		       A1599_FW_DECODE_OUTPUT_BYTES);
+-		msleep(A1599_DECODE_OUTPUT_SETTLE_MS);
+-		dma_rmb();
+-		output_stability_checked = true;
+-		guard_intact = !memchr_inv(output + 3072U, 0xa5, 1024U);
+-		output_stable = guard_intact &&
+-			!memcmp(output, a1599_decode_output_snapshot,
+-				A1599_FW_DECODE_OUTPUT_BYTES);
+-		a1599_decode_diagnostic_capture_c0(&diagnostic,
+-			result.message.bytes, result.message.length,
+-			result.response_record_valid, guard_checked, guard_intact);
+-		if (output_stable)
+-			WRITE_ONCE(a1599_decode_output_snapshot_ready, true);
+-	}
+-	a1599_log_c0_capture(dev, &result, &diagnostic, guard_checked);
++		result.response_record_valid, output_result.guard_checked,
++		output_result.guard_intact);
++	a1599_log_c0_capture(dev, &result, &diagnostic, output_result.guard_checked);
+ 	WRITE_ONCE(a1599_decode_result_valid,
+ 		   result.response_received && result.response_record_valid);
+-	WRITE_ONCE(a1599_decode_response_zero_status,
+-		   ret == 0 && result.response_received &&
+-		   result.response_record_valid &&
+-		   result.response.status == 0 && guard_intact &&
+-		   READ_ONCE(a1599_decode_output_snapshot_ready));
+-	dev_warn(dev, "DECODE_ONE_SHOT consumed=1 ret=%d published=%d h2m_consumed=%d response_received=%d fence=%u expected_fence=1 c0_record_valid=%d c0_status_class=%s c0_status_error=%d c0_status=%#x c0_detail_present=%u c0_detail=%#x guard_checked=%d guard_state=%s output_snapshot_ready=%d output_stability_checked=%d output_stable_50ms=%d pixels_compared=0 decode_success=unclaimed output_dma=%pad output_bytes=%zu response_ring_consumer_advanced=0 retry=0 init_transport_consumed=1 semantic_init_complete=unproven resources_pinned=1\n",
++	WRITE_ONCE(a1599_decode_output_inspection_allowed, output_result.eligible);
++	/* Sysfs readers acquire this flag before reading state or either copy. */
++	if (!output_ret && output_result.snapshot_ready)
++		smp_store_release(&a1599_decode_output_snapshot_ready, true);
++	dev_warn(dev, "DECODE_ONE_SHOT consumed=1 ret=%d published=%d h2m_consumed=%d response_received=%d fence=%u expected_fence=1 c0_record_valid=%d c0_native_class=%#x c0_native_error=%d c0_status=%#x c0_detail_present=%u c0_detail=%#x guard_checked=%d guard_state=%s output_inspection_allowed=%d output_snapshot_ret=%d output_copies=%u output_ring_checks=%u cpu_mapping=dma_alloc_coherent snapshot_kind=bounded_read_only future_dma_quiescence=unproven output_snapshot_ready=%d output_stability_checked=%d output_stable_50ms=%d pixels_compared=0 decode_success=unclaimed output_dma=%pad output_bytes=%zu response_ring_consumer_advanced=0 retry=0 init_transport_consumed=1 semantic_init_complete=unproven resources_pinned=1\n",
+ 		 ret, result.published, result.consumed,
+ 		 result.response_received, result.response.fence,
+ 		 result.response_record_valid,
+-		 !result.response_record_valid ? "no-valid-record" :
+-		 result.status_class == A1599_DECODE_C0_STATUS_ERROR_DETAIL ?
+-		 "error-detail" : result.status_class ==
+-		 A1599_DECODE_C0_STATUS_NONZERO ? "nonzero-no-detail" : "zero",
++		 (unsigned int)result.status_class,
+ 		 result.response_error, result.response.status,
+ 		 result.response.has_detail,
+ 		 result.response.detail,
+-		 guard_checked, a1599_guard_state_name(diagnostic.guard_state),
++		 output_result.guard_checked, a1599_guard_state_name(diagnostic.guard_state),
++		 output_result.eligible, output_ret, output_result.copies,
++		 output_result.ring_checks,
+ 		 READ_ONCE(a1599_decode_output_snapshot_ready),
+-		 output_stability_checked, output_stable,
++		 output_result.stability_checked, output_result.stable,
+ 		 &a1599_memory->decode[A1599_DECODE_OUTPUT].dma,
+ 		 a1599_memory->decode[A1599_DECODE_OUTPUT].bytes);
+-	return ret ? ret : count;
++	if (ret)
++		return ret;
++	return allow_output_export && output_ret ? output_ret : count;
+ }
+ 
+ /* Export only a fixed-size immutable snapshot of the output backing, never an
+- * address or another resource. A full-frame read requires a zero-status C0,
+- * an intact guard, and two equal DMA-buffer observations 50 ms apart. This
+- * bounded stability check does not prove that later DMA cannot occur.
++ * address or another resource. A full-frame read requires independent
++ * output-inspection eligibility, an intact guard, and two equal coherent-buffer
++ * observations 50 ms apart. It never reads the live DMA backing.
++ * This bounded stability check does not prove that later DMA cannot occur.
+  */
+ static ssize_t decode_output_read(struct file *file, struct kobject *kobj,
+ 				  const struct bin_attribute *attr, char *buf,
+@@ -881,9 +927,9 @@
+ 	    !a1599_memory || !a1599_memory->hardware_started ||
+ 	    !atomic_read(&a1599_decode_consumed))
+ 		return -EAGAIN;
+-	if (!READ_ONCE(a1599_decode_result_valid) ||
+-	    !READ_ONCE(a1599_decode_response_zero_status) ||
+-	    !READ_ONCE(a1599_decode_output_snapshot_ready))
++	if (!smp_load_acquire(&a1599_decode_output_snapshot_ready) ||
++	    !READ_ONCE(a1599_decode_result_valid) ||
++	    !READ_ONCE(a1599_decode_output_inspection_allowed))
+ 		return -ENODATA;
+ 	if (offset < 0 || offset > A1599_FW_DECODE_OUTPUT_BYTES)
+ 		return -EINVAL;
+@@ -892,9 +938,7 @@
+ 	output = &a1599_memory->decode[A1599_DECODE_OUTPUT];
+ 	if (!output->cpu || output->bytes != A1599_FW_DECODE_OUTPUT_BYTES)
+ 		return -EIO;
+-	if (memchr_inv((u8 *)output->cpu + 3072U, 0xa5, 1024U))
+-		return -EIO;
+-	dma_rmb();
++	/* Export an immutable host snapshot; do not re-read the DMA backing. */
+ 	available = A1599_FW_DECODE_OUTPUT_BYTES - (size_t)offset;
+ 	if (count > available)
+ 		count = available;
+--- /dev/null
++++ b/a1599_fw_output_snapshot.h
+@@ -0,0 +1,148 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++#ifndef A1599_FW_OUTPUT_SNAPSHOT_H
++#define A1599_FW_OUTPUT_SNAPSHOT_H
++
++#include "a1599_fw_decode_submit.h"
++
++#define A1599_OUTPUT_SNAPSHOT_BYTES 4096U
++#define A1599_OUTPUT_GUARD_START 3072U
++#define A1599_OUTPUT_SAMPLE_INTERVAL_MS 50U
++
++struct a1599_output_snapshot_input {
++	const struct a1599_decode_submit_result *response;
++	const uint8_t *cpu;
++	size_t bytes;
++	bool authorized;
++	/* Verified by the caller against the retained dma_alloc_coherent record,
++	 * not dev_is_dma_coherent(): a non-coherent device can use this API. */
++	bool coherent_allocation;
++	bool resources_pinned;
++};
++
++struct a1599_output_snapshot_ops {
++	int (*read_ring)(void *context, struct a1599_decode_ring_snapshot *ring);
++	void (*read_barrier)(void *context);
++	void (*wait_ms)(void *context, unsigned int milliseconds);
++};
++
++struct a1599_output_snapshot_result {
++	bool eligible;
++	bool guard_checked;
++	bool guard_intact;
++	bool stability_checked;
++	bool stable;
++	bool snapshot_ready;
++	unsigned int copies;
++	unsigned int ring_checks;
++};
++
++static inline bool a1599_output_ring_is_single_c0(
++		const struct a1599_decode_ring_snapshot *s)
++{
++	return s->h2m_descriptor == 0x60cc01cc &&
++		s->m2h_descriptor == 0x60000033 &&
++		s->h2m_capacity_words == 460 && s->m2h_capacity_words == 51 &&
++		s->h2m_start == 0x80cc && s->m2h_start == 0x8000 &&
++		s->h2m_read_index == 10 && s->h2m_write_index == 10 &&
++		s->m2h_read_index == 0 && s->m2h_write_index == 3;
++}
++
++static inline bool a1599_output_copy_guard_intact(const uint8_t *copy)
++{
++	unsigned int i;
++
++	for (i = A1599_OUTPUT_GUARD_START; i < A1599_OUTPUT_SNAPSHOT_BYTES; i++)
++		if (copy[i] != 0xa5)
++			return false;
++	return true;
++}
++
++static inline int a1599_output_check_ring(
++		const struct a1599_output_snapshot_ops *ops, void *context,
++		struct a1599_output_snapshot_result *result)
++{
++	struct a1599_decode_ring_snapshot ring;
++	int ret;
++
++	memset(&ring, 0, sizeof(ring));
++	result->ring_checks++;
++	ret = ops->read_ring(context, &ring);
++	if (ret)
++		return ret;
++	return a1599_output_ring_is_single_c0(&ring) ? 0 : -ESTALE;
++}
++
++/* One diagnostic observation: at most two read-only 4-KiB copies, one 50-ms
++ * interval and three six-register ring observations. No write/unmap/free or
++ * consumer advance. Coherent allocation permits CPU/device parallel access;
++ * equality is bounded observation, not an assertion of future DMA quiescence
++ * or frame correctness. The caller publishes copy_a only after return 0 using
++ * release/acquire synchronization, and keeps both copies immutable thereafter.
++ */
++static inline int a1599_output_snapshot_once(
++		const struct a1599_output_snapshot_input *in,
++		const struct a1599_output_snapshot_ops *ops, void *context,
++		uint8_t *copy_a, uint8_t *copy_b, size_t copy_bytes,
++		struct a1599_output_snapshot_result *out)
++{
++	const struct a1599_decode_submit_result *r;
++	int ret;
++
++	if (!out)
++		return -EINVAL;
++	memset(out, 0, sizeof(*out));
++	if (!in || !ops || !ops->read_ring || !ops->read_barrier ||
++	    !ops->wait_ms || !copy_a || !copy_b || copy_a == copy_b ||
++	    copy_bytes != A1599_OUTPUT_SNAPSHOT_BYTES)
++		return -EINVAL;
++	if (!in->authorized)
++		return -EACCES;
++	if (!in->coherent_allocation || !in->resources_pinned || !in->cpu ||
++	    in->bytes != A1599_OUTPUT_SNAPSHOT_BYTES ||
++	    copy_a == in->cpu || copy_b == in->cpu)
++		return -EINVAL;
++	r = in->response;
++	if (!r || !r->published || !r->consumed || !r->response_received ||
++	    !r->response_record_valid || r->response_error ||
++	    r->status_class != A1599_DECODE_C0_CLASS_10 ||
++	    r->response.dispatch_class != C0_DISPATCH_10 ||
++	    (r->response.status & C0_STATUS_DETAIL_BIT) ||
++	    r->response.has_detail || r->response.fence != 1 ||
++	    r->message.length != 12 || r->message.read_index != 0 ||
++	    r->message.write_index != 3)
++		return -ENODATA;
++	/* word4 (historical LastMB=3) is deliberately not a bound or completion
++	 * predicate. The raw response and native dispatch remain separate facts. */
++	ret = a1599_output_check_ring(ops, context, out);
++	if (ret)
++		return ret;
++	out->eligible = true;
++	ops->read_barrier(context);
++	memcpy(copy_a, in->cpu, A1599_OUTPUT_SNAPSHOT_BYTES);
++	out->copies = 1;
++	out->guard_checked = true;
++	out->guard_intact = a1599_output_copy_guard_intact(copy_a);
++	if (!out->guard_intact)
++		return -EOVERFLOW;
++	ops->wait_ms(context, A1599_OUTPUT_SAMPLE_INTERVAL_MS);
++	ret = a1599_output_check_ring(ops, context, out);
++	if (ret)
++		return ret;
++	ops->read_barrier(context);
++	memcpy(copy_b, in->cpu, A1599_OUTPUT_SNAPSHOT_BYTES);
++	out->copies = 2;
++	out->guard_intact = a1599_output_copy_guard_intact(copy_b);
++	if (!out->guard_intact)
++		return -EOVERFLOW;
++	out->stability_checked = true;
++	out->stable = !memcmp(copy_a, copy_b, A1599_OUTPUT_SNAPSHOT_BYTES);
++	if (!out->stable)
++		return -ESTALE;
++	ret = a1599_output_check_ring(ops, context, out);
++	if (ret)
++		return ret;
++	out->snapshot_ready = true;
++	return 0;
++}
++
++#endif

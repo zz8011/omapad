@@ -1,0 +1,15 @@
+.scratch/
+.worktrees/
+__pycache__/
+*.pyc
+
+# 构建产物：8 个 RAM bundle 约 108 MB，.ko / gudd 由外部内核树（见 gud/README.md）编出。
+# 权威哈希记在 gud/out/IMAGE{,-j86,-j207}.json，但那三个 JSON 也随之被忽略。
+gud/out/
+
+# gudd 的 aarch64 预编译产物。全项目无脚本引用；且这一份是 2026-10-16 加 j86 EDID 表项
+# 之前编的（不含 apple,j86 / A1490），留着会误导。需要时按 gud/README.md 重编。
+gud/gudd-aarch64
+
+# ipadctl（Rust）
+/ipadctl/target/

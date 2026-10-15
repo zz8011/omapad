@@ -1,0 +1,12 @@
+{
+  "kernel_sha256": "76269e79b4715783b95407acbb54df2369116c76709a03f24e0fe95924199eb9",
+  "original_ranges_verified": 12,
+  "firmware_text_data_exact": true,
+  "iosurface_vtable_slots_verified": 3,
+  "baseline_files_unchanged": 118,
+  "receiver_cases": 408,
+  "completion_cases": 2,
+  "original_instruction_replay_exit": 0,
+  "hardware_access": false,
+  "dma_order_proven": false
+}

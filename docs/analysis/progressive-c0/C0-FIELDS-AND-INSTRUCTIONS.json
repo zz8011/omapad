@@ -1,0 +1,83 @@
+{
+  "evidence_origin": "executor-provided saved tool-output transcript; original ACM query output was not independently archived",
+  "report_path": "/home/zz8011/Documents/Codex/2026-10-13/task-6/evidence/a1599-decode-trial-20261014/PROGRESSIVE-ONE-SHOT-RESULT-20261014.md",
+  "report_sha256": "f6a1e1291d70c255e2fd7288c32a277bff1f29aaa770ae44e3ff5ff5bb1623e3",
+  "bytes": "8c c0 01 00 03 00 00 00 d5 44 06 60",
+  "byte0": 140,
+  "byte0_bit7": true,
+  "length_low7": 12,
+  "ring_words": 3,
+  "id": 192,
+  "fence_u16_plus2": 1,
+  "opaque_u16_plus4": 3,
+  "bytes_plus6_plus7": "00 00",
+  "status_u32_plus8": "0x600644d5",
+  "detail_present": false,
+  "apple_dispatch_class": "0x10",
+  "changed_status_bits": [
+    7,
+    27,
+    29
+  ],
+  "bit_comparison": {
+    "7": {
+      "old": 0,
+      "new": 1
+    },
+    "27": {
+      "old": 1,
+      "new": 0
+    },
+    "29": {
+      "old": 0,
+      "new": 1
+    },
+    "30": {
+      "old": 1,
+      "new": 1
+    }
+  },
+  "raw_instruction_checks": {
+    "0x86816c0": "08180012",
+    "0x86817b4": "8a2a4079",
+    "0x86817b8": "88264079",
+    "0x86817bc": "891a40b9",
+    "0x86817d0": "c902d837",
+    "0x86817d8": "e9031c32",
+    "0x8681828": "8b1e40b9",
+    "0x8681830": "0d029052"
+  },
+  "limits": [
+    "bit29/bit30 semantics unresolved; ignored by inspected C0 dispatch path",
+    "plus4=3 does not prove a valid macroblock index",
+    "no output/guard read exists in supplied report",
+    "no new device reads performed"
+  ],
+  "tool_output_transcript_path": "/home/zz8011/Documents/Codex/2026-10-13/task-6/evidence/a1599-decode-trial-20261014/PROGRESSIVE-ONE-SHOT-TOOL-OUTPUT-TRANSCRIPT-20261014.md",
+  "tool_output_transcript_sha256": "25c493d2aecce51fea6dfb43b6b258e451e8bc77792a58e1a3326abf29f08838",
+  "capture_fields": {
+    "actual_length": "12",
+    "raw_length": "12",
+    "response_received": "1",
+    "record_valid": "1",
+    "message_read": "0",
+    "message_write": "3",
+    "last_mb_present": "1",
+    "last_mb_offset": "+4",
+    "last_mb": "0x3",
+    "flags_present": "1",
+    "flags_offset": "+8",
+    "flags": "0x600644d5",
+    "detail_present": "0",
+    "detail_offset": "+12",
+    "detail": "0x0",
+    "parsed_detail_present": "0",
+    "guard_checked": "0",
+    "guard_state": "not_checked"
+  },
+  "module_hash_transcription_issue": {
+    "printed_length": 61,
+    "printed": "4367df89658bdbcee535129f768180c2fc239baf1eaae87879a2061687b4c",
+    "expected": "4367df89658bdbcee535129f768180c2fc239baf1eaae87896079a2061687b4c"
+  }
+}

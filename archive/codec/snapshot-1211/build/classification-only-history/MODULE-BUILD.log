@@ -1,0 +1,16 @@
+make: Entering directory '/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux'
+make[1]: Entering directory '/tmp/a1599-c0-classification-module'
+  UPD     /tmp/a1599-c0-classification-module/Makefile
+  CC [M]  a1599_fw_linux_backend_skeleton.o
+  CC [M]  a1599_fw_static_boot_memory.o
+  CC [M]  a1599_fw_first_ready_tables.o
+  CC [M]  a1599_fw_first_ready_platform_harness.o
+  CC [M]  a1599_fw_decode_stream.o
+  CC [M]  a1599_fw_id81.o
+  LD [M]  a1599_fw_candidate.o
+  MODPOST Module.symvers
+  CC [M]  a1599_fw_candidate.mod.o
+  CC [M]  .module-common.o
+  LD [M]  a1599_fw_candidate.ko
+make[1]: Leaving directory '/tmp/a1599-c0-classification-module'
+make: Leaving directory '/home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux'

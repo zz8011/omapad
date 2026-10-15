@@ -1,0 +1,22 @@
+A1599 Alpine fixed v1
+
+Preserved pre-fix copies (created before any output work):
+- rootfs SHA256: c993681ee89fecfce1907cde254f992dc510be1e4f8dadb8deeecfd391dee816
+- bundle SHA256: e443ab9f93cf8d06a6e7bf6a50d3f88db54b156dcdd4340d33d3ce9f61fdab97
+
+New artifacts:
+- rootfs: 3637b6a8d4fda595c60332bcb33211307f83402619db7e105bd16d80c2a9af66 (4261943 bytes)
+- bundle: 4f105fa9924fa838ea945a56495fae8f6f7f74d3996f26932b7f67109dcca47b (13815473 bytes)
+- fixed launcher: f4c22830b1c513346d2ba5e8d12657e0c34e328da7b981f92c4b6aba6ebab81e
+- verified immutable prefix: 9553530 bytes, SHA256 93ae225e1f25c2cdc0de508ef11471b4acb9e3b32b26b0270b7df378e7e7084c
+- original v2.4 bundle SHA256: a9d3673b021da0901aa5f54c1c7825ae29b3a3de5af2926e3df1ae6c1877b133
+
+No m1n1, kernel, DTB, or launcher source inputs were modified.
+
+One-shot hardware trial (2026-10-12 UTC):
+- Exactly one DFU at port 1-12 passed the preflight gate.
+- Fixed checkra1n run returned 0; Pongo banner and prompt matched exactly.
+- Upload marker confirmed for the new bundle; bootm was sent once.
+- Pongo then disconnected (wrapper return code 255, expected transport loss after bootm).
+- Bounded 90-second check found no 1d6b:0104 gadget/ACM and no root shell; no retry was made.
+- No post-boot system-state verification was possible. No image was captured or sent.
