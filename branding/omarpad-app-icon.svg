@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Omarpad 应用图标">
+  <rect width="128" height="128" rx="28" fill="#101A31"/>
+  <rect x="15" y="31" width="79" height="61" rx="11" fill="none" stroke="#8494FF" stroke-width="7"/>
+  <rect x="64" y="47" width="48" height="68" rx="10" fill="#101A31" stroke="#5CE5D0" stroke-width="7"/>
+  <path d="M31 73h19" fill="none" stroke="#8494FF" stroke-linecap="round" stroke-width="6"/>
+  <path d="M79 102h18" fill="none" stroke="#5CE5D0" stroke-linecap="round" stroke-width="4"/>
+</svg>
