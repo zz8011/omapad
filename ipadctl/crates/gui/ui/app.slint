@@ -426,66 +426,87 @@ export component OmarpadWindow inherits Window {
     callback charge-refresh(string);
     callback close-settings();
 
-    VerticalLayout {
-        x: (parent.width - self.width) / 2;
+    // 顶栏贴合窗口边界；内容区可以独立收窄，不带走品牌和关窗位置。
+    Rectangle {
+        x: 20px;
         y: 20px;
-        width: Math.min(parent.width - 40px, 720px);
-        height: parent.height - 40px;
-        spacing: 13px;
-
-        // ── 顶栏：品牌图标、标题、总开关和关窗入口 ──
-        Rectangle {
-            height: 55px;
-            background: Theme.bg-card;
-            border-radius: 12px;
-            border-width: 1px;
-            border-color: Theme.border;
-            HorizontalLayout {
-                padding-left: 13px;
-                padding-right: 13px;
-                spacing: 13px;
+        width: parent.width - 40px;
+        height: 55px;
+        background: Theme.bg-card;
+        border-radius: 12px;
+        border-width: 1px;
+        border-color: Theme.border;
+        HorizontalLayout {
+            padding-left: 13px;
+            padding-right: 13px;
+            spacing: 13px;
+            Rectangle {
+                width: 34px;
+                height: 100%;
                 Image {
+                    y: (parent.height - self.height) / 2;
                     source: @image-url("../assets/omarpad-app-icon-64.png");
                     width: 34px;
                     height: 34px;
                     image-fit: contain;
-                    vertical-alignment: center;
                 }
-                VerticalLayout {
-                    alignment: center;
-                    spacing: 2px;
-                    HorizontalLayout {
-                        spacing: Theme.sp-2;
-                        Wordmark {}
-                        Text {
-                            text: "副屏控制台";
-                            color: Theme.text-2;
-                            font-size: 10.5px;
-                            font-family: Theme.mono;
-                            vertical-alignment: center;
-                        }
-                    }
+            }
+            VerticalLayout {
+                alignment: center;
+                spacing: 2px;
+                HorizontalLayout {
+                    spacing: Theme.sp-2;
+                    Wordmark {}
                     Text {
-                        text: root.preview-mode ? "预览模式 · 自动投放已暂停" : root.auto-connect ? "DFU 自动投放已启用" : "自动投放已关闭";
-                        color: Theme.text-3;
-                        font-size: 10px;
+                        text: "副屏控制台";
+                        color: Theme.text-2;
+                        font-size: 10.5px;
                         font-family: Theme.mono;
+                        vertical-alignment: center;
                     }
                 }
-                Rectangle {}
-                Rectangle {
-                    width: 40px;
-                    height: 100%;
-                    ToggleSwitch {
-                        y: (parent.height - self.height) / 2;
-                        checked: root.auto-connect;
-                        interactive: !root.preview-mode;
-                        toggled(v) => {
-                            root.toggle-auto(v);
-                        }
+                Text {
+                    text: root.preview-mode ? "预览模式 · 自动投放已暂停" : root.auto-connect ? "DFU 自动投放已启用" : "自动投放已关闭";
+                    color: Theme.text-3;
+                    font-size: 10px;
+                    font-family: Theme.mono;
+                }
+            }
+            Rectangle {}
+            if root.width > 600px: Text {
+                text: "自动投放";
+                color: Theme.text-2;
+                font-size: 10.5px;
+                font-family: Theme.mono;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                width: 40px;
+                height: 100%;
+                ToggleSwitch {
+                    y: (parent.height - self.height) / 2;
+                    checked: root.auto-connect;
+                    interactive: !root.preview-mode;
+                    toggled(v) => {
+                        root.toggle-auto(v);
                     }
                 }
+            }
+            Rectangle {
+                width: 1px;
+                height: 100%;
                 Rectangle {
+                    y: (parent.height - self.height) / 2;
+                    width: 1px;
+                    height: 21px;
+                    background: Theme.divider;
+                }
+            }
+            Rectangle {
+                width: 34px;
+                height: 100%;
+                Rectangle {
+                    y: (parent.height - self.height) / 2;
                     width: 34px;
                     height: 34px;
                     border-radius: 8px;
@@ -506,6 +527,14 @@ export component OmarpadWindow inherits Window {
                 }
             }
         }
+    }
+
+    VerticalLayout {
+        x: (parent.width - self.width) / 2;
+        y: 88px;
+        width: Math.min(parent.width - 40px, 720px);
+        height: parent.height - 126px;
+        spacing: 13px;
 
         // ── 状态提示条（橄榄=信息）──
         if root.status-line != "": Rectangle {
@@ -644,9 +673,11 @@ export component OmarpadWindow inherits Window {
                     border-color: Theme.border;
                     background: Theme.bg-inset;
                     clip: true;
+                    // 矮窗画布已压到最小高度，适当放大示意图保住文字可读性。
+                    property <float> occupancy: root.height < 850px ? 0.82 : root.width <= 600px ? 0.74 : 0.62;
                     property <float> fit: Math.min(
-                        (self.width - 24px) / (root.canvas-span-w * 1px),
-                        (self.height - 40px) / (root.canvas-span-h * 1px),
+                        (self.width * self.occupancy) / (root.canvas-span-w * 1px),
+                        (self.height * self.occupancy) / (root.canvas-span-h * 1px),
                     );
                     property <length> origin-x: (self.width - root.canvas-span-w * self.fit * 1px) / 2;
                     property <length> origin-y: (self.height - root.canvas-span-h * self.fit * 1px) / 2;
@@ -886,27 +917,36 @@ export component OmarpadWindow inherits Window {
             }
         }
 
-        Rectangle { vertical-stretch: 1; }
+    }
 
-        // ── 底部信息栏 ──
-        Rectangle { height: 1px; background: Theme.divider; }
-        HorizontalLayout {
-            spacing: Theme.sp-2;
-            Text {
-                text: "托盘常驻 · 扫描 " + root.scan-count;
-                color: Theme.text-3;
-                font-size: 10px;
-                font-family: Theme.mono;
-                vertical-alignment: center;
-            }
-            Rectangle {}
-            Text {
-                text: root.theme-name + " · OMARPAD v0.1";
-                color: Theme.text-3;
-                font-size: 10px;
-                font-family: Theme.mono;
-                vertical-alignment: center;
-            }
+    // 底栏以窗口为锚点，内容区收窄或画布变高时仍留在可见范围内。
+    Rectangle {
+        x: 20px;
+        y: parent.height - 28px;
+        width: parent.width - 40px;
+        height: 1px;
+        background: Theme.divider;
+    }
+    HorizontalLayout {
+        x: 20px;
+        y: parent.height - 22px;
+        width: parent.width - 40px;
+        height: 14px;
+        spacing: Theme.sp-2;
+        Text {
+            text: "托盘常驻 · 扫描 " + root.scan-count;
+            color: Theme.text-3;
+            font-size: 10px;
+            font-family: Theme.mono;
+            vertical-alignment: center;
+        }
+        Rectangle {}
+        Text {
+            text: root.theme-name + " · OMARPAD v0.1";
+            color: Theme.text-3;
+            font-size: 10px;
+            font-family: Theme.mono;
+            vertical-alignment: center;
         }
     }
 }
