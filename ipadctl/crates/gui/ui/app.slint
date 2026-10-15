@@ -637,7 +637,7 @@ export component OmarpadWindow inherits Window {
             spacing: Theme.sp-2;
             Segmented {
                 a-text: "屏幕";
-                b-text: "充电";
+                b-text: "设备";
                 b-active: root.tab == 1;
                 chose(b) => {
                     root.tab = b ? 1 : 0;
@@ -649,7 +649,9 @@ export component OmarpadWindow inherits Window {
 
         // ── 屏幕 页 ──
         if root.tab == 0: VerticalLayout {
+            height: parent.height - 39px;
             spacing: Theme.sp-3;
+            Rectangle { vertical-stretch: 1; }
 
             if root.canvas-ok: VerticalLayout {
                 spacing: 6px;
@@ -666,15 +668,14 @@ export component OmarpadWindow inherits Window {
                     }
                 }
                 canvas-frame := Rectangle {
-                    // 大窗口接近黄金矩形；较矮窗口优先给设备操作区留空间。
-                    height: Math.max(200px, Math.min(self.width / 1.618, root.height - 580px));
+                    // 屏幕页独占布局空间，画布保持接近黄金矩形。
+                    height: Math.max(200px, Math.min(self.width / 1.618, root.height - 220px));
                     border-radius: 12px;
                     border-width: 1px;
                     border-color: Theme.border;
                     background: Theme.bg-inset;
                     clip: true;
-                    // 矮窗画布已压到最小高度，适当放大示意图保住文字可读性。
-                    property <float> occupancy: root.height < 850px ? 0.82 : root.width <= 600px ? 0.74 : 0.62;
+                    property <float> occupancy: root.width <= 600px ? 0.74 : 0.62;
                     property <float> fit: Math.min(
                         (self.width * self.occupancy) / (root.canvas-span-w * 1px),
                         (self.height * self.occupancy) / (root.canvas-span-h * 1px),
@@ -709,208 +710,224 @@ export component OmarpadWindow inherits Window {
                     font-family: Theme.mono;
                 }
             }
-
-            SectionLabel { text: "设备 DEVICES"; }
-
-            for d in root.devices: Rectangle {
-                clip: true;
-                border-radius: 12px;
-                border-width: 1px;
-                border-color: Theme.border;
-                background: Theme.bg-card;
-                height: d.has-brightness && d.has-mode ? 150px
-                    : d.has-brightness || d.has-mode || d.progress != "" ? 124px
-                    : d.action-label != "" ? 108px
-                    : 78px;
-                // 左侧 3px 状态色条：一眼读出设备状态
-                Rectangle {
-                    x: 0;
-                    y: 0;
-                    width: 3px;
-                    height: 100%;
-                    background: d.state-color;
-                }
-                VerticalLayout {
-                    padding: Theme.sp-3;
-                    padding-left: 17px;
-                    spacing: 5px;
-
-                    HorizontalLayout {
-                        spacing: Theme.sp-2;
-                        Text {
-                            text: d.name;
-                            color: Theme.text;
-                            font-size: 13.5px;
-                            font-weight: 600;
-                            overflow: elide;
-                            vertical-alignment: center;
-                            horizontal-stretch: 1;
-                        }
-                        StateChip {
-                            text: d.state;
-                            tint: d.state-color;
-                        }
-                    }
-                    Text {
-                        text: d.port + "  ·  " + d.detail;
-                        color: Theme.text-2;
-                        font-size: 10.5px;
-                        font-family: Theme.mono;
-                        overflow: elide;
-                    }
-                    if d.progress != "": Text {
-                        text: d.progress;
-                        color: Theme.text-2;
-                        font-size: 10.5px;
-                        font-family: Theme.mono;
-                        wrap: word-wrap;
-                        max-height: 40px;
-                    }
-                    if d.has-brightness: HorizontalLayout {
-                        spacing: Theme.sp-2;
-                        Text {
-                            text: "亮度";
-                            color: Theme.text-3;
-                            font-size: 10.5px;
-                            font-family: Theme.mono;
-                            vertical-alignment: center;
-                        }
-                        BrightSlider {
-                            value: d.brightness;
-                            changed(v) => {
-                                root.brightness-live(d.slug, v);
-                            }
-                            released(v) => {
-                                root.brightness-commit(d.slug, v);
-                            }
-                        }
-                        Text {
-                            text: Math.round(d.brightness) + "%";
-                            color: Theme.text;
-                            font-size: 10.5px;
-                            font-family: Theme.mono;
-                            vertical-alignment: center;
-                        }
-                    }
-                    if d.has-mode: HorizontalLayout {
-                        spacing: Theme.sp-2;
-                        Text {
-                            text: "分辨率";
-                            color: Theme.text-3;
-                            font-size: 10.5px;
-                            font-family: Theme.mono;
-                            vertical-alignment: center;
-                        }
-                        Segmented {
-                            a-text: "原生";
-                            b-text: "半分辨率";
-                            b-active: d.mode-half-on;
-                            chose(half) => {
-                                root.mode-set(d.slug, half);
-                            }
-                        }
-                        Rectangle {}
-                    }
-                    if d.action-label != "": HorizontalLayout {
-                        spacing: Theme.sp-2;
-                        Rectangle {}
-                        Btn {
-                            text: d.action-label;
-                            primary: true;
-                            triggered => {
-                                root.retry-flash(d.port);
-                            }
-                        }
-                    }
-                }
+            if !root.canvas-ok: Text {
+                text: "尚无可排列的显示器";
+                color: Theme.text-2;
+                font-size: 12px;
+                horizontal-alignment: center;
             }
+            Rectangle { vertical-stretch: 1; }
         }
 
-        // ── 充电 页：读数与目标分开呈现，旧日志不会冒充本次生效 ──
-        if root.tab == 1: VerticalLayout {
-            spacing: Theme.sp-3;
-            SectionLabel { text: "充电 CHARGING"; }
-            Text {
-                text: "限流目标由设备看门狗执行。电流只在设备提供电量计时显示。";
-                color: Theme.text-2;
-                font-size: 11px;
-                wrap: word-wrap;
-            }
-            if root.charge-empty: Rectangle {
-                height: 100px;
-                background: Theme.bg-card;
-                border-color: Theme.border;
-                border-width: 1px;
-                border-radius: 12px;
+        // 设备页在卡片数量超过视口时可滚动，Flickable 不绘制滚动条。
+        if root.tab == 1: Flickable {
+            width: 100%;
+            height: parent.height - 39px;
+            content-width: self.width;
+            content-height: device-content.preferred-height;
+            mouse-drag-pan-enabled: false;
+            device-content := VerticalLayout {
+                width: parent.width;
+                height: self.preferred-height;
+                spacing: Theme.sp-3;
+                SectionLabel { text: "设备控制 DEVICES"; }
+
+                for d in root.devices: Rectangle {
+                    clip: true;
+                    border-radius: 12px;
+                    border-width: 1px;
+                    border-color: Theme.border;
+                    background: Theme.bg-card;
+                    height: d.has-brightness && d.has-mode ? 150px
+                        : d.has-brightness || d.has-mode || d.progress != "" ? 124px
+                        : d.action-label != "" ? 108px
+                        : 78px;
+                    // 左侧 3px 状态色条：一眼读出设备状态
+                    Rectangle {
+                        x: 0;
+                        y: 0;
+                        width: 3px;
+                        height: 100%;
+                        background: d.state-color;
+                    }
+                    VerticalLayout {
+                        padding: Theme.sp-3;
+                        padding-left: 17px;
+                        spacing: 5px;
+
+                        HorizontalLayout {
+                            spacing: Theme.sp-2;
+                            Text {
+                                text: d.name;
+                                color: Theme.text;
+                                font-size: 13.5px;
+                                font-weight: 600;
+                                overflow: elide;
+                                vertical-alignment: center;
+                                horizontal-stretch: 1;
+                            }
+                            StateChip {
+                                text: d.state;
+                                tint: d.state-color;
+                            }
+                        }
+                        Text {
+                            text: d.port + "  ·  " + d.detail;
+                            color: Theme.text-2;
+                            font-size: 10.5px;
+                            font-family: Theme.mono;
+                            overflow: elide;
+                        }
+                        if d.progress != "": Text {
+                            text: d.progress;
+                            color: Theme.text-2;
+                            font-size: 10.5px;
+                            font-family: Theme.mono;
+                            wrap: word-wrap;
+                            max-height: 40px;
+                        }
+                        if d.has-brightness: HorizontalLayout {
+                            spacing: Theme.sp-2;
+                            Text {
+                                text: "亮度";
+                                color: Theme.text-3;
+                                font-size: 10.5px;
+                                font-family: Theme.mono;
+                                vertical-alignment: center;
+                            }
+                            BrightSlider {
+                                value: d.brightness;
+                                changed(v) => {
+                                    root.brightness-live(d.slug, v);
+                                }
+                                released(v) => {
+                                    root.brightness-commit(d.slug, v);
+                                }
+                            }
+                            Text {
+                                text: Math.round(d.brightness) + "%";
+                                color: Theme.text;
+                                font-size: 10.5px;
+                                font-family: Theme.mono;
+                                vertical-alignment: center;
+                            }
+                        }
+                        if d.has-mode: HorizontalLayout {
+                            spacing: Theme.sp-2;
+                            Text {
+                                text: "分辨率";
+                                color: Theme.text-3;
+                                font-size: 10.5px;
+                                font-family: Theme.mono;
+                                vertical-alignment: center;
+                            }
+                            Segmented {
+                                a-text: "原生";
+                                b-text: "半分辨率";
+                                b-active: d.mode-half-on;
+                                chose(half) => {
+                                    root.mode-set(d.slug, half);
+                                }
+                            }
+                            Rectangle {}
+                        }
+                        if d.action-label != "": HorizontalLayout {
+                            spacing: Theme.sp-2;
+                            Rectangle {}
+                            Btn {
+                                text: d.action-label;
+                                primary: true;
+                                triggered => {
+                                    root.retry-flash(d.port);
+                                }
+                            }
+                        }
+                    }
+                }
+                // 读数与目标分开呈现，旧日志不会冒充本次生效。
+                SectionLabel { text: "充电状态 CHARGING"; }
                 Text {
-                    text: "没有在线的 iPad · 连接已启动 Linux 的设备后可查看充电状态";
+                    text: "限流目标由设备看门狗执行。电流只在设备提供电量计时显示。";
                     color: Theme.text-2;
-                    font-size: 11.5px;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
+                    font-size: 11px;
                     wrap: word-wrap;
                 }
-            }
-            for d in root.charges: Rectangle {
-                height: 147px;
-                clip: true;
-                border-radius: 12px;
-                border-width: 1px;
-                border-color: Theme.border;
-                background: Theme.bg-card;
-                Rectangle {
-                    x: 0; y: 0; width: 3px; height: 100%;
-                    background: d.state-color;
-                }
-                VerticalLayout {
-                    padding: Theme.sp-3;
-                    padding-left: 17px;
-                    spacing: 5px;
-                    HorizontalLayout {
-                        spacing: Theme.sp-2;
-                        Text {
-                            text: d.name;
-                            color: Theme.text;
-                            font-size: 13px;
-                            font-weight: 600;
-                            overflow: elide;
-                            horizontal-stretch: 1;
-                        }
-                        StateChip { text: d.state; tint: d.state-color; }
+                if root.charge-empty: Rectangle {
+                    height: 100px;
+                    background: Theme.bg-card;
+                    border-color: Theme.border;
+                    border-width: 1px;
+                    border-radius: 12px;
+                    Text {
+                        text: "当前没有可读取充电状态的在线设备";
+                        color: Theme.text-2;
+                        font-size: 11.5px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        wrap: word-wrap;
                     }
-                    Text { text: d.port + " · " + d.sampled-line; color: Theme.text-2; font-size: 10.5px; overflow: elide; }
-                    Text { text: d.limit-line; color: Theme.text; font-size: 11.5px; overflow: elide; }
-                    Text { text: d.battery-line; color: Theme.text-2; font-size: 11px; overflow: elide; }
-                    Text { text: d.proof-line; color: Theme.text-2; font-size: 10.5px; overflow: elide; }
-                    HorizontalLayout {
-                        spacing: Theme.sp-2;
-                        Btn {
-                            text: d.option-a;
-                            compact: true;
-                            primary: d.active-a;
-                            enabled: d.can-set;
-                            triggered => { root.charge-set(d.slug, d.option-a-hex); }
+                }
+                for d in root.charges: Rectangle {
+                    height: 147px;
+                    clip: true;
+                    border-radius: 12px;
+                    border-width: 1px;
+                    border-color: Theme.border;
+                    background: Theme.bg-card;
+                    Rectangle {
+                        x: 0; y: 0; width: 3px; height: 100%;
+                        background: d.state-color;
+                    }
+                    VerticalLayout {
+                        padding: Theme.sp-3;
+                        padding-left: 17px;
+                        spacing: 5px;
+                        HorizontalLayout {
+                            spacing: Theme.sp-2;
+                            Text {
+                                text: d.name;
+                                color: Theme.text;
+                                font-size: 13px;
+                                font-weight: 600;
+                                overflow: elide;
+                                horizontal-stretch: 1;
+                            }
+                            StateChip { text: d.state; tint: d.state-color; }
                         }
-                        Btn {
-                            text: d.option-b;
-                            compact: true;
-                            primary: d.active-b;
-                            enabled: d.can-set;
-                            triggered => { root.charge-set(d.slug, d.option-b-hex); }
-                        }
-                        if d.option-c != "": Btn {
-                            text: d.option-c;
-                            compact: true;
-                            primary: d.active-c;
-                            enabled: d.can-set;
-                            triggered => { root.charge-set(d.slug, d.option-c-hex); }
-                        }
-                        Rectangle {}
-                        Btn {
-                            text: "刷新";
-                            compact: true;
-                            enabled: d.can-set;
-                            triggered => { root.charge-refresh(d.slug); }
+                        Text { text: d.port + " · " + d.sampled-line; color: Theme.text-2; font-size: 10.5px; overflow: elide; }
+                        Text { text: d.limit-line; color: Theme.text; font-size: 11.5px; overflow: elide; }
+                        Text { text: d.battery-line; color: Theme.text-2; font-size: 11px; overflow: elide; }
+                        Text { text: d.proof-line; color: Theme.text-2; font-size: 10.5px; overflow: elide; }
+                        HorizontalLayout {
+                            spacing: Theme.sp-2;
+                            Btn {
+                                text: d.option-a;
+                                compact: true;
+                                primary: d.active-a;
+                                enabled: d.can-set;
+                                triggered => { root.charge-set(d.slug, d.option-a-hex); }
+                            }
+                            Btn {
+                                text: d.option-b;
+                                compact: true;
+                                primary: d.active-b;
+                                enabled: d.can-set;
+                                triggered => { root.charge-set(d.slug, d.option-b-hex); }
+                            }
+                            if d.option-c != "": Btn {
+                                text: d.option-c;
+                                compact: true;
+                                primary: d.active-c;
+                                enabled: d.can-set;
+                                triggered => { root.charge-set(d.slug, d.option-c-hex); }
+                            }
+                            Rectangle {}
+                            Btn {
+                                text: "刷新";
+                                compact: true;
+                                enabled: d.can-set;
+                                triggered => { root.charge-refresh(d.slug); }
+                            }
                         }
                     }
                 }

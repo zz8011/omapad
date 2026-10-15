@@ -154,7 +154,7 @@ fn watch_style(weak: Weak<OmarpadWindow>, shared: Arc<Mutex<Shared>>, mut last: 
         };
         let v = scan_all();
         let devices = build_cards(&v, &shared);
-        let charge_open = lock(&shared).charge_tab_open;
+        let charge_open = lock(&shared).device_tab_open;
         let charges = charge_open.then(|| build_charge_cards(&v, &shared));
         let ui_style = next.clone();
         let weak2 = weak.clone();
@@ -263,7 +263,7 @@ struct Shared {
     layout_mu: Arc<Mutex<()>>,
     /// 首轮扫描基线是否已记（基线设备不套默认亮度，之后的新端口才套）
     baseline_done: bool,
-    charge_tab_open: bool,
+    device_tab_open: bool,
     charge_readings: HashMap<String, ChargeReading>,
     charge_busy: HashSet<String>,
 }
@@ -419,7 +419,7 @@ fn main() -> anyhow::Result<()> {
     };
     let shared: Arc<Mutex<Shared>> = Arc::new(Mutex::new(Shared {
         auto_connect: settings.auto_connect && !measure,
-        charge_tab_open: charge_preview,
+        device_tab_open: charge_preview,
         palette: initial_style.palette.clone(),
         ..Default::default()
     }));
@@ -633,8 +633,8 @@ fn main() -> anyhow::Result<()> {
     }
     {
         let shared = shared.clone();
-        window.on_tab_changed(move |charging| {
-            lock(&shared).charge_tab_open = charging;
+        window.on_tab_changed(move |device_page_open| {
+            lock(&shared).device_tab_open = device_page_open;
         });
     }
     {
@@ -897,7 +897,7 @@ fn refresh_charge_jobs(shared: &Arc<Mutex<Shared>>, weak: &Weak<OmarpadWindow>, 
         let live: HashSet<&str> = v.gud.iter().map(|d| d.port.as_str()).collect();
         sh.charge_readings
             .retain(|port, _| live.contains(port.as_str()));
-        if !sh.charge_tab_open {
+        if !sh.device_tab_open {
             return;
         }
     }
@@ -1165,7 +1165,7 @@ fn scan_loop(
         refresh_charge_jobs(&shared, &weak, &v);
         let generation = lock(&shared).style_generation;
         let items = build_cards(&v, &shared);
-        let charge_open = lock(&shared).charge_tab_open;
+        let charge_open = lock(&shared).device_tab_open;
         let charges = charge_open.then(|| build_charge_cards(&v, &shared));
         if lock(&shared).style_generation != generation {
             continue;
