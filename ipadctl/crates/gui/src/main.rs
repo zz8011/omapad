@@ -446,12 +446,13 @@ fn main() -> anyhow::Result<()> {
     // 关窗=隐藏；托盘失败退化为关窗即退出
     let (tx, rx) = std::sync::mpsc::channel::<TrayCommand>();
     use ksni::blocking::TrayMethods;
-    match (Tray { tx }).spawn() {
+    let tray_ready = match (Tray { tx }).spawn() {
         Ok(handle) => {
             let _handle = handle;
             window
                 .window()
                 .on_close_requested(|| slint::CloseRequestResponse::HideWindow);
+            true
         }
         Err(e) => {
             eprintln!("托盘启动失败（{e}）—— 本会话关窗将直接退出");
@@ -459,7 +460,20 @@ fn main() -> anyhow::Result<()> {
                 let _ = slint::quit_event_loop();
                 slint::CloseRequestResponse::HideWindow
             });
+            false
         }
+    };
+    {
+        let weak = window.as_weak();
+        window.on_close_settings(move || {
+            if tray_ready {
+                if let Some(w) = weak.upgrade() {
+                    let _ = w.hide();
+                }
+            } else {
+                let _ = slint::quit_event_loop();
+            }
+        });
     }
 
     // ---- P1a 回调 ----

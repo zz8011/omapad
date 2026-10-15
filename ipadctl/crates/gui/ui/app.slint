@@ -388,8 +388,8 @@ component StateChip inherits Rectangle {
 export component OmarpadWindow inherits Window {
     title: "Omarpad";
     background: Theme.bg-window;
-    preferred-width: 460px;
-    preferred-height: 780px;
+    preferred-width: 640px;
+    preferred-height: 850px;
     min-width: 400px;
 
     in-out property <[DeviceCard]> devices;
@@ -424,22 +424,33 @@ export component OmarpadWindow inherits Window {
     callback tab-changed(bool);
     callback charge-set(string, string);
     callback charge-refresh(string);
+    callback close-settings();
 
     VerticalLayout {
-        padding: 20px;
-        spacing: Theme.sp-3;
+        x: (parent.width - self.width) / 2;
+        y: 20px;
+        width: Math.min(parent.width - 40px, 720px);
+        height: parent.height - 40px;
+        spacing: 13px;
 
-        // ── 顶栏：wordmark + 说明 + 总开关（最重要的控件常驻首屏）──
+        // ── 顶栏：品牌图标、标题、总开关和关窗入口 ──
         Rectangle {
-            height: 44px;
+            height: 55px;
             background: Theme.bg-card;
             border-radius: 12px;
             border-width: 1px;
             border-color: Theme.border;
             HorizontalLayout {
-                padding-left: 16px;
-                padding-right: 12px;
-                spacing: Theme.sp-3;
+                padding-left: 13px;
+                padding-right: 13px;
+                spacing: 13px;
+                Image {
+                    source: @image-url("../assets/omarpad-app-icon-64.png");
+                    width: 34px;
+                    height: 34px;
+                    image-fit: contain;
+                    vertical-alignment: center;
+                }
                 VerticalLayout {
                     alignment: center;
                     spacing: 2px;
@@ -472,6 +483,25 @@ export component OmarpadWindow inherits Window {
                         toggled(v) => {
                             root.toggle-auto(v);
                         }
+                    }
+                }
+                Rectangle {
+                    width: 34px;
+                    height: 34px;
+                    border-radius: 8px;
+                    border-width: 1px;
+                    border-color: close-area.has-hover ? Theme.border-hi : Theme.border;
+                    background: close-area.has-hover ? Theme.bg-card-hi : Theme.bg-inset;
+                    Text {
+                        text: "×";
+                        color: close-area.has-hover ? Theme.text : Theme.text-2;
+                        font-size: 21px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    close-area := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => { root.close-settings(); }
                     }
                 }
             }
@@ -607,7 +637,8 @@ export component OmarpadWindow inherits Window {
                     }
                 }
                 canvas-frame := Rectangle {
-                    height: 248px;
+                    // 大窗口接近黄金矩形；较矮窗口优先给设备操作区留空间。
+                    height: Math.max(200px, Math.min(self.width / 1.618, root.height - 580px));
                     border-radius: 12px;
                     border-width: 1px;
                     border-color: Theme.border;
@@ -615,7 +646,7 @@ export component OmarpadWindow inherits Window {
                     clip: true;
                     property <float> fit: Math.min(
                         (self.width - 24px) / (root.canvas-span-w * 1px),
-                        208px / (root.canvas-span-h * 1px),
+                        (self.height - 40px) / (root.canvas-span-h * 1px),
                     );
                     property <length> origin-x: (self.width - root.canvas-span-w * self.fit * 1px) / 2;
                     property <length> origin-y: (self.height - root.canvas-span-h * self.fit * 1px) / 2;
