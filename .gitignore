@@ -13,3 +13,7 @@ gud/gudd-aarch64
 
 # ipadctl（Rust）
 /ipadctl/target/
+
+# 本地代理工具的会话状态与路径
+.mimosa/
+.video_agent/

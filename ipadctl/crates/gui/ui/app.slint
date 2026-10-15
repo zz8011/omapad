@@ -1,0 +1,770 @@
+// Omarpad 主窗 —— 设计系统 v2（2026-10-16 顶级重设计）。
+// Recordian DNA（深绿黑 + 洋红 + 橄榄 + 等宽）之上建立完整系统：
+//   4px 基栅 / 五级字阶 / 语义间距 / 圆角·描边阶梯 / 状态色条 + chip / 分段控件。
+// 逻辑回调与属性与 P1b 完全一致（零 Rust 改动）。
+//
+// 字阶（8pt 基）：
+//   wordmark 13 mono 800 ls3 / 标题 14 600 / 正文 12 / caption 10.5 mono / 段标 10 mono ls1.5
+
+export struct DeviceCard {
+    slug: string,
+    name: string,
+    state: string,
+    port: string,
+    detail: string,
+    state-color: brush,
+    progress: string,
+    action-label: string,
+    brightness: float,
+    has-brightness: bool,
+    mode-native: string,
+    mode-half: string,
+    mode-half-on: bool,
+    has-mode: bool,
+}
+
+export struct CanvasItem {
+    mid: string,
+    label: string,
+    is-ipad: bool,
+    x: float,
+    y: float,
+    w: float,
+    h: float,
+    transform: int,
+}
+
+export global Theme {
+    // ---- 色彩（Recordian DNA）----
+    out property <color> bg-window:   #0D120D;
+    out property <color> bg-inset:    #090D09;   // 分段控件槽/画布（比卡片更深一级）
+    out property <color> bg-card:     #121A12;
+    out property <color> bg-card-hi:  #162116;   // 卡片悬浮层
+    out property <color> bg-callout:  #1A2216;
+    out property <color> bg-accent:   #3A1520;
+    out property <color> border:      #243024;
+    out property <color> border-hi:   #2E3B2E;   // 悬浮/选中描边
+    out property <color> divider:     #1C251C;
+    out property <color> accent:      #FF2E88;
+    out property <color> olive:       #B8C77A;
+    out property <color> text:        #F2F5F0;
+    out property <color> text-2:      #A7B4A6;   // 对比度拉高的次要文字
+    out property <color> text-3:      #7E8B7D;
+    out property <string> mono:       "Noto Sans Mono CJK SC";
+
+    // ---- 语义间距（4px 基栅）----
+    out property <length> sp-1: 4px;
+    out property <length> sp-2: 8px;
+    out property <length> sp-3: 12px;
+    out property <length> sp-4: 16px;
+    out property <length> sp-5: 20px;
+    out property <length> sp-6: 24px;
+}
+
+// ---- 基础元件 ----
+
+component Wordmark inherits HorizontalLayout {
+    alignment: start;
+    Text {
+        text: "OMARPAD";
+        color: Theme.accent;
+        font-size: 13px;
+        font-weight: 800;
+        font-family: Theme.mono;
+        letter-spacing: 3px;
+        vertical-alignment: center;
+    }
+}
+
+component SectionLabel inherits Text {
+    color: Theme.text-3;
+    font-size: 10px;
+    font-family: Theme.mono;
+    letter-spacing: 1.5px;
+}
+
+component ToggleSwitch inherits Rectangle {
+    in property <bool> checked;
+    callback toggled(bool);
+    height: 22px;
+    width: 40px;
+    border-radius: 11px;
+    background: root.checked ? Theme.accent : #222D22;
+    border-width: 1px;
+    border-color: root.checked ? Theme.accent : #2A362A;
+    Rectangle {
+        y: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        background: root.checked ? Theme.bg-window : Theme.text-3;
+        x: root.checked ? parent.width - self.width - 3px : 3px;
+    }
+    t := TouchArea {
+        mouse-cursor: pointer;
+        clicked => {
+            root.toggled(!root.checked);
+        }
+    }
+}
+
+// 按钮三级：主（洋红）/ 幽灵 / 芯片（段内小钮）。高度 26 / 半径 7。
+component Btn inherits Rectangle {
+    in property <string> text;
+    in property <bool> primary: false;
+    in property <bool> compact: false;   // 芯片级：高 22 / 字 10.5
+    callback triggered();
+    height: root.compact ? 22px : 26px;
+    border-radius: 7px;
+    border-width: 1px;
+    border-color: root.primary ? Theme.accent : (ma.has-hover ? Theme.border-hi : Theme.border);
+    background: ma.has-hover
+        ? (root.primary ? #4A1A28 : Theme.bg-card-hi)
+        : (root.primary ? Theme.bg-accent : Theme.bg-card);
+    HorizontalLayout {
+        padding-left: root.compact ? 10px : 13px;
+        padding-right: root.compact ? 10px : 13px;
+        alignment: center;
+        Text {
+            text: root.text;
+            color: root.primary ? Theme.accent : (ma.has-hover ? Theme.text : Theme.text-2);
+            font-size: root.compact ? 10.5px : 11.5px;
+            font-family: Theme.mono;
+            vertical-alignment: center;
+        }
+    }
+    ma := TouchArea {
+        mouse-cursor: pointer;
+        clicked => {
+            root.triggered();
+        }
+    }
+}
+
+// 分段控件（页签 / 分辨率两档共用）：内凹槽 + 激活胶囊
+component Segmented inherits Rectangle {
+    in property <string> a-text;
+    in property <string> b-text;
+    in property <bool> b-active: false;    // false=A 激活, true=B 激活
+    callback chose(bool);                  // false=选 A, true=选 B
+    height: 26px;
+    border-radius: 9px;
+    background: Theme.bg-inset;
+    border-width: 1px;
+    border-color: Theme.border;
+    HorizontalLayout {
+        padding: 3px;
+        spacing: 3px;
+        seg-a := Rectangle {
+            border-radius: 6px;
+            background: !root.b-active ? Theme.bg-accent : transparent;
+            HorizontalLayout {
+                alignment: center;
+                padding-left: 12px;
+                padding-right: 12px;
+                Text {
+                    text: root.a-text;
+                    color: !root.b-active ? Theme.accent : Theme.text-2;
+                    font-size: 11px;
+                    font-family: Theme.mono;
+                    vertical-alignment: center;
+                }
+            }
+            ta := TouchArea {
+                mouse-cursor: pointer;
+                clicked => {
+                    root.chose(false);
+                }
+            }
+        }
+        seg-b := Rectangle {
+            border-radius: 6px;
+            background: root.b-active ? Theme.bg-accent : transparent;
+            HorizontalLayout {
+                alignment: center;
+                padding-left: 12px;
+                padding-right: 12px;
+                Text {
+                    text: root.b-text;
+                    color: root.b-active ? Theme.accent : Theme.text-2;
+                    font-size: 11px;
+                    font-family: Theme.mono;
+                    vertical-alignment: center;
+                }
+            }
+            tb := TouchArea {
+                mouse-cursor: pointer;
+                clicked => {
+                    root.chose(true);
+                }
+            }
+        }
+    }
+}
+
+// 亮度滑条：暗轨 + 洋红填充 + 近白钮（触点 26px 高热区）
+component BrightSlider inherits Rectangle {
+    in property <float> value; // 0..100
+    callback changed(float);
+    callback released(float);
+    height: 26px;
+    horizontal-stretch: 1;
+    out property <float> live: 0;
+    Rectangle {
+        y: 11.5px;
+        height: 3px;
+        border-radius: 1.5px;
+        background: #222D22;
+    }
+    fill := Rectangle {
+        y: 11.5px;
+        height: 3px;
+        border-radius: 1.5px;
+        background: Theme.accent;
+        width: knob.x + knob.width;
+    }
+    knob := Rectangle {
+        width: 14px;
+        height: 14px;
+        y: 6px;
+        border-radius: 7px;
+        background: Theme.text;
+        border-width: 1px;
+        border-color: #0D120D;
+        x: (root.width - self.width) * (ta.pressed ? root.live : root.value) / 100;
+    }
+    ta := TouchArea {
+        property <length> knob-at-press;
+        pointer-event(e) => {
+            if (e.kind == PointerEventKind.down) {
+                self.knob-at-press = knob.x;
+                root.live = root.value;
+            } else if (e.kind == PointerEventKind.up) {
+                root.released(root.live);
+            }
+        }
+        moved => {
+            root.live = Math.max(0, Math.min(100,
+                (self.knob-at-press + ta.mouse-x - ta.pressed-x) / (root.width - knob.width) * 100));
+            root.changed(root.live);
+        }
+    }
+}
+
+// 画布显示器块：触区静止、视觉块随 dx/dy 移动（防拖拽反馈环的结构）
+component MonitorRect inherits Rectangle {
+    in property <string> mid;
+    in property <string> label;
+    in property <bool> is-ipad;
+    in property <bool> selected: false;
+    in property <length> px;
+    in property <length> py;
+    in property <length> pw;
+    in property <length> ph;
+    in property <float> log-x;
+    in property <float> log-y;
+    in property <float> canvas-scale;
+    in property <int> transform: 0;
+    out property <length> dx: 0px;
+    out property <length> dy: 0px;
+    out property <bool> dragging: false;
+    callback select-triggered(string);
+    callback drag-ended(string, float, float);
+
+    x: px;
+    y: py;
+    width: pw;
+    height: ph;
+    background: transparent;
+
+    visual := Rectangle {
+        x: root.dx;
+        y: root.dy;
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
+        background: root.is-ipad ? Theme.bg-callout : #0F140F;
+        border-width: root.is-ipad ? (root.selected ? 2px : 1px) : 1px;
+        border-color: root.is-ipad
+            ? (root.selected ? Theme.olive : (ta.has-hover ? Theme.border-hi : Theme.border))
+            : #1A231A;
+
+        VerticalLayout {
+            padding: 6px;
+            Text {
+                text: root.label;
+                color: root.is-ipad ? Theme.text : Theme.text-3;
+                font-size: 10.5px;
+                font-family: Theme.mono;
+                overflow: elide;
+            }
+            if root.transform != 0 && root.is-ipad: Text {
+                text: "⟳" + root.transform;
+                color: Theme.text-2;
+                font-size: 10px;
+                font-family: Theme.mono;
+            }
+        }
+    }
+
+    ta := TouchArea {
+        moved => {
+            if (root.is-ipad) {
+                root.dragging = true;
+                root.dx = ta.mouse-x - ta.pressed-x;
+                root.dy = ta.mouse-y - ta.pressed-y;
+            }
+        }
+        pointer-event(e) => {
+            if (e.kind == PointerEventKind.down) {
+                root.select-triggered(root.mid);
+            } else if (e.kind == PointerEventKind.up && root.dragging) {
+                root.dragging = false;
+                root.drag-ended(
+                    root.mid,
+                    root.log-x + root.dx / root.canvas-scale / 1px,
+                    root.log-y + root.dy / root.canvas-scale / 1px,
+                );
+                root.dx = 0px;
+                root.dy = 0px;
+            }
+        }
+    }
+}
+
+// 状态 chip：mono 小字 + 状态色（12% 透明底）
+component StateChip inherits Rectangle {
+    in property <string> text;
+    in property <color> tint;
+    height: 18px;
+    border-radius: 9px;
+    background: root.tint.with-alpha(0.12);
+    HorizontalLayout {
+        padding-left: 8px;
+        padding-right: 8px;
+        alignment: center;
+        Text {
+            text: root.text;
+            color: root.tint;
+            font-size: 10px;
+            font-family: Theme.mono;
+            vertical-alignment: center;
+        }
+    }
+}
+
+export component OmarpadWindow inherits Window {
+    title: "Omarpad";
+    background: Theme.bg-window;
+    preferred-width: 460px;
+    preferred-height: 780px;
+    min-width: 400px;
+
+    in-out property <[DeviceCard]> devices;
+    in-out property <int> scan-count: 0;
+    in-out property <bool> auto-connect: true;
+    in-out property <string> status-line: "";
+    in-out property <[CanvasItem]> canvas;
+    in-out property <float> canvas-min-x;
+    in-out property <float> canvas-min-y;
+    in-out property <float> canvas-span-w: 1;
+    in-out property <float> canvas-span-h: 1;
+    in-out property <string> selected-id: "";
+    in-out property <bool> selected-is-ipad: false;
+    in-out property <int> banner: 0;
+    in-out property <int> tab: 0;
+    in-out property <bool> canvas-ok: false;
+
+    callback toggle-auto(bool);
+    callback retry-flash(string);
+    callback canvas-select(string);
+    callback canvas-moved(string, float, float);
+    callback canvas-rotate(string);
+    callback fix-lua();
+    callback fix-cancel();
+    callback brightness-live(string, float);
+    callback brightness-commit(string, float);
+    callback mode-set(string, bool);
+
+    VerticalLayout {
+        padding: 20px;
+        spacing: Theme.sp-3;
+
+        // ── 顶栏：wordmark + 说明 + 总开关（最重要的控件常驻首屏）──
+        Rectangle {
+            height: 44px;
+            background: Theme.bg-card;
+            border-radius: 12px;
+            border-width: 1px;
+            border-color: Theme.border;
+            HorizontalLayout {
+                padding-left: 16px;
+                padding-right: 12px;
+                spacing: Theme.sp-3;
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 2px;
+                    HorizontalLayout {
+                        spacing: Theme.sp-2;
+                        Wordmark {}
+                        Text {
+                            text: "副屏控制台";
+                            color: Theme.text-2;
+                            font-size: 10.5px;
+                            font-family: Theme.mono;
+                            vertical-alignment: center;
+                        }
+                    }
+                    Text {
+                        text: root.auto-connect ? "DFU 自动投放已启用" : "自动投放已关闭";
+                        color: Theme.text-3;
+                        font-size: 10px;
+                        font-family: Theme.mono;
+                    }
+                }
+                Rectangle {}
+                ToggleSwitch {
+                    checked: root.auto-connect;
+                    toggled(v) => {
+                        root.toggle-auto(v);
+                    }
+                }
+            }
+        }
+
+        // ── 状态提示条（橄榄=信息）──
+        if root.status-line != "": Rectangle {
+            background: Theme.bg-callout;
+            min-height: 34px;
+            Rectangle {
+                x: 0;
+                y: 0;
+                width: 3px;
+                height: 100%;
+                background: Theme.olive;
+            }
+            HorizontalLayout {
+                padding: Theme.sp-2;
+                padding-left: 14px;
+                Text {
+                    text: root.status-line;
+                    color: Theme.text;
+                    font-size: 11.5px;
+                    wrap: word-wrap;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        // ── monitors.lua 警示条（洋红）──
+        if root.banner == 1: Rectangle {
+            background: Theme.bg-callout;
+            min-height: 40px;
+            Rectangle {
+                x: 0;
+                y: 0;
+                width: 3px;
+                height: 100%;
+                background: Theme.accent;
+            }
+            HorizontalLayout {
+                padding: Theme.sp-2;
+                padding-left: 14px;
+                spacing: Theme.sp-2;
+                Text {
+                    text: "⚠ monitors.lua 未加载 ipadctl 布局，拖拽排布不会生效";
+                    color: Theme.text;
+                    font-size: 11.5px;
+                    wrap: word-wrap;
+                    vertical-alignment: center;
+                    horizontal-stretch: 1;
+                }
+                Btn {
+                    text: "一键修复";
+                    primary: true;
+                    triggered => {
+                        root.banner = 2;
+                    }
+                }
+            }
+        }
+        if root.banner == 2: Rectangle {
+            background: Theme.bg-callout;
+            min-height: 126px;
+            Rectangle {
+                x: 0;
+                y: 0;
+                width: 3px;
+                height: 100%;
+                background: Theme.accent;
+            }
+            VerticalLayout {
+                padding: Theme.sp-3;
+                padding-left: 14px;
+                spacing: Theme.sp-2;
+                Text {
+                    text: "将在 ~/.config/hypr/monitors.lua 末尾追加（原文件备份 .ipadctl-bak）：\n    require(\"hypr.ipadctl\")\n并请删掉已有的 iPad 手写规则 —— hl.monitor 顺序生效，重复规则会打架。";
+                    color: Theme.text;
+                    font-size: 11.5px;
+                    wrap: word-wrap;
+                }
+                HorizontalLayout {
+                    spacing: Theme.sp-2;
+                    Rectangle {}
+                    Btn {
+                        text: "取消";
+                        triggered => {
+                            root.fix-cancel();
+                        }
+                    }
+                    Btn {
+                        text: "写入并重载";
+                        primary: true;
+                        triggered => {
+                            root.fix-lua();
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── 页签（分段控件）──
+        HorizontalLayout {
+            spacing: Theme.sp-2;
+            Segmented {
+                a-text: "屏幕";
+                b-text: "充电";
+                b-active: root.tab == 1;
+                chose(b) => {
+                    root.tab = b ? 1 : 0;
+                }
+            }
+            Rectangle {}
+        }
+
+        // ── 屏幕 页 ──
+        if root.tab == 0: VerticalLayout {
+            spacing: Theme.sp-3;
+
+            if root.canvas-ok: VerticalLayout {
+                spacing: 6px;
+                HorizontalLayout {
+                    spacing: Theme.sp-2;
+                    SectionLabel { text: "排列 LAYOUT"; }
+                    Rectangle {}
+                    if root.selected-is-ipad: Btn {
+                        text: "↻ 旋转所选";
+                        compact: true;
+                        triggered => {
+                            root.canvas-rotate(root.selected-id);
+                        }
+                    }
+                }
+                canvas-frame := Rectangle {
+                    height: 248px;
+                    border-radius: 12px;
+                    border-width: 1px;
+                    border-color: Theme.border;
+                    background: Theme.bg-inset;
+                    clip: true;
+                    property <float> fit: Math.min(
+                        (self.width - 24px) / (root.canvas-span-w * 1px),
+                        208px / (root.canvas-span-h * 1px),
+                    );
+                    for m in root.canvas: MonitorRect {
+                        mid: m.mid;
+                        label: m.label;
+                        is-ipad: m.is-ipad;
+                        px: 12px + (m.x - root.canvas-min-x) * parent.fit * 1px;
+                        py: 12px + (m.y - root.canvas-min-y) * parent.fit * 1px;
+                        pw: m.w * parent.fit * 1px;
+                        ph: m.h * parent.fit * 1px;
+                        log-x: m.x;
+                        log-y: m.y;
+                        canvas-scale: parent.fit;
+                        transform: m.transform;
+                        selected: m.mid == root.selected-id;
+                        select-triggered(id) => {
+                            root.canvas-select(id);
+                        }
+                        drag-ended(id, x, y) => {
+                            root.canvas-moved(id, x, y);
+                        }
+                    }
+                }
+                Text {
+                    text: "拖动摆放 · 松手生效 · 深色块为宿主屏（只读参照）";
+                    color: Theme.text-3;
+                    font-size: 10px;
+                    font-family: Theme.mono;
+                }
+            }
+
+            SectionLabel { text: "设备 DEVICES"; }
+
+            for d in root.devices: Rectangle {
+                clip: true;
+                border-radius: 12px;
+                border-width: 1px;
+                border-color: Theme.border;
+                background: Theme.bg-card;
+                height: d.has-brightness && d.has-mode ? 150px
+                    : d.has-brightness || d.has-mode || d.progress != "" ? 124px
+                    : d.action-label != "" ? 108px
+                    : 78px;
+                // 左侧 3px 状态色条：一眼读出设备状态
+                Rectangle {
+                    x: 0;
+                    y: 0;
+                    width: 3px;
+                    height: 100%;
+                    background: d.state-color;
+                }
+                VerticalLayout {
+                    padding: Theme.sp-3;
+                    padding-left: 17px;
+                    spacing: 5px;
+
+                    HorizontalLayout {
+                        spacing: Theme.sp-2;
+                        Text {
+                            text: d.name;
+                            color: Theme.text;
+                            font-size: 13.5px;
+                            font-weight: 600;
+                            overflow: elide;
+                            vertical-alignment: center;
+                            horizontal-stretch: 1;
+                        }
+                        StateChip {
+                            text: d.state;
+                            tint: d.state-color;
+                        }
+                    }
+                    Text {
+                        text: d.port + "  ·  " + d.detail;
+                        color: Theme.text-2;
+                        font-size: 10.5px;
+                        font-family: Theme.mono;
+                        overflow: elide;
+                    }
+                    if d.progress != "": Text {
+                        text: d.progress;
+                        color: Theme.text-2;
+                        font-size: 10.5px;
+                        font-family: Theme.mono;
+                        wrap: word-wrap;
+                        max-height: 40px;
+                    }
+                    if d.has-brightness: HorizontalLayout {
+                        spacing: Theme.sp-2;
+                        Text {
+                            text: "亮度";
+                            color: Theme.text-3;
+                            font-size: 10.5px;
+                            font-family: Theme.mono;
+                            vertical-alignment: center;
+                        }
+                        BrightSlider {
+                            value: d.brightness;
+                            changed(v) => {
+                                root.brightness-live(d.slug, v);
+                            }
+                            released(v) => {
+                                root.brightness-commit(d.slug, v);
+                            }
+                        }
+                        Text {
+                            text: Math.round(d.brightness) + "%";
+                            color: Theme.text;
+                            font-size: 10.5px;
+                            font-family: Theme.mono;
+                            vertical-alignment: center;
+                        }
+                    }
+                    if d.has-mode: HorizontalLayout {
+                        spacing: Theme.sp-2;
+                        Text {
+                            text: "分辨率";
+                            color: Theme.text-3;
+                            font-size: 10.5px;
+                            font-family: Theme.mono;
+                            vertical-alignment: center;
+                        }
+                        Segmented {
+                            a-text: "原生";
+                            b-text: "半分辨率";
+                            b-active: d.mode-half-on;
+                            chose(half) => {
+                                root.mode-set(d.slug, half);
+                            }
+                        }
+                        Rectangle {}
+                    }
+                    if d.action-label != "": HorizontalLayout {
+                        spacing: Theme.sp-2;
+                        Rectangle {}
+                        Btn {
+                            text: d.action-label;
+                            primary: true;
+                            triggered => {
+                                root.retry-flash(d.port);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── 充电 页（P1c 占位，同系统）──
+        if root.tab == 1: Rectangle {
+            vertical-stretch: 1;
+            border-radius: 12px;
+            border-width: 1px;
+            border-color: Theme.border;
+            background: Theme.bg-card;
+            VerticalLayout {
+                alignment: center;
+                spacing: Theme.sp-2;
+                Text {
+                    text: "充电 CHARGING";
+                    color: Theme.text-3;
+                    font-size: 10px;
+                    font-family: Theme.mono;
+                    letter-spacing: 1.5px;
+                    horizontal-alignment: center;
+                }
+                Text {
+                    text: "P1c 交付：限流档位 · 实时电流\n三态生效（提交 → 看门狗 → 回读）";
+                    color: Theme.text-2;
+                    font-size: 11.5px;
+                    horizontal-alignment: center;
+                    wrap: word-wrap;
+                }
+            }
+        }
+
+        Rectangle { vertical-stretch: 1; }
+
+        // ── 底部信息栏 ──
+        Rectangle { height: 1px; background: Theme.divider; }
+        HorizontalLayout {
+            spacing: Theme.sp-2;
+            Text {
+                text: "托盘常驻 · 扫描 " + root.scan-count;
+                color: Theme.text-3;
+                font-size: 10px;
+                font-family: Theme.mono;
+                vertical-alignment: center;
+            }
+            Rectangle {}
+            Text {
+                text: "OMARPAD v0.1";
+                color: Theme.text-3;
+                font-size: 10px;
+                font-family: Theme.mono;
+                vertical-alignment: center;
+            }
+        }
+    }
+}
