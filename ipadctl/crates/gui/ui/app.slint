@@ -151,6 +151,7 @@ component Btn inherits Rectangle {
     animate background { duration: Theme.reduce-motion ? 0ms : 140ms; }
     animate border-color { duration: Theme.reduce-motion ? 0ms : 140ms; }
     HorizontalLayout {
+        height: 100%;
         padding-left: root.compact ? 10px : 13px;
         padding-right: root.compact ? 10px : 13px;
         alignment: center;
@@ -413,8 +414,8 @@ export component OmarpadWindow inherits Window {
     callback toggle-auto(bool);
     callback retry-flash(string);
     callback canvas-select(string);
-    callback canvas-moved(string, float, float);
-    callback canvas-rotate(string);
+    callback canvas-moved(string, float, float, float);
+    callback canvas-rotate(string, float);
     callback fix-lua();
     callback fix-cancel();
     callback brightness-live(string, float);
@@ -461,11 +462,16 @@ export component OmarpadWindow inherits Window {
                     }
                 }
                 Rectangle {}
-                ToggleSwitch {
-                    checked: root.auto-connect;
-                    interactive: !root.preview-mode;
-                    toggled(v) => {
-                        root.toggle-auto(v);
+                Rectangle {
+                    width: 40px;
+                    height: 100%;
+                    ToggleSwitch {
+                        y: (parent.height - self.height) / 2;
+                        checked: root.auto-connect;
+                        interactive: !root.preview-mode;
+                        toggled(v) => {
+                            root.toggle-auto(v);
+                        }
                     }
                 }
             }
@@ -593,10 +599,10 @@ export component OmarpadWindow inherits Window {
                     SectionLabel { text: "排列 LAYOUT"; }
                     Rectangle {}
                     if root.selected-is-ipad: Btn {
-                        text: "↻ 旋转所选";
+                        text: "旋转所选";
                         compact: true;
                         triggered => {
-                            root.canvas-rotate(root.selected-id);
+                            root.canvas-rotate(root.selected-id, canvas-frame.fit);
                         }
                     }
                 }
@@ -611,12 +617,14 @@ export component OmarpadWindow inherits Window {
                         (self.width - 24px) / (root.canvas-span-w * 1px),
                         208px / (root.canvas-span-h * 1px),
                     );
+                    property <length> origin-x: (self.width - root.canvas-span-w * self.fit * 1px) / 2;
+                    property <length> origin-y: (self.height - root.canvas-span-h * self.fit * 1px) / 2;
                     for m in root.canvas: MonitorRect {
                         mid: m.mid;
                         label: m.label;
                         is-ipad: m.is-ipad;
-                        px: 12px + (m.x - root.canvas-min-x) * parent.fit * 1px;
-                        py: 12px + (m.y - root.canvas-min-y) * parent.fit * 1px;
+                        px: parent.origin-x + (m.x - root.canvas-min-x) * parent.fit * 1px;
+                        py: parent.origin-y + (m.y - root.canvas-min-y) * parent.fit * 1px;
                         pw: m.w * parent.fit * 1px;
                         ph: m.h * parent.fit * 1px;
                         log-x: m.x;
@@ -628,7 +636,7 @@ export component OmarpadWindow inherits Window {
                             root.canvas-select(id);
                         }
                         drag-ended(id, x, y) => {
-                            root.canvas-moved(id, x, y);
+                            root.canvas-moved(id, x, y, parent.fit);
                         }
                     }
                 }

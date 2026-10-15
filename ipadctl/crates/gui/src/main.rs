@@ -10,6 +10,7 @@
 slint::include_modules!();
 
 mod charge;
+mod layout;
 mod theme;
 
 use flash::AutoAction;
@@ -275,7 +276,8 @@ fn modify_config(
 
 fn main() -> anyhow::Result<()> {
     let charge_preview = std::env::args().any(|a| a == "--preview-charge");
-    let measure = charge_preview || std::env::args().any(|a| a == "--measure");
+    let layout_preview = std::env::args().any(|a| a == "--preview-layout");
+    let measure = charge_preview || layout_preview || std::env::args().any(|a| a == "--measure");
     let window = OmarpadWindow::new()?;
     window.set_preview_mode(measure);
     if charge_preview {
@@ -404,21 +406,30 @@ fn main() -> anyhow::Result<()> {
     {
         let shared = shared.clone();
         let weak = window.as_weak();
-        window.on_canvas_moved(move |id: slint::SharedString, x: f32, y: f32| {
+        window.on_canvas_moved(move |id: slint::SharedString, x: f32, y: f32, scale: f32| {
             let shared2 = shared.clone();
             let weak2 = weak.clone();
             std::thread::spawn(move || {
-                canvas_moved(shared2, weak2, id.as_str().to_owned(), x as f64, y as f64)
+                canvas_moved(
+                    shared2,
+                    weak2,
+                    id.as_str().to_owned(),
+                    x as f64,
+                    y as f64,
+                    scale as f64,
+                )
             });
         });
     }
     {
         let shared = shared.clone();
         let weak = window.as_weak();
-        window.on_canvas_rotate(move |id: slint::SharedString| {
+        window.on_canvas_rotate(move |id: slint::SharedString, scale: f32| {
             let shared2 = shared.clone();
             let weak2 = weak.clone();
-            std::thread::spawn(move || canvas_rotate(shared2, weak2, id.as_str().to_owned()));
+            std::thread::spawn(move || {
+                canvas_rotate(shared2, weak2, id.as_str().to_owned(), scale as f64)
+            });
         });
     }
     {
@@ -561,7 +572,7 @@ fn main() -> anyhow::Result<()> {
         std::thread::spawn(move || watch_style(weak, style_shared, initial_style));
     }
 
-    if measure && !charge_preview {
+    if measure && !charge_preview && !layout_preview {
         start_measure(window.as_weak());
     } else {
         window.show()?;
@@ -1213,7 +1224,7 @@ impl CanvasEntry {
     }
 }
 
-/// 松手：重叠校验 → 存配置 → 写 lua → reload → 回读。运行在工作线程。
+/// 松手：吸附与重叠校验 → 存配置 → 写 lua → reload → 回读。运行在工作线程。
 /// 全程持 layout_mu：校验用的画布、写盘、重载、回读一气呵成，串行化所有布局操作（评审 🔴6）。
 fn canvas_moved(
     shared: Arc<Mutex<Shared>>,
@@ -1221,6 +1232,7 @@ fn canvas_moved(
     slug: String,
     x: f64,
     y: f64,
+    scale: f64,
 ) {
     let layout_mu = lock(&shared).layout_mu.clone();
     let _layout = lock(&layout_mu);
@@ -1230,7 +1242,14 @@ fn canvas_moved(
     if !entry.is_ipad {
         return;
     }
-    let new_rect = (x, y, entry.w, entry.h);
+    let others = canvas_other_rects(&shared, &slug);
+    let (x, y) = layout::snap_position(
+        layout::Rect::new(x, y, entry.w, entry.h),
+        &others,
+        snap_tolerance(scale),
+        false,
+    );
+    let new_rect = (x.round(), y.round(), entry.w, entry.h);
     if let Some(other) = overlap_with(&shared, &slug, new_rect) {
         set_status(
             &weak,
@@ -1254,8 +1273,8 @@ fn canvas_moved(
     }
 }
 
-/// 旋转所选：0→1→3→2 循环，中心锚定，旋转后尺寸交换再校验重叠。串行（layout_mu）。
-fn canvas_rotate(shared: Arc<Mutex<Shared>>, weak: Weak<OmarpadWindow>, slug: String) {
+/// 旋转所选：0→1→3→2 循环，中心锚定，贴边吸附后校验重叠。串行（layout_mu）。
+fn canvas_rotate(shared: Arc<Mutex<Shared>>, weak: Weak<OmarpadWindow>, slug: String, scale: f64) {
     let layout_mu = lock(&shared).layout_mu.clone();
     let _layout = lock(&layout_mu);
     let Some(entry) = lock(&shared).canvas.iter().find(|e| e.id == slug).cloned() else {
@@ -1274,8 +1293,13 @@ fn canvas_rotate(shared: Arc<Mutex<Shared>>, weak: Weak<OmarpadWindow>, slug: St
     };
     let cx = entry.x + entry.w / 2.0;
     let cy = entry.y + entry.h / 2.0;
-    let (nx, ny) = (cx - nw / 2.0, cy - nh / 2.0);
-    if let Some(other) = overlap_with(&shared, &slug, (nx, ny, nw, nh)) {
+    let (nx, ny) = layout::snap_position(
+        layout::Rect::new(cx - nw / 2.0, cy - nh / 2.0, nw, nh),
+        &canvas_other_rects(&shared, &slug),
+        snap_tolerance(scale),
+        true,
+    );
+    if let Some(other) = overlap_with(&shared, &slug, (nx.round(), ny.round(), nw, nh)) {
         set_status(&weak, format!("⚠ 旋转后与 {} 重叠，未保存", other));
         refresh_canvas(&shared, &weak);
         return;
@@ -1298,6 +1322,23 @@ fn canvas_rotate(shared: Arc<Mutex<Shared>>, weak: Weak<OmarpadWindow>, slug: St
         ),
         Err(e) => set_status(&weak, format!("⚠ 布局生效失败：{e:#}")),
     }
+}
+
+fn snap_tolerance(scale: f64) -> f64 {
+    if scale.is_finite() && scale > 0.0 {
+        12.0 / scale
+    } else {
+        0.0
+    }
+}
+
+fn canvas_other_rects(shared: &Arc<Mutex<Shared>>, slug: &str) -> Vec<layout::Rect> {
+    lock(shared)
+        .canvas
+        .iter()
+        .filter(|e| e.id != slug)
+        .map(|e| layout::Rect::new(e.x, e.y, e.w, e.h))
+        .collect()
 }
 
 /// 分辨率两档：原生 = preferred（mode 置 None），半分辨率 = EDID 窄档。串行（layout_mu）。
