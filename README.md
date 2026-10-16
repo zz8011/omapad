@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/assets/omarpad-logo.svg" alt="Omarpad — iPad USB Linux 副屏" width="640">
+  <img src="docs/assets/omapad-logo.svg" alt="Omapad — iPad USB Linux 副屏" width="640">
 </p>
 
-# Omarpad
+# Omapad
 
 通过 USB 将旧 iPad 变成 Linux 桌面的扩展显示器。
 
