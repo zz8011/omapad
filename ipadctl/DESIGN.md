@@ -1,4 +1,4 @@
-# Omarpad GUI 设计稿
+# Omapad GUI 设计稿
 
 > **状态：设计稿 v3（未实现），已过一轮 Codex 评审（2026-10-16，见 §11）。**
 > 文中"映射"指向 `ipadctl` CLI 已有实现；硬件相关行为（30 s watchdog、电量计
@@ -53,7 +53,7 @@ Arch/Wayland 上的单机报告：winit+femtovg 开过窗并销毁 UI 后 RSS �
 6. Release profile：`opt-level = "s"`、`lto = true`、`codegen-units = 1`、
    `panic = "abort"`、`strip = true`。
 
-**P0 实测结果（2026-10-16，本机 Omarchy/Wayland，`omarpad --measure`，
+**P0 实测结果（2026-10-16，本机 Omarchy/Wayland，`omapad --measure`，
 口径：冷启动 1 s → 开窗 2 s → 隐藏 2 s → 重开×3 → 隐藏 2 s）：**
 
 | 渲染器 | 冷启动仅托盘 | 开窗 | 隐藏（开过窗） | 重开 3 次后隐藏 | 二进制 |
@@ -75,7 +75,7 @@ ipadctl/                     Cargo workspace（拆分自现单 crate）
 ├─ crates/core/    ipadctl-core   src/*.rs 模块迁入并整理成公共 API；
 │                                  project_root() 从 main.rs 提为 core 公共项
 ├─ crates/cli/     ipadctl        现 main.rs 原样保留（CLI 与 GUI 共用 core/config）
-└─ crates/gui/     omarpad        Slint 界面 + ksni 托盘 + 后台线程
+└─ crates/gui/     omapad        Slint 界面 + ksni 托盘 + 后台线程
 ```
 
 - GUI 以**普通用户**运行；只有 wrapper 走受限 `sudo -n`，配置与 Hyprland 文件
@@ -102,7 +102,7 @@ ipadctl/                     Cargo workspace（拆分自现单 crate）
 ## 4. 主窗口（点托盘弹出，约 420×640，关窗=隐藏）
 
 ```text
-┌─ Omarpad ────────────────────────────── ✕ ─┐
+┌─ Omapad ────────────────────────────── ✕ ─┐
 │  自动副屏                        (●——) 开  │
 │  iPad mini 3 正在自动连接 · 步骤 2/3        │
 │─────────────────────────────────────────────│
@@ -191,7 +191,7 @@ USB 端口的 DFU 会话计（换口=新周期，允许再自动试）；程序�
 
 - 图标聚合态：正常 / DFU 自动连接中（琥珀，tooltip 显示 x/3 与判据级）/ 错误。
 - 点击（`activate`）= 弹窗聚焦；右键菜单：每台设备子菜单（亮度 25/50/75/100、
-  关背光、限流档位）、"打开 Omarpad"、"退出"。⚠️ 左键行为需在 waybar 实际
+  关背光、限流档位）、"打开 Omapad"、"退出"。⚠️ 左键行为需在 waybar 实际
   SNI host 上验证。
 
 ## 7. 次级功能（P2+）
@@ -285,7 +285,7 @@ Recordian 风格；全 Rust + 低内存（硬门槛 P0 实测定）。
 
 **建成的结构**：根包 `ipadctl` 升级为 lib+bin（`src/lib.rs` 暴露公共模块，
 `src/main.rs` 只剩 CLI 参数编排，`project_root()` 移入 `paths.rs`）；GUI 是
-`crates/gui` 的 `omarpad` 包（`--features gui-software|gui-femtovg` 编译期二选一）。
+`crates/gui` 的 `omapad` 包（`--features gui-software|gui-femtovg` 编译期二选一）。
 与原稿"三 crate"的差异：core 与 cli 同包——拆开的实际收益只在发布节奏，留到
 需要时再拆，结构上公共 API 已就位。
 
@@ -386,7 +386,7 @@ mouse-x/pressed-x 拖动，150 ms 节流实时写，松手持久化 + 5 s 回显
 36 测试全绿；截图验证（`skin2.png`）。
 
 **工程异常再发一次（记录处置）**：`cargo build --release` 指纹缓存再次把
-陈旧二进制报成 Fresh（源码 mtime 更新也不重编，ipadctl/omarpad 各中招一次）。
+陈旧二进制报成 Fresh（源码 mtime 更新也不重编，ipadctl/omapad 各中招一次）。
 处置：`cargo clean --release -p <包>` 强制重建 + 字节级标记校验。构建产物
 发布前一律跑标记校验，不信"Finished 0.0xs"。
 

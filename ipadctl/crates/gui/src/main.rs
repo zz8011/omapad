@@ -92,7 +92,7 @@ fn current_style() -> anyhow::Result<StyleSnapshot> {
     })
 }
 
-fn apply_style(window: &OmarpadWindow, style: &StyleSnapshot) {
+fn apply_style(window: &OmapadWindow, style: &StyleSnapshot) {
     let t = window.global::<Theme>();
     let p = &style.palette;
     t.set_bg_window(color(p.window));
@@ -139,7 +139,7 @@ fn preserve_rows<T: Clone + PartialEq + 'static>(
     current
 }
 
-fn watch_style(weak: Weak<OmarpadWindow>, shared: Arc<Mutex<Shared>>, mut last: StyleSnapshot) {
+fn watch_style(weak: Weak<OmapadWindow>, shared: Arc<Mutex<Shared>>, mut last: StyleSnapshot) {
     loop {
         std::thread::sleep(Duration::from_secs(3));
         let Ok(next) = current_style() else { continue };
@@ -279,10 +279,10 @@ struct Tray {
 
 impl ksni::Tray for Tray {
     fn id(&self) -> String {
-        "omarpad".into()
+        "omapad".into()
     }
     fn title(&self) -> String {
-        "Omarpad".into()
+        "Omapad".into()
     }
     fn icon_name(&self) -> String {
         String::new()
@@ -291,13 +291,13 @@ impl ksni::Tray for Tray {
         // 原版品牌应用图标；SNI 要求网络字节序 ARGB，而 PNG 解码为 RGBA。
         static ICONS: LazyLock<Vec<ksni::Icon>> = LazyLock::new(|| {
             [
-                include_bytes!("../assets/omarpad-app-icon-32.png").as_slice(),
-                include_bytes!("../assets/omarpad-app-icon-64.png").as_slice(),
+                include_bytes!("../assets/omapad-app-icon-32.png").as_slice(),
+                include_bytes!("../assets/omapad-app-icon-64.png").as_slice(),
             ]
             .into_iter()
             .map(|bytes| {
                 let img = image::load_from_memory_with_format(bytes, image::ImageFormat::Png)
-                    .expect("bundled Omarpad icon must be valid PNG")
+                    .expect("bundled Omapad icon must be valid PNG")
                     .into_rgba8();
                 let (width, height) = img.dimensions();
                 let mut data = img.into_vec();
@@ -376,7 +376,7 @@ fn main() -> anyhow::Result<()> {
     let charge_preview = std::env::args().any(|a| a == "--preview-charge");
     let layout_preview = std::env::args().any(|a| a == "--preview-layout");
     let measure = charge_preview || layout_preview || std::env::args().any(|a| a == "--measure");
-    let window = OmarpadWindow::new()?;
+    let window = OmapadWindow::new()?;
     window.set_preview_mode(measure);
     if charge_preview {
         window.set_tab(1);
@@ -633,6 +633,23 @@ fn main() -> anyhow::Result<()> {
     }
     {
         let shared = shared.clone();
+        let weak = window.as_weak();
+        window.on_touch_toggle(move |slug: slint::SharedString, enabled: bool| {
+            let shared2 = shared.clone();
+            let weak2 = weak.clone();
+            let s = slug.as_str().to_owned();
+            std::thread::spawn(move || touch_toggle(shared2, weak2, s, enabled));
+        });
+    }
+    {
+        window.on_touch_calibrate(move |slug: slint::SharedString| {
+            let s = slug.as_str().to_owned();
+            eprintln!("触摸校准请求：{s}");
+            // TODO: 实现校准窗口
+        });
+    }
+    {
+        let shared = shared.clone();
         window.on_tab_changed(move |device_page_open| {
             lock(&shared).device_tab_open = device_page_open;
         });
@@ -694,7 +711,7 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn handle_tray(rx: std::sync::mpsc::Receiver<TrayCommand>, weak: Weak<OmarpadWindow>) {
+fn handle_tray(rx: std::sync::mpsc::Receiver<TrayCommand>, weak: Weak<OmapadWindow>) {
     while let Ok(cmd) = rx.recv() {
         match cmd {
             TrayCommand::Toggle => {
@@ -732,7 +749,7 @@ fn unique_charge_device<'a>(v: &'a ScanView, slug: &str) -> Option<&'a usb::UsbD
 
 fn spawn_charge_read(
     shared: &Arc<Mutex<Shared>>,
-    weak: &Weak<OmarpadWindow>,
+    weak: &Weak<OmapadWindow>,
     port: String,
     force: bool,
 ) {
@@ -814,7 +831,7 @@ fn spawn_charge_read(
 
 fn spawn_charge_set(
     shared: &Arc<Mutex<Shared>>,
-    weak: &Weak<OmarpadWindow>,
+    weak: &Weak<OmapadWindow>,
     port: String,
     slug: String,
     hex: String,
@@ -891,7 +908,7 @@ fn spawn_charge_set(
     });
 }
 
-fn refresh_charge_jobs(shared: &Arc<Mutex<Shared>>, weak: &Weak<OmarpadWindow>, v: &ScanView) {
+fn refresh_charge_jobs(shared: &Arc<Mutex<Shared>>, weak: &Weak<OmapadWindow>, v: &ScanView) {
     {
         let mut sh = lock(shared);
         let live: HashSet<&str> = v.gud.iter().map(|d| d.port.as_str()).collect();
@@ -1053,7 +1070,7 @@ fn build_charge_cards(v: &ScanView, shared: &Arc<Mutex<Shared>>) -> Vec<ChargeCa
 }
 
 fn scan_loop(
-    weak: Weak<OmarpadWindow>,
+    weak: Weak<OmapadWindow>,
     shared: Arc<Mutex<Shared>>,
     root: Option<PathBuf>,
     wait_secs: u64,
@@ -1231,7 +1248,7 @@ fn update_connectors(shared: &Arc<Mutex<Shared>>, v: &ScanView) {
 }
 
 /// 从 hyprctl 重建画布数据并推给 UI。hyprctl 不可用则隐藏画布。
-fn refresh_canvas(shared: &Arc<Mutex<Shared>>, weak: &Weak<OmarpadWindow>) {
+fn refresh_canvas(shared: &Arc<Mutex<Shared>>, weak: &Weak<OmapadWindow>) {
     let mons = match hypr::hyprctl_monitors() {
         Ok(m) => m,
         Err(_) => {
@@ -1344,7 +1361,7 @@ impl CanvasEntry {
 /// 全程持 layout_mu：校验用的画布、写盘、重载、回读一气呵成，串行化所有布局操作（评审 🔴6）。
 fn canvas_moved(
     shared: Arc<Mutex<Shared>>,
-    weak: Weak<OmarpadWindow>,
+    weak: Weak<OmapadWindow>,
     slug: String,
     x: f64,
     y: f64,
@@ -1390,7 +1407,7 @@ fn canvas_moved(
 }
 
 /// 旋转所选：0→1→3→2 循环，中心锚定，贴边吸附后校验重叠。串行（layout_mu）。
-fn canvas_rotate(shared: Arc<Mutex<Shared>>, weak: Weak<OmarpadWindow>, slug: String, scale: f64) {
+fn canvas_rotate(shared: Arc<Mutex<Shared>>, weak: Weak<OmapadWindow>, slug: String, scale: f64) {
     let layout_mu = lock(&shared).layout_mu.clone();
     let _layout = lock(&layout_mu);
     let Some(entry) = lock(&shared).canvas.iter().find(|e| e.id == slug).cloned() else {
@@ -1458,7 +1475,7 @@ fn canvas_other_rects(shared: &Arc<Mutex<Shared>>, slug: &str) -> Vec<layout::Re
 }
 
 /// 分辨率两档：原生 = preferred（mode 置 None），半分辨率 = EDID 窄档。串行（layout_mu）。
-fn mode_set(shared: Arc<Mutex<Shared>>, weak: Weak<OmarpadWindow>, slug: String, half: bool) {
+fn mode_set(shared: Arc<Mutex<Shared>>, weak: Weak<OmapadWindow>, slug: String, half: bool) {
     let layout_mu = lock(&shared).layout_mu.clone();
     let _layout = lock(&layout_mu);
     let (native, half_mode) = {
@@ -1488,6 +1505,32 @@ fn mode_set(shared: Arc<Mutex<Shared>>, weak: Weak<OmarpadWindow>, slug: String,
     }
 }
 
+fn touch_toggle(shared: Arc<Mutex<Shared>>, weak: Weak<OmapadWindow>, slug: String, enabled: bool) {
+    let layout_mu = lock(&shared).layout_mu.clone();
+    let _layout = lock(&layout_mu);
+
+    if let Err(e) = modify_config(&shared, |c| {
+        if let Some(m) = model::by_slug(&slug) {
+            c.entry_or_default(m).touch_enabled = enabled;
+        }
+    }) {
+        set_status(&weak, format!("⚠ 写配置失败：{e:#}"));
+        return;
+    }
+
+    match persist_layout(&shared, &weak) {
+        Ok(()) => {
+            let text = if enabled {
+                "✓ 触摸已启用并生效"
+            } else {
+                "✓ 触摸已禁用并生效"
+            };
+            set_status_transient(&weak, text.into());
+        }
+        Err(e) => set_status(&weak, format!("⚠ 布局生效失败：{e:#}")),
+    }
+}
+
 /// 与其它画布块的重叠检查，返回撞到的块名。
 fn overlap_with(
     shared: &Arc<Mutex<Shared>>,
@@ -1504,7 +1547,7 @@ fn overlap_with(
 
 /// 写 lua → hyprctl reload → 等 600 ms → 回读画布。
 /// 这版 hyprctl 没有 currentMode 字段，模式切换的效果读不回来 —— 如实标注。
-fn persist_layout(shared: &Arc<Mutex<Shared>>, weak: &Weak<OmarpadWindow>) -> anyhow::Result<()> {
+fn persist_layout(shared: &Arc<Mutex<Shared>>, weak: &Weak<OmapadWindow>) -> anyhow::Result<()> {
     let mu = lock(shared).config_mu.clone();
     let _g = lock(&mu);
     let cfg = config::load()?;
@@ -1516,7 +1559,7 @@ fn persist_layout(shared: &Arc<Mutex<Shared>>, weak: &Weak<OmarpadWindow>) -> an
     Ok(())
 }
 
-fn set_status(weak: &Weak<OmarpadWindow>, text: String) {
+fn set_status(weak: &Weak<OmapadWindow>, text: String) {
     let weak = weak.clone();
     let _ = slint::invoke_from_event_loop(move || {
         if let Some(w) = weak.upgrade() {
@@ -1527,7 +1570,7 @@ fn set_status(weak: &Weak<OmarpadWindow>, text: String) {
 
 /// 成功类消息：5 秒后自动淡出（失败类用 set_status 保留）。
 /// 清除前比对文本：期间出现了更新的消息（如投放失败）就不动它（评审 🔴9）。
-fn set_status_transient(weak: &Weak<OmarpadWindow>, text: String) {
+fn set_status_transient(weak: &Weak<OmapadWindow>, text: String) {
     set_status(weak, text.clone());
     let weak2 = weak.clone();
     let _ = slint::invoke_from_event_loop(move || {
@@ -1558,6 +1601,8 @@ fn empty_card(p: &theme::Palette) -> DeviceCard {
         mode_half: "".into(),
         mode_half_on: false,
         has_mode: false,
+        has_touch: false,
+        touch_enabled: false,
     }
 }
 
@@ -1643,6 +1688,11 @@ fn build_cards(v: &ScanView, shared: &Arc<Mutex<Shared>>) -> Vec<DeviceCard> {
                     c.has_mode = true;
                     c.mode_half_on = cfg.get(m).mode.is_some();
                 }
+                // 触摸支持
+                if ipadctl::touch::model_supports_touch(m) {
+                    c.has_touch = true;
+                    c.touch_enabled = cfg.get(m).touch_enabled;
+                }
             }
             None => {
                 c.name = "未知设备".into();
@@ -1677,7 +1727,7 @@ fn build_cards(v: &ScanView, shared: &Arc<Mutex<Shared>>) -> Vec<DeviceCard> {
 
 fn spawn_flash(
     shared: Arc<Mutex<Shared>>,
-    weak: Weak<OmarpadWindow>,
+    weak: Weak<OmapadWindow>,
     root: PathBuf,
     port: String,
     m: &'static model::Model,
@@ -1757,7 +1807,7 @@ fn spawn_flash(
 }
 
 /// `--measure`：内存测量驱动。**自动投放在此模式下被 scan_loop 禁用。**
-fn start_measure(weak: Weak<OmarpadWindow>) {
+fn start_measure(weak: Weak<OmapadWindow>) {
     std::thread::spawn(move || {
         let rss_kb = || -> u64 {
             std::fs::read_to_string("/proc/self/status")

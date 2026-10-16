@@ -2968,7 +2968,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "omarpad"
+name = "omapad"
 version = "0.1.0"
 dependencies = [
  "anyhow",

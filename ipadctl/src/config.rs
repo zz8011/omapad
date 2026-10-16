@@ -27,6 +27,13 @@ pub struct DeviceSettings {
     /// 均只暴露原生 + 半分辨率两档（见 DESIGN.md §12 P1b）。
     #[serde(default)]
     pub mode: Option<String>,
+    /// 触摸屏幕是否启用（仅 J207 Pro 支持）
+    #[serde(default)]
+    pub touch_enabled: bool,
+    /// 自定义触摸校准参数（`a b c d e f` 格式，对应 u = a·x + b·y + c, v = d·x + e·y + f）。
+    /// `None` 使用固件默认校准。
+    #[serde(default)]
+    pub touch_calibration: Option<String>,
 }
 
 impl DeviceSettings {
@@ -71,7 +78,7 @@ pub struct Config {
     pub devices: BTreeMap<String, DeviceSettings>,
 }
 
-/// 2026-10-16 实测可用的一套布局，作为首次生成时的默认值。
+/// 2026-10-16 实测可用的一套布局,作为首次生成时的默认值。
 ///
 /// 排布：下半排从左到右 = mini 2 → iPad Pro → HDMI-A-1，mini 3 在 HDMI-A-1 右边。
 fn defaults_for(m: &Model) -> DeviceSettings {
@@ -83,6 +90,7 @@ fn defaults_for(m: &Model) -> DeviceSettings {
         // mini 3：竖屏，紧贴 HDMI-A-1 右边
         _ => (0, "3200x1080"),
     };
+    let touch_enabled = m.slug == "j207"; // 默认为 Pro 开启触摸
     DeviceSettings {
         transform,
         position: position.to_owned(),
@@ -90,6 +98,8 @@ fn defaults_for(m: &Model) -> DeviceSettings {
         brightness: 100,
         charge_limit: m.charge_limit_default.to_owned(),
         mode: None,
+        touch_enabled,
+        touch_calibration: None,
     }
 }
 

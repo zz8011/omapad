@@ -1,4 +1,4 @@
-// Omarpad 主窗 —— Recordian 的克制布局，跟随当前 Omarchy 主题。
+// Omapad 主窗 —— Recordian 的克制布局，跟随当前 Omarchy 主题。
 // 色彩由 Rust 读取 Omarchy 语义色并在一个 UI 事件中更新；默认值只用于读取失败时。
 //   4px 基栅 / 五级字阶 / 语义间距 / 圆角·描边阶梯 / 状态色条 + chip / 分段控件。
 // 逻辑回调与属性与 P1b 完全一致（零 Rust 改动）。
@@ -21,6 +21,8 @@ export struct DeviceCard {
     mode-half: string,
     mode-half-on: bool,
     has-mode: bool,
+    has-touch: bool,
+    touch-enabled: bool,
 }
 
 export struct CanvasItem {
@@ -385,8 +387,8 @@ component StateChip inherits Rectangle {
     }
 }
 
-export component OmarpadWindow inherits Window {
-    title: "Omarpad";
+export component OmapadWindow inherits Window {
+    title: "Omapad";
     background: Theme.bg-window;
     preferred-width: 640px;
     preferred-height: 850px;
@@ -421,6 +423,8 @@ export component OmarpadWindow inherits Window {
     callback brightness-live(string, float);
     callback brightness-commit(string, float);
     callback mode-set(string, bool);
+    callback touch-toggle(string, bool);
+    callback touch-calibrate(string);
     callback tab-changed(bool);
     callback charge-set(string, string);
     callback charge-refresh(string);
@@ -445,7 +449,7 @@ export component OmarpadWindow inherits Window {
                 height: 100%;
                 Image {
                     y: (parent.height - self.height) / 2;
-                    source: @image-url("../assets/omarpad-app-icon-64.png");
+                    source: @image-url("../assets/omapad-app-icon-64.png");
                     width: 34px;
                     height: 34px;
                     image-fit: contain;
@@ -738,8 +742,11 @@ export component OmarpadWindow inherits Window {
                     border-width: 1px;
                     border-color: Theme.border;
                     background: Theme.bg-card;
-                    height: d.has-brightness && d.has-mode ? 150px
-                        : d.has-brightness || d.has-mode || d.progress != "" ? 124px
+                    height: d.has-brightness && d.has-mode && d.has-touch ? 178px
+                        : d.has-brightness && d.has-mode ? 150px
+                        : d.has-brightness && d.has-touch ? 152px
+                        : d.has-mode && d.has-touch ? 152px
+                        : d.has-brightness || d.has-mode || d.has-touch || d.progress != "" ? 124px
                         : d.action-label != "" ? 108px
                         : 78px;
                     // 左侧 3px 状态色条：一眼读出设备状态
@@ -827,6 +834,38 @@ export component OmarpadWindow inherits Window {
                                 b-active: d.mode-half-on;
                                 chose(half) => {
                                     root.mode-set(d.slug, half);
+                                }
+                            }
+                            Rectangle {}
+                        }
+                        if d.has-touch: HorizontalLayout {
+                            spacing: Theme.sp-2;
+                            Text {
+                                text: "触摸";
+                                color: Theme.text-3;
+                                font-size: 10.5px;
+                                font-family: Theme.mono;
+                                vertical-alignment: center;
+                            }
+                            Rectangle {
+                                width: 40px;
+                                height: 22px;
+                                ToggleSwitch {
+                                    y: (parent.height - self.height) / 2;
+                                    checked: d.touch-enabled;
+                                    toggled(v) => {
+                                        root.touch-toggle(d.slug, v);
+                                    }
+                                }
+                            }
+                            Rectangle {
+                                width: 8px;
+                            }
+                            Btn {
+                                text: "校准";
+                                primary: false;
+                                triggered => {
+                                    root.touch-calibrate(d.slug);
                                 }
                             }
                             Rectangle {}

@@ -349,6 +349,7 @@ pub fn split_modes(modes: &[String]) -> Option<(String, String)> {
 /// 只对**当前连着的**机型写规则不合适（设备没插时布局就丢了），所以对机型表里
 /// 每一台都写 —— Hyprland 对未连接的 `desc:` 规则只是不生效，没有副作用。
 pub fn render_lua(cfg: &Config) -> String {
+    use crate::touch;
     let mut s = String::new();
     s.push_str("-- 由 ipadctl 生成，**不要手改**。\n");
     s.push_str("-- 改设置请用 `ipadctl config set ...`，然后 `ipadctl config apply` 重新生成。\n");
@@ -360,6 +361,8 @@ pub fn render_lua(cfg: &Config) -> String {
     s.push_str("-- 但 desc 来自 EDID，所以**同型号两台会撞**；Hyprland 里残留的已断开连接器\n");
     s.push_str("-- 也会匹配同一条 desc。要确认某条规则落在哪块屏上，看\n");
     s.push_str("-- /sys/class/drm/card*-USB-*/device 指向哪个 USB 端口。\n\n");
+
+    // 显示器布局
     for m in MODELS {
         let d = cfg.get(m);
         // mode 两档来自 EDID（None = preferred 原生档）；见 config.rs mode 注释
@@ -370,6 +373,41 @@ pub fn render_lua(cfg: &Config) -> String {
             m.desc, mode, d.position, d.scale, d.transform
         ));
     }
+
+    // 触摸设备绑定
+    s.push_str("-- 触摸设备绑定\n");
+    s.push_str("local function bind_touch()\n");
+    s.push_str("  for _, m in ipairs(hl.get_monitors()) do\n");
+    for m in MODELS {
+        if !touch::model_supports_touch(m) {
+            continue;
+        }
+        let d = cfg.get(m);
+        if !d.touch_enabled {
+            continue;
+        }
+        let Some(dev_name) = touch::touch_device_name(m) else {
+            continue;
+        };
+        s.push_str(&format!(
+            "    if m.description == \"{}\" then\n",
+            m.desc
+        ));
+        s.push_str(&format!(
+            "      hl.device({{ name = \"{}\", output = m.name }})\n",
+            dev_name
+        ));
+        s.push_str("    end\n");
+    }
+    s.push_str("  end\n");
+    s.push_str("end\n");
+    s.push_str("bind_touch()\n");
+    s.push_str("hl.on(\"monitor.added\", bind_touch)\n\n");
+
+    // 保留用户的 warp_back 设置
+    s.push_str("-- 保留用户原有的光标 warp_back 配置\n");
+    s.push_str("hl.config({ cursor = { warp_back_after_non_mouse_input = true } })\n");
+
     s
 }
 
