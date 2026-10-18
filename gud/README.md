@@ -14,6 +14,7 @@
 | `launch/alpine_dfu_wrapper.py` | 原 DFU wrapper 的副本，只改 bundle 路径和哈希（J85M 用） |
 | `launch/alpine_dfu_wrapper_j86.py` | 同上，指向 j86 bundle（J86 用） |
 | `a1599sh.py` | 宿主侧工具：通过维护 ACM 执行命令、用 base64 上传文件 |
+| `repack_gudd.py` | 在已实机启动过的 bundle 上只替换 `usr/sbin/gudd`，启动前缀与其余 initrd 条目逐字节保持并自检。2026-10-18 用它打出带电源键熄屏的三个包（见下） |
 | `gud-switch.sh` | 在运行中的旧镜像里现场切换 gadget（实验用；见下方已知问题） |
 
 `out/usb_f_fs.ko`：运行内核（v2.4 配置）没有内建 FunctionFS。这个模块是把 `drivers/usb/gadget/function/f_fs.c` 按 config-v2.4 编成外部模块得到的（构建目录 `.scratch/kbuild-v24`，源码树 `2026-10-11/task-2/.build/a1599/src/linux`）。模块用到的 132 个符号都由 vmlinux 导出。交叉编译使用 `.scratch/cc.sh`：clang 加 Alpine v3.24 的 musl-dev、compiler-rt 静态链接，各 apk 包都按已验签 APKINDEX 的校验值核对过。
@@ -188,3 +189,15 @@ ftrace function profile（宿主拖动/滚动窗口 15 秒）：
   且**重试会自己恢复**（`1-4` 上是第 5 次才成功）。根因未查明，待查
 - 直连 USB 口与自供电 hub 口的充电效果**实测相当**（均约 +0.5~0.75 A），
   但端口长期可靠性、以及充到接近满电时的行为都没测
+
+## 电源键熄屏启动包（2026-10-18）
+
+gudd 源码来自分支 `zz8011/power-button-screen-off` 提交 `56826f4`，用 `.scratch/cc.sh -O2 -s gudd.c third_party/lz4/lz4.c` 编出 md5 `53d68152…`，与三台热更新实测的二进制逐字节一致。在**各机当时实际启动的包**上只换 gudd：
+
+| 机型 | 基础包（实机启动过） | 新包 | 启动器 |
+|---|---|---|---|
+| A1599 | `out/a1599-gud.bundle`（`2c0374d0…`） | `out/a1599-gud-powerkey.bundle`（`7dd4ad3a…`） | `launch/alpine_dfu_wrapper.py` |
+| J86 | `out/a1599-gud-j86.bundle`（`a5e5cc93…`） | `out/a1599-gud-j86-powerkey.bundle`（`553ef564…`） | `launch/alpine_dfu_wrapper_j86.py` |
+| J207 | `Omarpad/cusk` worktree 的 `out/a1599-gud-j207-touch2.bundle`（`e4e5176a…`，snak 内核 + 触摸） | `out/a1599-gud-j207-touch2-powerkey.bundle`（`a88029db…`） | `launch/alpine_dfu_wrapper_j207.py` |
+
+注意 J207 启动器此前锁的是不带触摸的 `a1599-gud-j207.bundle`（`834d7997…`），而 Pro 实际一直从 cusk 的 touch2 包启动；现已改为 touch2 + 新 gudd。三个启动器 `--dry-run` 校验通过（离线检查）。**新包尚未经 DFU 冷启动实测**；旧包仍在 `out/`，回退只需把启动器的 BUNDLE / BUNDLE_SHA256 改回。各包的元数据在 `out/IMAGE-*powerkey.json`（`out/` 被 git 忽略）。

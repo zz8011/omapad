@@ -21,14 +21,14 @@ ROOT = Path("/home/zz8011/Documents/Codex/2026-10-11/task-2")
 CHECKRA1N = ROOT / ".build/a1599/out/checkra1n-0.1337.3-exec"
 PONGO = ROOT / ".build/a1599/out/a1599-host-candidate/Pongo.bin"
 PONGOTERM = ROOT / ".build/a1599/out/pongoterm"
-BUNDLE = Path(__file__).resolve().parent.parent / "out/a1599-gud-j207.bundle"
+BUNDLE = Path(__file__).resolve().parent.parent / "out/a1599-gud-j207-touch2-powerkey.bundle"
 LOG_DIR = Path("/run/a1599-alpine-maintenance")
 SYS_USB = Path("/sys/bus/usb/devices")
 
 CHECKRA1N_SHA256 = "53154d87594cf67c56659f24547f1b5bb5336f84ea58c2d42f25a7b2df81a964"
 PONGO_SHA256 = "86c9b1989c35a98f7dc2abfe369a06c73b029e9ebae17b29c822a709a008f0b5"
 PONGOTERM_SHA256 = "50e68a1c2b516cb984c293601ce93059990286ef859f1dbac8583f0b58f835b3"
-BUNDLE_SHA256 = "834d799712c82fa558fc4867a3497dbc88511515510ed7d869c8acebe6db525f"
+BUNDLE_SHA256 = "a88029dba809c2b7bdd68ac6f25f6dbec28d147d2dd68fc737a2eb5a7591b2da"
 PONGO_BANNER = "pongoOS 2.6.3-cc532fac"
 PONGO_READY_TIMEOUT = 45.0
 PONGO_BANNER_TIMEOUT = 30.0
