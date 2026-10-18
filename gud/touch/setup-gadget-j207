@@ -1,0 +1,117 @@
+#!/bin/busybox sh
+# A1599 gadget：acm.usb0 + acm.usb1（两个 root shell）+ ffs.gud（GUD 显示，gudd 提供）。
+# GUD 部分任何一步失败，退回仅 2×ACM（原 1d6b:0104），保证维护口可用。
+# J207 另加 hid.usb0（触摸屏，/sbin/touchd 提供）；HID 任何一步失败只去掉 HID，不影响 GUD。
+set -u
+cfg=/sys/kernel/config/usb_gadget/a1599
+ffs=/dev/ffs-gud
+log() {
+    printf '[A1599-gadget] %s\n' "$*" >>/dev/console
+    printf '[A1599-gadget] %s\n' "$*" >>/run/setup-gadget.log
+}
+
+set -- /sys/class/udc/*
+[ -e "$1" ] || { log "ERROR 无 UDC"; exit 1; }
+udc=${1##*/}
+log "udc=$udc"
+
+mkdir -p $cfg/strings/0x409 $cfg/configs/c.1/strings/0x409 || { log "ERROR 创建 gadget"; exit 1; }
+echo 0x0200 > $cfg/bcdUSB
+echo 0x0100 > $cfg/bcdDevice
+echo Linux > $cfg/strings/0x409/manufacturer
+echo "Local serial + display" > $cfg/configs/c.1/strings/0x409/configuration
+echo 120 > $cfg/configs/c.1/MaxPower
+for fn in acm.usb0 acm.usb1; do
+    mkdir $cfg/functions/$fn && ln -s $cfg/functions/$fn $cfg/configs/c.1/$fn || { log "ERROR $fn"; exit 1; }
+done
+
+plain_acm() {
+    log "GUD 不可用（$1），仅启用 2×ACM"
+    rm -f $cfg/configs/c.1/ffs.gud
+    echo 0x1d6b > $cfg/idVendor; echo 0x0104 > $cfg/idProduct
+    echo "A1599 Local USB Services" > $cfg/strings/0x409/product
+    echo $udc > $cfg/UDC && log "bind ok (2xACM)"
+    /sbin/usb-linkwatch </dev/null >/dev/null 2>&1 &
+    exit 0
+}
+
+grep -q '^usb_f_fs ' /proc/modules || insmod /lib/a1599/usb_f_fs.ko 2>>/run/setup-gadget.log || plain_acm "insmod usb_f_fs"
+mkdir $cfg/functions/ffs.gud || plain_acm "mkdir ffs.gud"
+mkdir -p $ffs && mount -t functionfs gud $ffs || plain_acm "mount functionfs"
+echo 8 > /proc/sys/kernel/printk
+/sbin/gudd-supervisor </dev/null >/dev/null 2>&1 &
+/sbin/gudd-watchdog </dev/null >/dev/null 2>&1 &
+i=0
+while [ ! -e $ffs/ep1 ] && [ $i -lt 20 ]; do sleep 0.2; i=$((i + 1)); done
+[ -e $ffs/ep1 ] || plain_acm "gudd 未就绪"
+echo 0x1d50 > $cfg/idVendor; echo 0x614d > $cfg/idProduct
+case "$(tr -d '\0' < /proc/device-tree/compatible 2>/dev/null | head -c 10)" in
+    apple,j207) name="iPad Pro 10.5 GUD Display" ;;
+    *) name="A1599 GUD Display" ;;
+esac
+echo "$name" > $cfg/strings/0x409/product
+ln -s $cfg/functions/ffs.gud $cfg/configs/c.1/ffs.gud || plain_acm "link ffs.gud"
+
+no_hid() {
+    log "HID 不可用（$1），继续 GUD"
+    rm -f $cfg/configs/c.1/hid.usb0
+    rmdir $cfg/functions/hid.usb0 2>/dev/null
+    return 1
+}
+setup_hid() {
+    [ "$name" = "iPad Pro 10.5 GUD Display" ] && [ -x /sbin/touch-init ] || return 1
+    grep -q '^usb_f_hid ' /proc/modules || insmod /lib/a1599/usb_f_hid.ko 2>>/run/setup-gadget.log || no_hid "insmod" || return 1
+    h=$cfg/functions/hid.usb0
+    mkdir $h || no_hid "mkdir" || return 1
+    { echo 0 > $h/protocol && echo 0 > $h/subclass && echo 64 > $h/report_length &&
+      echo 1 > $h/no_out_endpoint && /sbin/touchd -D > $h/report_desc; } 2>>/run/setup-gadget.log || no_hid "属性" || return 1
+    ln -s $h $cfg/configs/c.1/hid.usb0 || no_hid "link" || return 1
+}
+hid=0
+setup_hid && hid=1
+if echo $udc > $cfg/UDC; then
+    log "bind ok (2xACM + GUD$([ $hid = 1 ] && echo ' + HID'))"
+elif [ $hid = 1 ] && { echo "" > $cfg/UDC 2>/dev/null; hid=0; no_hid "bind"; echo $udc > $cfg/UDC; }; then
+    log "bind ok (2xACM + GUD)"
+else
+    echo "" > $cfg/UDC 2>/dev/null
+    plain_acm "bind"
+fi
+/sbin/usb-linkwatch </dev/null >/dev/null 2>&1 &
+[ $hid = 1 ] && setsid /sbin/touch-init </dev/null >/dev/null 2>&1 &
+
+# D2355 充电配置（仅 J207 / iPad Pro 10.5）。
+# Linux 侧没有 Tristar 驱动，D2355 会把 USB 口当成"未识别"而把输入限流锁在 90 mA。
+# 直接改写输入限流寄存器 0x44e（单位 10 mA）绕过缺失的充电器识别环节。
+# 任何一步失败都只记日志，不影响副屏功能。
+setup_charging() {
+    [ -e /proc/device-tree/compatible ] || return 0
+    case "$(tr -d '\0' < /proc/device-tree/compatible 2>/dev/null)" in
+        *apple,j207*) ;;
+        *) return 0 ;;
+    esac
+    grep -q '^d2355_probe ' /proc/modules && return 0
+    [ -e /lib/a1599/d2355-probe.ko ] || { log "charging: 无 d2355-probe.ko"; return 0; }
+    insmod /lib/a1599/d2355-probe.ko 2>>/run/setup-gadget.log || {
+        log "charging: insmod 失败"; return 0; }
+    i=0
+    while [ ! -e /sys/kernel/d2355/rw ] && [ $i -lt 20 ]; do sleep 0.1; i=$((i + 1)); done
+    [ -e /sys/kernel/d2355/rw ] || { log "charging: sysfs 未出现"; return 0; }
+    # 1000 mA：实测在 USB 2.0 根端口上稳定。弱电源可改成 0x32 (500 mA)。
+    { echo "w 0x4a6 0x01"   > /sys/kernel/d2355/rw; } 2>>/run/setup-gadget.log
+    { echo "w 0xb10 0x1d"   > /sys/kernel/d2355/rw; } 2>>/run/setup-gadget.log
+    sleep 0.2
+    { echo "w 0x49a 0x5f"   > /sys/kernel/d2355/rw; } 2>>/run/setup-gadget.log
+    sleep 0.2
+    { echo "w 0xb10 0x00"   > /sys/kernel/d2355/rw; } 2>>/run/setup-gadget.log
+    sleep 0.2
+    { echo "w 0x44e 0x64"   > /sys/kernel/d2355/rw; } 2>>/run/setup-gadget.log
+    sleep 0.4
+    log "charging: $(dmesg | grep -E 'd2355: (read|write) 0x044e' | tail -1 | sed 's/.*d2355: //')"
+    # VBUS 重连会把 0x44e 复位成 80 mA，起后台看门狗持续补回
+    if [ -x /sbin/d2355-watchdog ]; then
+        setsid /sbin/d2355-watchdog >/dev/null 2>&1 </dev/null &
+        log "charging: 看门狗已启动"
+    fi
+}
+setup_charging

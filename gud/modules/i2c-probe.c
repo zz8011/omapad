@@ -23,8 +23,12 @@
 #include <linux/string.h>
 #include <linux/slab.h>
 #include <linux/ctype.h>
+#include <linux/mutex.h>
 
-#define OUT_SZ	16192
+#define OUT_SZ	PAGE_SIZE	/* sysfs show 缓冲只有一页 */
+
+/* d2089-watchdog 每 30 秒写一次 cmd，宿主也会同时读写：cmd/out 必须串行 */
+static DEFINE_MUTEX(ip_lock);
 
 static char out_buf[OUT_SZ];
 static int out_len;
@@ -36,7 +40,7 @@ static void o_reset(void)
 	out_buf[0] = '\0';
 }
 
-static void o(const char *fmt, ...)
+static __printf(1, 2) void o(const char *fmt, ...)
 {
 	va_list ap;
 	int n;
@@ -181,11 +185,11 @@ static ssize_t cmd_store(struct kobject *kobj, struct kobj_attribute *attr,
 	char *line, *tok, *rest;
 	unsigned long bus, addr;
 
-	o_reset();
-
 	line = kstrdup(buf, GFP_KERNEL);
 	if (!line)
 		return -ENOMEM;
+	mutex_lock(&ip_lock);
+	o_reset();
 
 	/* 去掉换行 */
 	strim(line);
@@ -259,6 +263,7 @@ static ssize_t cmd_store(struct kobject *kobj, struct kobj_attribute *attr,
 	}
 
 out:
+	mutex_unlock(&ip_lock);
 	kfree(line);
 	return count;
 }
@@ -267,9 +272,14 @@ static struct kobj_attribute cmd_attr = __ATTR_WO(cmd);
 static ssize_t out_show(struct kobject *kobj, struct kobj_attribute *attr,
 			char *buf)
 {
-	memcpy(buf, out_buf, out_len);
-	buf[out_len] = '\0';
-	return out_len;
+	int n;
+
+	mutex_lock(&ip_lock);
+	n = min_t(int, out_len, PAGE_SIZE - 1);
+	memcpy(buf, out_buf, n);
+	buf[n] = '\0';
+	mutex_unlock(&ip_lock);
+	return n;
 }
 static struct kobj_attribute out_attr = __ATTR_RO(out);
 

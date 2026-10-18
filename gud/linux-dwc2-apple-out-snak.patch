@@ -1,0 +1,27 @@
+--- /home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux/drivers/usb/dwc2/gadget.c.orig-20261016	2026-09-03 13:49:29.000000000 +0800
++++ /home/zz8011/Documents/Codex/2026-10-11/task-2/.build/a1599/src/linux/drivers/usb/dwc2/gadget.c	2026-10-16 03:22:17.078039450 +0800
+@@ -32,6 +32,10 @@
+ #include "core.h"
+ #include "hw.h"
+ 
++static bool apple_out_snak;
++module_param(apple_out_snak, bool, 0444);
++MODULE_PARM_DESC(apple_out_snak, "Apple dwc2: set SNAK when enabling non-EP0 OUT endpoints, as iOS does");
++
+ /* conversion functions */
+ static inline struct dwc2_hsotg_req *our_req(struct usb_request *req)
+ {
+@@ -4156,6 +4160,13 @@
+ 	}
+ 
+ 	/*
++	 * iOS 12.5.8 AppleSynopsysOTGDevice 使能 OUT 端点时一律带 SNAK（0x8364e6c），
++	 * 挂上请求时（start_req 里 CNAK）才收包；这里只有 isoc 设了。
++	 */
++	if (apple_out_snak && !dir_in && index)
++		epctrl |= DXEPCTL_SNAK;
++
++	/*
+ 	 * if the hardware has dedicated fifos, we must give each IN EP
+ 	 * a unique tx-fifo even if it is non-periodic.
+ 	 */

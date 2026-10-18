@@ -137,8 +137,38 @@ ftrace function profile（宿主拖动/滚动窗口 15 秒）：
 - 两台开机亮度都是 100%，USB 都使用 iOS 的 dwc2 配置（INCR8 + 缓冲区 DMA）。
 - REA 分析快照：`.scratch/re-otg/kc-12.5.8-j85m.rea-snapshot`（7 条证据），可用 `open_binary` 的 `snapshot_path` 导入，导入时目标文件必须是同一个 padded 文件。
 
+## dwc2 OUT DMA 越界写与内核崩溃（2026-10-16，J85M 实测）
+
+**现象（实测）**：一次 RAM 会话运行约 2 小时 44 分后内核 Oops：`alloc_vmap_area` 里 `list_del` 的 `next` 为 `0xffffffffffffffff`。持有 vmap 锁的进程被杀，之后 `gudd-watchdog` fork 时永久自旋（`kill -9` 无效、RCU stall），`usb-linkwatch` 随之消失，断线自动恢复失效。当时宿主有一条 udev 规则（`99-disable-gud-display.rules`，已停用为 `.disabled-20261016`）让设备约 27 秒重连一次，持续约 30 分钟。
+
+**定位（实测）**：
+
+- `slub_debug=FZP` 开机 2 秒抓到 slab 页开头 72 字节被改写：64×`0xff` + `23 50 00 00 00 00 00 eb`，是 LZ4 长匹配编码，即 GUD bulk OUT 帧数据。
+- 给 `usb_f_fs.ko` 的 OUT 缓冲加 1 KiB 哨兵（`gud/usb_f_fs-out-guard.patch`），约 5700 次传输内记录到两类越界：
+  - 1~3 字节，679 次：越界量 = (4 − 请求长度 mod 4) mod 4，DMA 按 4 字节字写入。上游 dwc2 只为地址不对齐的缓冲用 bounce buffer，不处理长度。普通 kmalloc 的大小都是 8 的倍数，这类越界不出块，无害。
+  - **72 字节，1 次**：`请求 16384` 的整包请求，越界区开头全是 `0xff`，与崩溃时的特征一致。
+- 加哨兵后，60 轮快速 + 5 轮慢速断开/重连复现测试中，slub_debug 报错为 0（`.scratch/bundle-tools/churn-test.sh`）。
+
+**推测（未证实）**：gudd 先读整包部分、再单独读尾部短包（见 `gudd.c` bulk_thread）。若尾包在两次请求之间到达，缓冲区 DMA 地址寄存器停在上一缓冲区末尾，尾包就写到了末尾之后。64 KiB 的 kmalloc 按整页分配，越界正好落在下一页开头。尚未确认与 `dwc2.apple_ahb_burst=5 dwc2.apple_desc_dma=0`（缓冲区 DMA）有因果关系，也没在描述符 DMA 下对比过。
+
+**处理**：f_fs 的 OUT 缓冲多分配 1 KiB 吸收越界（越界最多一个包，< 512 字节），释放时检查哨兵。`/sys/module/usb_f_fs/parameters/` 下：`guard_hits` 为全部越界次数，`guard_big` 为超过 3 字节的次数，`guard_max` 为最大越界字节数。超过 3 字节才打日志。**J207 的 `usb_f_fs-16k.ko` 尚未加此补丁**：它用同一份 f_fs 和同样的缓冲区 DMA 配置，大概率同样受影响。
+
+**同批修复**：`gud/modules/hdq3.c` 原先读 BQ27540 时不和从机的下降沿同步，采样点又落在 tDW1 上限 50 µs 处，读数系统性偏低（例：电压 3874 → 实际 3999 mV，循环次数 295 → 423）。现在改为沿同步测宽（实测 1 = 40–42 µs，0 = 110–113 µs，阈值 65 µs），读每个字节期间关中断。`hdq3`、`i2c-probe` 都补了 `cmd`/`out` 的互斥锁和 sysfs 输出一页的上限。
+
+**根因定位（iOS 逆向 + 实机 A/B）**：三次大越界都发生在 USB 刚枚举完时，稳定传输中从未出现，上面"尾包在两次请求之间到达"的推测不成立。iOS 12.5.8 的 AppleSynopsysOTGDevice 使能 OUT 端点时一律设 SNAK（`0x8364e6c`），Linux dwc2 只对 isoc OUT 设。给 dwc2 加了默认关闭的参数 `dwc2.apple_out_snak`（`gadget.c`，源码备份 `gadget.c.orig-20261016`），开启后 16 次枚举（开机 1 + 慢速重连 15）`guard_big=0`；未开启时基线约每 3~5 次枚举出现 1 次。**推测**：不设 SNAK 时主机首批包在请求挂上前就进了 RxFIFO，DMA 用了残留的 DOEPDMA 地址。样本仍小，未做长时间验证。测试镜像为 `.scratch/bundle-tools/a1599-gud-snak.bundle`，逆向笔记在 `.scratch/re-otg-dma/FINDINGS.md`。
+
+**正式镜像（2026-10-16）**：用 `.scratch/bundle-tools/patch_bundle.py` 在原 bundle 上改，记录在 `out/*.patch.json`。
+- 第一版（已实机启动）：只替换 initrd 里的 `usb_f_fs.ko`、`hdq3.ko`、`i2c-probe.ko`。J85M `4dc4a7b1…`，J86 `f67914dc…`，保留为 `out/*.pre-snak.bundle`。
+- 当前版：再换成带 `linux-dwc2-apple-out-snak.patch` 的内核（`.scratch/kbuild-snak`，Image.gz `524bc4be…`，副本 `out/Image-dwc2-snak.gz`），bootargs 追加 `dwc2.apple_out_snak=1`，f_fs 哨兵保留兜底。
+  J85M `34fac101…`（与上面实测的测试镜像逐字节相同），J86 `76366042…`（DTB 仍为 j86 版）。两个启动器的 `BUNDLE_SHA256` 已同步。
+  2026-10-16 三台同时实机启动（各一次 DFU 通过）：`apple_out_snak=Y`、`guard_big=0`、无 SLUB/oops 报错。J86 一开始放电约 −800 mA（`0x4C0/0x4C6/0x4CE` 与正在充电的 J85M 同为 `bf/32/32`，换 Hub 口、重写 `0x4C0` 都无效），换线后 +732 mA，**是线材问题**。交叉验证：那根线接 J207 时 D2355 ch8 只有 `0x39`~`0x3f`（Hub 口、主机直连口相同），换好线后回到 `0x8f`~`0x94`（与以前实测的 `0x92±3` 一致）；同时 J86 换上那根线后又回到 −799 mA。两台的充电寄存器始终不变（J207 `0x44e=0x64`，J86 `0x4C0=bf`）。驱动报 Charging 不代表充电电流正常，要看 ch8 或电量计读数。
+  J207 `1d191238…`（已实机启动，见上）：基于 `834d7997…`（保留为 `out/a1599-gud-j207.pre-snak.bundle`），换成 `.scratch/kbuild-16k-snak` 的 16K 内核（`864a6086…`，副本 `out/Image-16k-dwc2-snak.gz`）和带哨兵的 16K `usb_f_fs.ko`（`b1f2f0de…`，源码 `.scratch/ffs-guard16`），bootargs 追加 `dwc2.apple_out_snak=1`。
+  - **内核源码里的另一处改动**：`drivers/mfd/simple-mfd-i2c.c` 在 10-15 08:43 被加了 `apple,august-pmic` 的实验性 sysfs（备份 `.charging-modified`；原版在 `linux-6831bc7.tar.gz`），比之前实测过的 4K/16K 内核都新。4K SNAK 内核把它链了进去，但 J85M/J86 DTB 里没有该节点，驱动不会 probe。J207 DTB 有 `pmic@3c`（`apple,august-pmic`），会生效，所以 16K 内核是临时换回原版文件编的（编完已恢复修改版和原时间戳）。
+  注意：`patch_bundle.py` 默认校验 bundle 里的内核等于 `kbuild-v24` 的，要在当前版上再改，得以 `out/*.pre-snak.bundle` 为输入并带上 `--image`。
+
 ## 未完成
 
+- `dwc2.apple_out_snak` 只在 J85M 上做了 16 次枚举的验证，没有长时间测试；J86、J207 只验证了启动，没跑重连测试（见上节）
 - 功耗、长时间稳定性没测；J207 全分辨率普通运动画面约 37 帧/秒（宿主 gud 同步 flush 每帧约 18 ms）
 - 没有触摸输入
 - ~~充电/电池：没有驱动，接电脑使用时电量下降~~ → **2026-10-15 已解决（J85M，实机闭环）**：
