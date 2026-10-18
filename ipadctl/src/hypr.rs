@@ -243,7 +243,7 @@ pub fn insert_require_into(path: &Path) -> Result<()> {
     if !out.is_empty() && !out.ends_with('\n') {
         out.push('\n');
     }
-    out.push_str("\n-- omarpad：加载 ipadctl 布局规则（画布排布写到 ipadctl.lua）\nrequire(\"hypr.ipadctl\")\n");
+    out.push_str("\n-- omapad：加载 ipadctl 布局规则（画布排布写到 ipadctl.lua）\nrequire(\"hypr.ipadctl\")\n");
     std::fs::write(path, out).with_context(|| format!("写 {}", path.display()))?;
     Ok(())
 }

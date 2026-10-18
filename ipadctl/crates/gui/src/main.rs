@@ -1,4 +1,4 @@
-//! omarpad —— P1b：画布排列（拖拽/旋转/重叠校验/重载回读）+ monitors.lua
+//! omapad —— P1b：画布排列（拖拽/旋转/重叠校验/重载回读）+ monitors.lua
 //! 一键接入横幅 + 亮度滑条（实时生效、松手持久化、热插拔套默认）+ 分辨率两档。
 //!
 //! 线程纪律（DESIGN.md §3）：主线程独占 Slint；扫描线程只做快操作 + 决策；
@@ -18,7 +18,7 @@ mod tray_icon_tests {
     use super::*;
 
     #[test]
-    fn tray_uses_omarpad_artwork_at_small_sizes() {
+    fn tray_uses_omapad_artwork_at_small_sizes() {
         let (tx, _rx) = std::sync::mpsc::channel();
         let tray = Tray { tx };
         assert!(ksni::Tray::icon_name(&tray).is_empty());
@@ -391,7 +391,11 @@ fn main() -> anyhow::Result<()> {
         }
     });
     let preview_palette = charge_preview
-        .then(|| std::env::var_os("OMARPAD_PREVIEW_PALETTE"))
+        .then(|| {
+            // 旧名 OMARPAD_PREVIEW_PALETTE 仍兼容（项目 2026-10-18 改名）
+            std::env::var_os("OMAPAD_PREVIEW_PALETTE")
+                .or_else(|| std::env::var_os("OMARPAD_PREVIEW_PALETTE"))
+        })
         .flatten();
     if let Some(path) = &preview_palette {
         let raw = std::fs::read_to_string(path)?;

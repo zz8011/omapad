@@ -1,6 +1,6 @@
 //! ipadctl —— iPad 副屏常驻工具（CLI）。
 //!
-//! 实现都在本包 lib（`ipadctl::…`）里，GUI 是 crates/gui 的 omarpad 包。
+//! 实现都在本包 lib（`ipadctl::…`）里，GUI 是 crates/gui 的 omapad 包。
 
 use ipadctl::{config, device, flash, hypr, kmsg, model, paths, usb};
 
