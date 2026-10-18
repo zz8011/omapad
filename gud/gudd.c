@@ -12,12 +12,14 @@
 #include <fcntl.h>
 #include <linux/fb.h>
 #include <linux/kd.h>
+#include <linux/input.h>
 #include <drm/drm.h>
 #include <drm/drm_mode.h>
 #include "third_party/lz4/lz4.h"
 #include <linux/usb/ch9.h>
 #include <linux/usb/functionfs.h>
 #include <dirent.h>
+#include <poll.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdint.h>
@@ -435,6 +437,13 @@ static int bl_pct = -1, bl_pending = -1;
 
 static void bl_write(int pct);
 
+/* 亮度百分比另存一份：熄屏时 sysfs 读回 0，gudd 重启后不能据此反推亮度 */
+static void bl_save(void)
+{
+	FILE *f = fopen("/run/gudd-bl-pct", "w");
+	if (f) { fprintf(f, "%d\n", bl_pct); fclose(f); }
+}
+
 static void bl_init(void)
 {
 	/* 取 /sys/class/backlight 下第一个设备（A1599：pmic@3c:backlight@600；J207：backlight@b00） */
@@ -449,10 +458,18 @@ static void bl_init(void)
 		snprintf(bl_path, sizeof(bl_path), "/sys/class/backlight/%s/brightness", e->d_name);
 		bl_max = max;
 		bl_pct = (int)((read_knob(bl_path, max) * 100 + max / 2) / max);
+		long saved = read_knob("/run/gudd-bl-pct", -1);
+		if (saved >= 0 && saved <= 100) bl_pct = (int)saved;
+		else if (!access("/run/gudd-bl-initialized", F_OK)) {
+			/* 从不写该文件的旧版热更新而来：按 sysfs 补记；已是 0 说明处于熄屏，无从得知，按 100% */
+			if (bl_pct <= 0) bl_pct = 100;
+			bl_save();
+		}
 		/* 每次开机后首次启动时默认亮度 100%；之后 gudd 重启（热更新、supervisor）保留当前亮度 */
 		if (access("/run/gudd-bl-initialized", F_OK)) {
 			bl_pct = 100;
 			bl_write(bl_pct);
+			bl_save();
 			close(open("/run/gudd-bl-initialized", O_CREAT | O_WRONLY | O_CLOEXEC, 0644));
 		}
 		LOG("背光 %s 当前 %d%%", e->d_name, bl_pct);
@@ -470,6 +487,73 @@ static void bl_write(int pct)
 	if (!f) { LOG("写背光失败: %m"); return; }
 	fprintf(f, "%ld\n", pct <= 0 ? 0 : (bl_max * pct + 99) / 100);
 	fclose(f);
+}
+
+/* ---- 电源键：本地熄屏 ----
+ * 按 iPad 电源键切换熄屏/亮屏。只关背光，GUD 链路、画面接收和写缓冲照常，
+ * 宿主仍把它当作在线显示器；亮屏时立即显示最新画面。
+ * 与宿主 DPMS 相互独立：两者都为"开"时才点亮背光。
+ * 状态记在 /run/gudd-local-off，gudd 重启（热更新、supervisor）后保持。 */
+static pthread_mutex_t bl_lock = PTHREAD_MUTEX_INITIALIZER;
+static int local_off;
+
+static void bl_apply(void)
+{
+	pthread_mutex_lock(&bl_lock);
+	bl_write(display_on && !local_off ? bl_pct : 0);
+	pthread_mutex_unlock(&bl_lock);
+}
+
+static void *key_thread(void *arg)
+{
+	struct pollfd pf[8];
+	int n = 0;
+	(void)arg;
+	DIR *d = opendir("/dev/input");
+	struct dirent *e;
+	while (d && (e = readdir(d)) && n < 8) {
+		unsigned long bits[KEY_MAX / (8 * sizeof(long)) + 1] = { 0 };
+		char p[300];
+		if (strncmp(e->d_name, "event", 5)) continue;
+		snprintf(p, sizeof(p), "/dev/input/%s", e->d_name);
+		int fd = open(p, O_RDONLY | O_CLOEXEC);
+		if (fd < 0) continue;
+		if (ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(bits)), bits) < 0 ||
+		    !(bits[KEY_POWER / (8 * sizeof(long))] & (1UL << (KEY_POWER % (8 * sizeof(long)))))) {
+			close(fd);
+			continue;
+		}
+		LOG("电源键 %s", p);
+		pf[n].fd = fd; pf[n].events = POLLIN; n++;
+	}
+	if (d) closedir(d);
+	if (!n) { LOG("没有找到电源键"); return NULL; }
+
+	int dead = 0;
+	for (;;) {
+		if (poll(pf, n, -1) < 0) { if (errno != EINTR) { LOG("电源键 poll: %m"); sleep(1); } continue; }
+		for (int i = 0; i < n; i++) {
+			struct input_event ev[16];
+			if (!pf[i].revents) continue;
+			ssize_t r = read(pf[i].fd, ev, sizeof(ev));
+			if (r == 0 || (r < 0 && errno != EINTR && errno != EAGAIN)) {
+				/* 设备被移除（ENODEV）：关掉，poll 忽略负 fd，否则会空转 */
+				LOG("电源键设备失效: %m");
+				close(pf[i].fd); pf[i].fd = -1;
+				if (++dead == n) return NULL;
+				continue;
+			}
+			for (int k = 0; k < r / (ssize_t)sizeof(ev[0]); k++) {
+				/* 只认按下（value 1），忽略松开和自动重复 */
+				if (ev[k].type != EV_KEY || ev[k].code != KEY_POWER || ev[k].value != 1) continue;
+				local_off = !local_off;
+				if (local_off) close(open("/run/gudd-local-off", O_CREAT | O_WRONLY | O_CLOEXEC, 0644));
+				else unlink("/run/gudd-local-off");
+				bl_apply();
+				LOG("电源键：%s", local_off ? "熄屏（保持连接）" : "亮屏");
+			}
+		}
+	}
 }
 
 /* ---- EDID（按设备树 compatible 选机型，按 fb 尺寸生成首选时序） ---- */
@@ -659,7 +743,7 @@ static uint8_t do_set(uint8_t req, uint16_t idx, const uint8_t *buf, size_t len)
 		display_on = buf[0];
 		if (!display_on) { need_clear = 1; pthread_cond_signal(&cond); }
 		pthread_mutex_unlock(&lock);
-		bl_write(display_on ? bl_pct : 0); /* 熄屏关背光 */
+		bl_apply(); /* 熄屏关背光 */
 		LOG("display %s", display_on ? "on" : "off");
 		return ST_OK;
 	case GUD_REQ_SET_STATE_CHECK: {
@@ -693,7 +777,8 @@ static uint8_t do_set(uint8_t req, uint16_t idx, const uint8_t *buf, size_t len)
 		pthread_mutex_unlock(&lock);
 		if (bl_pending >= 0 && bl_pending != bl_pct) {
 			bl_pct = bl_pending;
-			if (display_on) bl_write(bl_pct);
+			bl_save();
+			bl_apply();
 			LOG("背光 %d%%", bl_pct);
 		}
 		LOG("模式 %ux%u (x%d) fmt=0x%02x", modes[cur.mode].w, modes[cur.mode].h,
@@ -906,7 +991,10 @@ int main(int argc, char **argv)
 	formats[nformats++] = GUD_PIXEL_FORMAT_RGB565;
 	if (xrgb) formats[nformats++] = GUD_PIXEL_FORMAT_XRGB8888;
 	setup_fb(test, use_fbdev);
-	if (!test) { bl_init(); edid_init(); }
+	if (!test) {
+		bl_init(); edid_init();
+		if (!access("/run/gudd-local-off", F_OK)) { local_off = 1; bl_write(0); LOG("保持电源键熄屏"); }
+	}
 	fb_clear();
 
 	snprintf(path, sizeof(path), "%s/ep0", ffs_dir);
@@ -918,6 +1006,7 @@ int main(int argc, char **argv)
 	pthread_create(&th, NULL, proc_thread, NULL);
 	pthread_create(&th, NULL, bulk_thread, NULL);
 	if (drm_fd >= 0) pthread_create(&th, NULL, flush_thread, NULL);
+	if (!test) pthread_create(&th, NULL, key_thread, NULL);
 
 	int errs = 0;
 	for (;;) {
