@@ -81,6 +81,7 @@ ftrace function profile（宿主拖动/滚动窗口 15 秒）：
 - `~/.config/hypr/monitors.lua` 中的规则：iPad `position = "512x1080", scale = 2`（在 HDMI-A-1 左边）；`Virtual-1` 设为 `disabled`。修改前的备份是 `monitors.lua.bak.*-before-ipad`。
 - 方向需要手动设置 `transform`（1 = 90°，3 = 270°）。iPad 上的 Linux 目前没有可用的方向传感器驱动，**不能自动旋转**。
 - 已知问题：iPad 断开后，aquamarine 会留下一个没有描述的残留输出（USB-N），重新登录后消失。
+- 残留输出（2026-10-18 补充，实测）：重连后旧 USB-N 也可能**带着和真屏相同的 desc** 留在 Hyprland 里，被 `desc:` 规则点亮，与真屏叠放渲染，aquamarine 每秒上百次 `failed to create a modeset blob`，iPad 明显卡顿。ipadctl 生成的 `ipadctl.lua` 现在在加载、`config.reloaded`、`monitor.added` 时把 `/sys/class/drm` 里没有连接器的 USB 输出按名字禁用；omapad 画布同样过滤这些输出，新 iPad 上线后若未被启用（名字被内核复用而撞上禁用规则）会自动 reload 一次。已验证：写配置触发的自动 reload 与手动 reload 后残留不再复活；热插拔路径（`monitor.added`）尚未在实际产生残留的场景下复现验证。
 - gudd 可以热更新：上传到 `/run/gudd.new` → `mv` 到 `/usr/sbin/gudd` → `killall gudd`，gudd-supervisor 会自动重启并重新绑定 UDC，Hyprland 随之热插拔接管。
 
 ## 背光、熄屏与断线恢复（2026-10-15，实测）

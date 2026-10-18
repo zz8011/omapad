@@ -178,7 +178,10 @@ pub fn hyprctl_monitors() -> Result<Vec<HyprMonitor>> {
     if !out.status.success() {
         bail!("hyprctl 退出码非 0 —— 会话环境里可能没有 HYPRLAND_INSTANCE_SIGNATURE");
     }
-    serde_json::from_slice(&out.stdout).context("解析 hyprctl monitors JSON 失败")
+    let mons: Vec<HyprMonitor> =
+        serde_json::from_slice(&out.stdout).context("解析 hyprctl monitors JSON 失败")?;
+    // 残留空壳和真屏 desc 相同，不滤掉画布上就会出现两块同名 iPad
+    Ok(mons.into_iter().filter(|m| !is_ghost_output(&m.name)).collect())
 }
 
 /// hyprctl 显示器属于哪个机型（按 EDID desc 匹配）。
@@ -374,41 +377,100 @@ pub fn render_lua(cfg: &Config) -> String {
         ));
     }
 
-    // 触摸设备绑定
-    s.push_str("-- 触摸设备绑定\n");
+    // 触摸设备绑定。
+    //
+    // 开关关闭时必须**显式**写 enabled = false：只"不生成规则"的话，上一次 reload
+    // 或手动 hyprctl 设过的绑定会继续留着，用户看到的就是"开关没用"。每台支持触摸的
+    // 机型都要落一条规则，开/关只是规则的两种形态。
+    // 残留输出清理（见 LUA_GHOST_BLOCK 注释）。函数先定义，触摸绑定也要用它跳过空壳。
+    s.push_str(LUA_GHOST_BLOCK);
+    s.push('\n');
+
+    s.push_str("-- 触摸设备绑定（跳过残留空壳：它和真屏 desc 相同）\n");
     s.push_str("local function bind_touch()\n");
     s.push_str("  for _, m in ipairs(hl.get_monitors()) do\n");
+    s.push_str("    if not has_connector(m.name) then goto continue end\n");
     for m in MODELS {
         if !touch::model_supports_touch(m) {
-            continue;
-        }
-        let d = cfg.get(m);
-        if !d.touch_enabled {
             continue;
         }
         let Some(dev_name) = touch::touch_device_name(m) else {
             continue;
         };
-        s.push_str(&format!(
-            "    if m.description == \"{}\" then\n",
-            m.desc
-        ));
-        s.push_str(&format!(
-            "      hl.device({{ name = \"{}\", output = m.name }})\n",
-            dev_name
-        ));
+        let d = cfg.get(m);
+        s.push_str(&format!("    if m.description == \"{}\" then\n", m.desc));
+        if d.touch_enabled {
+            s.push_str(&format!(
+                "      hl.device({{ name = \"{}\", enabled = true, output = m.name }})\n",
+                dev_name
+            ));
+        } else {
+            s.push_str(&format!(
+                "      hl.device({{ name = \"{}\", enabled = false }})\n",
+                dev_name
+            ));
+        }
         s.push_str("    end\n");
     }
+    s.push_str("    ::continue::\n");
     s.push_str("  end\n");
+    s.push_str("end\n\n");
+
+    // 先清空壳再绑触摸；加载、reload、热插拔三个时机都跑。
+    // Lua 看不到已禁用的输出，所以不能只在加载时扫一次：reload 后 desc 规则
+    // 会把空壳重新启用，要在 config.reloaded / monitor.added 时再扫。
+    s.push_str("local function on_monitors_changed()\n");
+    s.push_str("  disable_ghosts()\n");
+    s.push_str("  bind_touch()\n");
     s.push_str("end\n");
-    s.push_str("bind_touch()\n");
-    s.push_str("hl.on(\"monitor.added\", bind_touch)\n\n");
+    s.push_str("on_monitors_changed()\n");
+    s.push_str("hl.on(\"config.reloaded\", on_monitors_changed)\n");
+    s.push_str("hl.on(\"monitor.added\", on_monitors_changed)\n\n");
 
     // 保留用户的 warp_back 设置
     s.push_str("-- 保留用户原有的光标 warp_back 配置\n");
     s.push_str("hl.config({ cursor = { warp_back_after_non_mouse_input = true } })\n");
 
     s
+}
+
+/// 残留输出清理。iPad 重连（gudd 热更新、拔插）后内核换了新连接器名，
+/// aquamarine 却留着旧的 USB-N 不放；它的 desc 和真屏一样，desc: 规则会把它
+/// 重新点亮 —— 两块叠着渲染、每秒上百次 modeset 失败，iPad 就卡了。
+/// 判据：Hyprland 里启用着、但 /sys/class/drm 里没有对应连接器。非 USB 输出一律算真。
+const LUA_GHOST_BLOCK: &str = r#"-- 残留输出清理：USB-N 在 /sys/class/drm 里没有连接器 = aquamarine 留下的空壳
+local function has_connector(name)
+  if not name:match("^USB%-%d+$") then return true end
+  for i = 0, 31 do
+    local f = io.open("/sys/class/drm/card" .. i .. "-" .. name .. "/status")
+    if f then f:close(); return true end
+  end
+  return false
+end
+local function disable_ghosts()
+  for _, m in ipairs(hl.get_monitors()) do
+    if not has_connector(m.name) then
+      hl.monitor({ output = m.name, disabled = true })
+    end
+  end
+end
+"#;
+
+/// 连接器名（`USB-2`）在 sysfs 里已经不存在 —— Hyprland 里的残留空壳。
+/// 只认 USB 输出：其它接口不归本工具管。
+pub fn is_ghost_output(name: &str) -> bool {
+    if !name.starts_with("USB-") {
+        return false;
+    }
+    let Ok(rd) = std::fs::read_dir(SYS_DRM) else {
+        return false; // 读不到 sysfs 时不下结论
+    };
+    !rd.flatten().any(|e| {
+        e.file_name()
+            .to_string_lossy()
+            .split_once('-')
+            .is_some_and(|(card, n)| card.starts_with("card") && n == name)
+    })
 }
 
 /// 原子写布局文件。
@@ -450,8 +512,34 @@ mod tests {
         }
         assert!(lua.contains("transform = "));
         assert!(lua.contains("position = "));
-        // 规则行数 = 机型数
-        assert_eq!(lua.matches("hl.monitor(").count(), MODELS.len());
+        // desc 规则行数 = 机型数（残留清理段里另有一条按名字禁用的 hl.monitor）
+        assert_eq!(lua.matches("hl.monitor({ output = \"desc:").count(), MODELS.len());
+    }
+
+    #[test]
+    fn 生成的_lua_在加载_reload_热插拔时都清理残留输出() {
+        let lua = render_lua(&Config::default());
+        assert!(lua.contains("disabled = true"));
+        assert!(lua.contains("\non_monitors_changed()\n"), "加载时要扫一次");
+        assert!(lua.contains("hl.on(\"config.reloaded\", on_monitors_changed)"));
+        assert!(lua.contains("hl.on(\"monitor.added\", on_monitors_changed)"));
+        // 先清空壳再绑触摸，触摸跳过空壳
+        let body = &lua[lua.find("local function on_monitors_changed").unwrap()..];
+        assert!(body.find("disable_ghosts()").unwrap() < body.find("bind_touch()").unwrap());
+        assert!(lua.contains("if not has_connector(m.name) then goto continue end"));
+        // 清理段要排在 desc 规则之后，按名字的禁用规则才能盖过 desc 规则
+        let last_desc = lua.rfind("output = \"desc:").unwrap();
+        assert!(lua.find("local function disable_ghosts").unwrap() > last_desc);
+    }
+
+    #[test]
+    fn 残留输出判定只管_usb_且以_sysfs_为准() {
+        assert!(!is_ghost_output("eDP-1"));
+        assert!(!is_ghost_output("HDMI-A-1"));
+        assert!(is_ghost_output("USB-999"), "sysfs 里没有的 USB 输出是残留");
+        for c in connectors() {
+            assert!(!is_ghost_output(&c.name), "真实连接器 {} 不能判成残留", c.name);
+        }
     }
 
     #[test]

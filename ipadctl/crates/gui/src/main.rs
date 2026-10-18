@@ -1224,6 +1224,7 @@ fn update_connectors(shared: &Arc<Mutex<Shared>>, v: &ScanView) {
     sh.seen_gud.retain(|p| live.contains(&p));
     let baseline = sh.baseline_done;
     sh.baseline_done = true;
+    let mut revive = Vec::new();
     for d in &v.gud {
         let Some(m) = model::from_product(&d.product) else {
             continue;
@@ -1239,11 +1240,50 @@ fn update_connectors(shared: &Arc<Mutex<Shared>>, v: &ScanView) {
                 if let Err(e) = c.set_brightness(b) {
                     eprintln!("热插拔套默认亮度失败（{}）：{e:#}", m.slug);
                 }
+                revive.push(c.name.clone());
             }
         } else {
             // 首轮基线：只记录，不写
             sh.seen_gud.insert(d.port.clone());
         }
+    }
+    drop(sh);
+    if !revive.is_empty() {
+        // 要等 Hyprland 接管热插拔，放工作线程，不拖住扫描循环
+        let shared = shared.clone();
+        std::thread::spawn(move || revive_if_ghost_named(&shared, &revive));
+    }
+}
+
+/// 新上线的 iPad 没出现在 Hyprland 启用列表里 → reload 一次。
+///
+/// ipadctl.lua 会按名字禁用残留空壳（见 hypr.rs `LUA_GHOST_BLOCK`），这条规则留到
+/// 下次 reload。若内核把这个名字又分给了新接入的真屏，它会被压成禁用；reload 从
+/// 文件重建规则，真屏重新吃 desc: 规则。reload 前先重新生成 lua：盘上可能是
+/// 不带清理段的旧版文件，原样重放会把空壳一起点亮。
+/// 每秒查一次、最多 5 次，给 Hyprland 接管热插拔的时间；全部启用就提前结束。
+fn revive_if_ghost_named(shared: &Arc<Mutex<Shared>>, names: &[String]) {
+    let mut missing: Vec<&String> = names.iter().collect();
+    for _ in 0..5 {
+        std::thread::sleep(Duration::from_secs(1));
+        match hypr::hyprctl_monitors() {
+            Ok(mons) => missing.retain(|n| !mons.iter().any(|m| &m.name == *n)),
+            Err(e) => eprintln!("检查新屏是否启用：{e:#}"),
+        }
+        if missing.is_empty() {
+            return;
+        }
+    }
+    // 锁顺序同 touch_toggle / persist_layout：layout_mu → config_mu
+    let layout_mu = lock(shared).layout_mu.clone();
+    let _layout = lock(&layout_mu);
+    let mu = lock(shared).config_mu.clone();
+    let res = {
+        let _g = lock(&mu);
+        config::load().and_then(|cfg| hypr::write_lua(&cfg).map(|_| ()))
+    };
+    if let Err(e) = res.and_then(|()| hypr::reload_hyprland()) {
+        eprintln!("{missing:?} 上线但未启用，重新生成并 reload 失败：{e:#}");
     }
 }
 

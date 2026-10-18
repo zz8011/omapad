@@ -217,7 +217,16 @@ pub fn model_supports_touch(m: &Model) -> bool {
 }
 
 /// 触摸设备的 HID 名称（libinput / Hyprland device 规则用）。
-/// 来自设备端 setup-gadget 的 USB 产品串。
+///
+/// **这是 libinput 清洗后的名字，不是内核原始名**，别照抄 `/proc/bus/input/devices`。
+/// 设备端 setup-gadget 报的产品串是 `Linux iPad Pro 10.5 GUD Display`，经过
+/// libinput 规范化（转小写、空格与点号换连字符）后才是这个名字；`hyprctl devices`
+/// 显示的就是清洗后的那一份，`hl.device` 也只认它。旁证：同机的
+/// `logitech-usb-receiver-mouse` 同样是清洗后的形态（`~/.config/hypr/input.lua`）。
+///
+/// 判断依据（2026-10-17 实测）：内核侧 `/proc/bus/input/devices` 为
+/// `N: Name="Linux iPad Pro 10.5 GUD Display"`，Hyprland 侧为
+/// `Touch Device at 58420e209800: linux-ipad-pro-10.5-gud-display`。
 pub fn touch_device_name(m: &Model) -> Option<&'static str> {
     match m.slug {
         "j207" => Some("linux-ipad-pro-10.5-gud-display"),
