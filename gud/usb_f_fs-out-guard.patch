@@ -1,0 +1,80 @@
+--- f_fs.c.orig	2026-10-16 02:51:10.574934618 +0800
++++ f_fs.c	2026-10-16 03:02:00.181067467 +0800
+@@ -259,6 +259,7 @@
+ 	struct usb_request *req;
+ 	struct sg_table sgt;
+ 	bool use_sg;
++	size_t guard_off;	/* A1599：OUT 缓冲哨兵区起点，0 = 无 */
+ 
+ 	struct ffs_data *ffs;
+ 
+@@ -846,19 +847,68 @@
+ 	return vaddr;
+ }
+ 
++/*
++ * A1599：dwc2 缓冲区 DMA 的 OUT 传输会写过 req->length。2026-10-16 slub_debug 抓到
++ * GUD 的 LZ4 帧数据（64×0xff + 8 字节）落在下一页开头，与此前 alloc_vmap_area 里
++ * list.next = 0xffff... 的崩溃同一特征。加哨兵后实测两类越界（2026-10-16，约 5700 次传输）：
++ *   1~3 字节：DMA 按 4 字节字写，长度非 4 倍数时补齐（几乎每个尾部短包都有）；
++ *   72 字节：整包请求（16384）完成后，帧尾短包被直接写到缓冲区末尾之后（罕见，即崩溃元凶）。
++ * 越界最多一个包（< 512 字节），所以 OUT 缓冲尾部多分配 FFS_GUARD 字节吸收，并填哨兵、
++ * 释放时检查：/sys/module/usb_f_fs/parameters/guard_{hits,max,big}。
++ */
++#define FFS_GUARD	1024
++#define FFS_GUARD_BYTE	0xa5
++static unsigned int guard_hits, guard_max, guard_big;
++module_param(guard_hits, uint, 0444);
++module_param(guard_max, uint, 0444);
++module_param(guard_big, uint, 0444);	/* 超过 3 字节（非字补齐）的越界次数 */
++
+ static inline void *ffs_alloc_buffer(struct ffs_io_data *io_data,
+ 	size_t data_len)
+ {
++	char *p;
++
++	io_data->guard_off = 0;
+ 	if (io_data->use_sg)
+ 		return ffs_build_sg_list(&io_data->sgt, data_len);
++	if (!io_data->read)
++		return kmalloc(data_len, GFP_KERNEL);
+ 
+-	return kmalloc(data_len, GFP_KERNEL);
++	p = kmalloc(data_len + FFS_GUARD, GFP_KERNEL);
++	if (p) {
++		memset(p + data_len, FFS_GUARD_BYTE, FFS_GUARD);
++		io_data->guard_off = data_len;
++	}
++	return p;
++}
++
++static void ffs_check_guard(struct ffs_io_data *io_data)
++{
++	const u8 *g = (const u8 *)io_data->buf + io_data->guard_off;
++	int i, n = 0;
++
++	for (i = 0; i < FFS_GUARD; i++)
++		if (g[i] != FFS_GUARD_BYTE)
++			n = i + 1;
++	if (!n)
++		return;
++	guard_hits++;
++	guard_max = max_t(unsigned int, guard_max, n);
++	if (n <= 3)	/* 字补齐，硬件常态 */
++		return;
++	guard_big++;
++	if (n > FFS_GUARD - 4)
++		pr_err("functionfs: OUT DMA 越界可能超出哨兵区（%d 字节）！\n", n);
++	pr_warn_ratelimited("functionfs: OUT DMA 越界写 %d 字节（请求 %zu），越界区开头 %*ph\n",
++			    n, io_data->guard_off, min(n, 16), g);
+ }
+ 
+ static inline void ffs_free_buffer(struct ffs_io_data *io_data)
+ {
+ 	if (!io_data->buf)
+ 		return;
++	if (io_data->guard_off)
++		ffs_check_guard(io_data);
+ 
+ 	if (io_data->use_sg) {
+ 		sg_free_table(&io_data->sgt);

@@ -1,0 +1,85 @@
+#!/bin/busybox sh
+# J207 触摸开机初始化，由 setup-gadget 在 HID 功能绑定成功后后台启动；最后 exec touchd。
+# 上电序列照 run/pwr.sh，另在 TCLK / 复位释放之前切换显示同步引脚 GPIO205–207（iOS 顺序，见 FINDINGS-aht.md）。
+# 固件重载照 run/hbpp.py --reset 生成的序列（实测记录 run/aht-resume-20261016/reload-fw.txt）。
+# 任何一步失败只记日志 /run/touch.log，不影响副屏。
+T=/lib/a1599/touch
+M=$T/memtool
+C=/sys/kernel/spi3raw4/cmd
+O=/sys/kernel/spi3raw4/out
+P=/sys/module/spi3raw4/parameters
+R=0x20e0801d8
+exec >>/run/touch.log 2>&1
+log() { echo "$(cut -d' ' -f1 /proc/uptime) $*"; }
+
+load() {
+    grep -q "^$1 " /proc/modules || insmod "$2" $3 || { log "insmod $2 失败"; exit 1; }
+}
+
+power() {
+    load i2c_probe $T/i2c-probe.ko
+    i=0
+    while [ ! -e /sys/kernel/i2cprobe/cmd ] && [ $i -lt 20 ]; do sleep 0.1; i=$((i + 1)); done
+    $M w $R 0x80f >/dev/null; sleep 0.05                       # ps_spi3
+    echo "raw 0 0x3c 03 12 01" > /sys/kernel/i2cprobe/cmd       # LDO13
+    sleep 0.01
+    $M w 0x20f1001e0 0x472e03 >/dev/null                       # GPIO120 power_ldo
+    for a in 0x20f100334 0x20f100338 0x20f10033c; do            # GPIO205–207 外设功能 1
+        $M w $a 0x47222e >/dev/null
+    done
+    $M w 0x20e078000 0x80001 >/dev/null; sleep 0.02            # TCLK
+    $M w 0x20f10019c 0x472203 >/dev/null; sleep 0.1            # GPIO103 释放复位
+    log "power ps=$($M r $R | cut -d' ' -f2) gpio205=$($M r 0x20f100334 | cut -d' ' -f2) irq=$($M r 0x20f1001a0 | cut -d' ' -f2)"
+}
+
+# 以下 x/op/opf 与 hbpp.py 的 HEAD 相同。op 输出两行：请求的即时应答、IDLE 轮询后首个非 B0 应答。
+# reload-fw.txt：文件包的 B7 在 ATN 即时应答里（之后轮询全是 B0）；wpkt/RMW 的确认在轮询里
+x() { echo "xfer $1" > $C; sed -n "/rx\[/,\$p" $O | tail -n +2 | tr -d "\n"; }
+op() {
+    i=0
+    x "$1"; echo
+    while [ $i -lt 20 ]; do
+        r=$(x "18 e1 18 e1 18 e1 18 e1 18 e1 18 e1 18 e1 18 e1 18 e1 18 e1")
+        case "$r" in " 48 79 48 79"*) ;; *) echo "$r"; break ;; esac
+        i=$((i + 1))
+    done
+}
+opf() { dd if=$1 of=/sys/kernel/spi3raw4/tx bs=16384 2>/dev/null; echo "cs 1" > $C; op "1a a1"; }
+# 期望应答：A7=1f 01，B7=4b c1，B5=4a d1
+want() {
+    echo "$2" | grep -q "^ $3" && return 0
+    log "$1 应答 $(echo "$2" | cut -c1-24 | tr "\n" "|")，期望 $3"; return 1
+}
+
+firmware() {
+    echo 0 > $P/cs_mode; echo 8 > $P/clkdiv; echo 5000 > $P/timeout_ms; echo "cs 1" > $C
+    $M w $R 0x40f >/dev/null; $M w $R 0x8000040f >/dev/null; sleep 0.01; $M w $R 0x40f >/dev/null; $M w $R 0xf >/dev/null; sleep 0.01
+    echo 0 > $P/mode
+    $M w 0x20f10019c 0x472202 >/dev/null; sleep 0.02; $M w 0x20f10019c 0x472203 >/dev/null; sleep 0.1
+    want probe "$(x "1a a1 18 e1 18 e1 18 e1 18 e1 18 e1 18 e1 18 e1")" "1f 01" || return 1
+    for f in fw.bin mtcal.pkt ffcal.pkt mtdo.pkt; do
+        want $f "$(opf $T/$f)" "4b c1" || return 1
+    done
+    want wpkt0x102c00 "$(op "30 01 00 00 2c 00 00 10 00 3c 00 00 00 00 00 00 00 00")" "4b c1" || return 1
+    want rmw0x40000080 "$(op "1e 33 00 80 40 00 01 00 00 00 01 00 00 00 00 c2")" "4a d1" || return 1
+    want rmw0x400b0000/0 "$(op "1e 33 00 00 40 0b 00 01 00 00 00 00 00 00 00 4c")" "4a d1" || return 1
+    want rmw0x400b0000/1 "$(op "1e 33 00 00 40 0b 00 01 00 00 00 01 00 00 00 4d")" "4a d1" || return 1
+}
+
+log "touch-init 开始"
+power
+load spi3raw4 $T/spi3raw4.ko "spi_base=0x20a08c000 ps_reg=$R cs_reg=0x20f10032c clkdiv=8 mode=0 timeout_ms=5000"
+n=0
+until firmware; do
+    n=$((n + 1))
+    [ $n -lt 3 ] || { echo "cs 1" > $C; log "固件下发失败 $n 次，放弃"; exit 1; }
+    sleep 1
+done
+log "固件下发完成（重试 $n 次）"
+sleep 0.1
+# touchd 退出（如 spi3raw4 被卸载）后重启；/run/touchd.args 可放 -s/-x/-y/-p 调方向或改轮询
+while :; do
+    /sbin/touchd $(cat /run/touchd.args 2>/dev/null)
+    log "touchd 退出 $?"
+    sleep 2
+done
