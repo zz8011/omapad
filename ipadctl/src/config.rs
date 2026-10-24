@@ -3,21 +3,21 @@
 //! 键是机型的 `slug`（`a1599` / `j86` / `j207`），不用 USB 端口 ——
 //! 端口名和接口名都会随重新插拔变化，机型才是稳定身份。
 
-use crate::model::{Model, MODELS};
+use crate::model::{MODELS, Model};
 use crate::paths::config_path;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct DeviceSettings {
     /// 0 = 竖屏（充电口朝下）；1 = 横屏、充电口朝左；3 = 横屏、充电口朝右
     pub transform: u8,
     /// Hyprland 逻辑坐标，如 `3200x1080`
     pub position: String,
-    /// 1 或 2。设备端只提供两档模式：原生，或半分辨率（设备端 2 倍放大）。
-    /// 用半分辨率时要配 `scale = 1` 才能保持同样的逻辑尺寸。
-    pub scale: u8,
+    /// Hyprland 缩放，常用 1 或 2（旧配置里的整数照常读）。设备端只提供两档模式：
+    /// 原生，或半分辨率（设备端 2 倍放大）；用半分辨率时要配 `scale = 1` 才能保持同样的逻辑尺寸。
+    pub scale: f64,
     /// 宿主侧 `card*-USB-*-backlight`，0–100
     pub brightness: u8,
     /// 设备端 `/run/*-limit` 的十六进制值
@@ -69,10 +69,23 @@ impl Default for Settings {
     }
 }
 
+/// 宿主自带显示器（eDP/DP/HDMI…）在画布上拖过之后的布局，键是 Hyprland 接口名。
+/// mode/scale/transform 取拖动时的现值原样写回，只为让覆盖规则不改动它们。
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct HostMonitor {
+    pub position: String,
+    pub mode: String,
+    pub scale: f64,
+    pub transform: u8,
+}
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub settings: Settings,
+    /// 接口名 → 宿主屏布局。没拖过的屏不在这里，沿用用户 monitors.lua 的规则
+    #[serde(default)]
+    pub hosts: BTreeMap<String, HostMonitor>,
     /// 机型 slug → 设置
     #[serde(flatten)]
     pub devices: BTreeMap<String, DeviceSettings>,
@@ -94,7 +107,7 @@ fn defaults_for(m: &Model) -> DeviceSettings {
     DeviceSettings {
         transform,
         position: position.to_owned(),
-        scale: 2,
+        scale: 2.0,
         brightness: 100,
         charge_limit: m.charge_limit_default.to_owned(),
         mode: None,
@@ -109,6 +122,7 @@ pub fn load() -> Result<Config> {
     if !p.is_file() {
         return Ok(Config {
             settings: Settings::default(),
+            hosts: BTreeMap::new(),
             devices: MODELS
                 .iter()
                 .map(|m| (m.slug.to_owned(), defaults_for(m)))
@@ -159,6 +173,7 @@ mod tests {
     fn 默认配置能往返序列化() {
         let cfg = Config {
             settings: Settings::default(),
+            hosts: BTreeMap::new(),
             devices: MODELS
                 .iter()
                 .map(|m| (m.slug.to_owned(), defaults_for(m)))
@@ -197,6 +212,24 @@ charge_limit = "bf"
         let back: Config = toml::from_str(&toml::to_string_pretty(&cfg).unwrap()).unwrap();
         assert!(!back.settings.auto_connect);
         assert_eq!(back.settings.flash_wait_secs, 60);
+    }
+
+    #[test]
+    fn hosts_与机型设置同存且互不吞并() {
+        let mut cfg = Config::default();
+        cfg.entry_or_default(&MODELS[0]);
+        cfg.hosts.insert(
+            "DP-1".into(),
+            HostMonitor {
+                position: "1280x0".into(),
+                mode: "3840x2160@60.00".into(),
+                scale: 2.0,
+                transform: 0,
+            },
+        );
+        let back: Config = toml::from_str(&toml::to_string_pretty(&cfg).unwrap()).unwrap();
+        assert_eq!(back.hosts, cfg.hosts);
+        assert_eq!(back.devices.len(), 1, "hosts 不应被当成机型");
     }
 
     #[test]

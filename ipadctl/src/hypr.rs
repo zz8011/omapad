@@ -166,6 +166,8 @@ pub struct HyprMonitor {
     pub transform: u8,
     #[serde(default)]
     pub available_modes: Vec<String>,
+    #[serde(default)]
+    pub refresh_rate: f64,
 }
 
 /// 读当前活动显示器。GUI 里 hyprctl 依赖会话环境
@@ -377,6 +379,17 @@ pub fn render_lua(cfg: &Config) -> String {
         ));
     }
 
+    // 宿主屏：画布上拖过的才写。本文件在 monitors.lua 末尾加载，同名规则后写的生效
+    for (name, h) in &cfg.hosts {
+        s.push_str(&format!(
+            "hl.monitor({{ output = {name:?}, mode = {:?}, position = {:?}, scale = {}, transform = {} }})\n",
+            h.mode, h.position, h.scale, h.transform
+        ));
+    }
+    if !cfg.hosts.is_empty() {
+        s.push('\n');
+    }
+
     // 触摸设备绑定。
     //
     // 开关关闭时必须**显式**写 enabled = false：只"不生成规则"的话，上一次 reload
@@ -514,6 +527,22 @@ mod tests {
         assert!(lua.contains("position = "));
         // desc 规则行数 = 机型数（残留清理段里另有一条按名字禁用的 hl.monitor）
         assert_eq!(lua.matches("hl.monitor({ output = \"desc:").count(), MODELS.len());
+    }
+
+    #[test]
+    fn 拖过的宿主屏按接口名写规则() {
+        let mut cfg = Config::default();
+        cfg.hosts.insert(
+            "HDMI-A-1".into(),
+            crate::config::HostMonitor {
+                position: "1280x1080".into(),
+                mode: "3840x2160@60.00".into(),
+                scale: 2.0,
+                transform: 0,
+            },
+        );
+        let lua = render_lua(&cfg);
+        assert!(lua.contains(r#"hl.monitor({ output = "HDMI-A-1", mode = "3840x2160@60.00", position = "1280x1080", scale = 2, transform = 0 })"#), "{lua}");
     }
 
     #[test]
@@ -674,6 +703,7 @@ mod tests {
             scale: 2.0,
             transform: 0,
             available_modes: vec![],
+            refresh_rate: 0.0,
         };
         assert!(monitor_model(&host).is_none());
     }

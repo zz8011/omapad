@@ -210,6 +210,12 @@ struct CanvasEntry {
     w: f64,
     h: f64,
     transform: u8,
+    scale: f64,
+    /// hyprctl availableModes 原样串，及其中与当前模式对上的那项
+    modes: Vec<String>,
+    mode: String,
+    /// 宿主屏的现值（iPad 为 None），拖动后据此写覆盖规则
+    host: Option<config::HostMonitor>,
 }
 
 struct ChargeSubmission {
@@ -509,13 +515,11 @@ fn main() -> anyhow::Result<()> {
         let shared = shared.clone();
         let weak = window.as_weak();
         window.on_canvas_select(move |id: slint::SharedString| {
-            let is_ipad = lock(&shared)
-                .canvas
-                .iter()
-                .any(|e| e.id == id.as_str() && e.is_ipad);
+            let entry = lock(&shared).canvas.iter().find(|e| e.id == id.as_str()).cloned();
             if let Some(w) = weak.upgrade() {
                 w.set_selected_id(id.clone());
-                w.set_selected_is_ipad(is_ipad);
+                w.set_selected_is_ipad(entry.as_ref().is_some_and(|e| e.is_ipad));
+                push_selected_modes(&w, entry.as_ref());
             }
         });
     }
@@ -623,6 +627,27 @@ fn main() -> anyhow::Result<()> {
             }) {
                 eprintln!("持久化亮度失败：{e:#}");
             }
+        });
+    }
+    {
+        let shared = shared.clone();
+        let weak = window.as_weak();
+        window.on_canvas_mode(move |id: slint::SharedString, mode: slint::SharedString| {
+            let shared2 = shared.clone();
+            let weak2 = weak.clone();
+            let (id, mode) = (id.as_str().to_owned(), mode.as_str().to_owned());
+            std::thread::spawn(move || canvas_resize(shared2, weak2, id, Some(mode), None));
+        });
+    }
+    {
+        let shared = shared.clone();
+        let weak = window.as_weak();
+        window.on_canvas_scale(move |id: slint::SharedString, scale: slint::SharedString| {
+            let Ok(s) = scale.parse::<f64>() else { return };
+            let shared2 = shared.clone();
+            let weak2 = weak.clone();
+            let id = id.as_str().to_owned();
+            std::thread::spawn(move || canvas_resize(shared2, weak2, id, None, Some(s)));
         });
     }
     {
@@ -1317,6 +1342,15 @@ fn refresh_canvas(shared: &Arc<Mutex<Shared>>, weak: &Weak<OmapadWindow>) {
                 modes.insert(md.slug.to_owned(), two);
             }
         }
+        let cur = format!("{}x{}@", m.width, m.height);
+        let exact = format!("{cur}{:.2}Hz", m.refresh_rate);
+        let mode = m
+            .available_modes
+            .iter()
+            .find(|s| **s == exact)
+            .or_else(|| m.available_modes.iter().find(|s| s.starts_with(&cur)))
+            .cloned()
+            .unwrap_or(exact);
         entries.push(CanvasEntry {
             id: md
                 .map(|md| md.slug.to_owned())
@@ -1330,6 +1364,15 @@ fn refresh_canvas(shared: &Arc<Mutex<Shared>>, weak: &Weak<OmapadWindow>) {
             w,
             h,
             transform: m.transform,
+            scale: m.scale,
+            modes: m.available_modes.clone(),
+            mode: mode.clone(),
+            host: md.is_none().then(|| config::HostMonitor {
+                position: format!("{}x{}", m.x, m.y),
+                mode: mode.clone(),
+                scale: (m.scale * 1000.0).round() / 1000.0,
+                transform: m.transform,
+            }),
         });
     }
     let (min_x, min_y, max_x, max_y) = entries.iter().fold(
@@ -1360,6 +1403,7 @@ fn refresh_canvas(shared: &Arc<Mutex<Shared>>, weak: &Weak<OmapadWindow>) {
         sh.canvas_ok = true;
         sh.modes = modes;
     }
+    let selectable = entries.clone();
     let items: Vec<CanvasItem> = entries
         .into_iter()
         .map(|e| CanvasItem {
@@ -1381,6 +1425,8 @@ fn refresh_canvas(shared: &Arc<Mutex<Shared>>, weak: &Weak<OmapadWindow>) {
     let _ = slint::invoke_from_event_loop(move || {
         let Some(w) = weak.upgrade() else { return };
         w.set_canvas(ModelRc::new(VecModel::from(items)));
+        let sel = w.get_selected_id();
+        push_selected_modes(&w, selectable.iter().find(|e| e.id == sel.as_str()));
         w.set_canvas_min_x(min_x);
         w.set_canvas_min_y(min_y);
         w.set_canvas_span_w(span_w);
@@ -1416,9 +1462,6 @@ fn canvas_moved(
     let Some(entry) = lock(&shared).canvas.iter().find(|e| e.id == slug).cloned() else {
         return;
     };
-    if !entry.is_ipad {
-        return;
-    }
     let others = canvas_other_rects(&shared, &slug);
     let (x, y) = layout::snap_position(
         layout::Rect::new(x, y, entry.w, entry.h),
@@ -1437,7 +1480,15 @@ fn canvas_moved(
     }
     let pos = format!("{}x{}", x.round() as i32, y.round() as i32);
     if let Err(e) = modify_config(&shared, |c| {
-        if let Some(m) = model::by_slug(&slug) {
+        if let Some(h) = &entry.host {
+            c.hosts.insert(
+                slug.clone(),
+                config::HostMonitor {
+                    position: pos.clone(),
+                    ..h.clone()
+                },
+            );
+        } else if let Some(m) = model::by_slug(&slug) {
             c.entry_or_default(m).position = pos.clone();
         }
     }) {
@@ -1545,6 +1596,106 @@ fn mode_set(shared: Arc<Mutex<Shared>>, weak: Weak<OmapadWindow>, slug: String, 
     }
     match persist_layout(&shared, &weak) {
         Ok(()) => set_status_transient(&weak, format!("✓ 已切到 {chosen} 并生效")),
+        Err(e) => set_status(&weak, format!("⚠ 布局生效失败：{e:#}")),
+    }
+}
+
+/// `"3840x2160@60.00Hz"` → `(3840, 2160)`
+fn mode_pixels(mode: &str) -> Option<(i32, i32)> {
+    let (w, h) = mode.split('@').next()?.split_once('x')?;
+    Some((w.parse().ok()?, h.parse().ok()?))
+}
+
+#[test]
+fn mode_pixels_parses_hyprctl_mode_strings() {
+    assert_eq!(mode_pixels("3840x2160@60.00Hz"), Some((3840, 2160)));
+    assert_eq!(mode_pixels("834x1112"), Some((834, 1112)));
+    assert_eq!(mode_pixels("preferred"), None);
+}
+
+fn push_selected_modes(w: &OmapadWindow, entry: Option<&CanvasEntry>) {
+    let (modes, idx) = entry.map_or((vec![], -1), |e| {
+        let idx = e.modes.iter().position(|m| *m == e.mode).map_or(-1, |i| i as i32);
+        (e.modes.iter().map(|m| m.as_str().into()).collect(), idx)
+    });
+    w.set_selected_modes(ModelRc::new(VecModel::from(modes)));
+    w.set_selected_mode_index(idx);
+    let (scales, sidx) = entry.map_or((vec![], -1), |e| scale_options(e.scale));
+    w.set_selected_scales(ModelRc::new(VecModel::from(
+        scales.into_iter().map(slint::SharedString::from).collect::<Vec<_>>(),
+    )));
+    w.set_selected_scale_index(sidx);
+}
+
+/// 常用缩放档；当前值不在表里（如 Hyprland 自动修正过的值）就插进去，保证下拉框能显示现值。
+fn scale_options(current: f64) -> (Vec<String>, i32) {
+    let mut v: Vec<f64> = vec![1.0, 1.25, 1.5, 1.6, 1.75, 2.0, 2.5, 3.0];
+    let cur = (current * 1000.0).round() / 1000.0;
+    if !v.iter().any(|s| (s - cur).abs() < 1e-3) {
+        v.push(cur);
+        v.sort_by(f64::total_cmp);
+    }
+    let idx = v.iter().position(|s| (s - cur).abs() < 1e-3).map_or(-1, |i| i as i32);
+    (v.into_iter().map(|s| s.to_string()).collect(), idx)
+}
+
+#[test]
+fn scale_options_always_contain_current() {
+    let (v, i) = scale_options(2.0);
+    assert_eq!(v[i as usize], "2");
+    let (v, i) = scale_options(1.333333);
+    assert_eq!(v[i as usize], "1.333");
+    assert!(v.windows(2).all(|w| w[0].parse::<f64>().unwrap() < w[1].parse::<f64>().unwrap()));
+}
+
+/// 画布下拉框换分辨率或缩放：按新值算逻辑尺寸，原位校验重叠 → 存配置 → 生效。
+/// `mode`/`scale` 为 None 表示沿用现值。串行（layout_mu）。
+fn canvas_resize(
+    shared: Arc<Mutex<Shared>>,
+    weak: Weak<OmapadWindow>,
+    id: String,
+    mode: Option<String>,
+    scale: Option<f64>,
+) {
+    let layout_mu = lock(&shared).layout_mu.clone();
+    let _layout = lock(&layout_mu);
+    let Some(entry) = lock(&shared).canvas.iter().find(|e| e.id == id).cloned() else {
+        return;
+    };
+    let mode = mode.unwrap_or_else(|| entry.mode.clone());
+    let scale = scale.unwrap_or(entry.scale);
+    if mode == entry.mode && (scale - entry.scale).abs() < 1e-3 {
+        return;
+    }
+    let Some((pw, ph)) = mode_pixels(&mode) else {
+        set_status(&weak, format!("⚠ 看不懂模式串 {mode}"));
+        return;
+    };
+    let (_, _, w, h) = hypr::logical_rect(0, 0, pw, ph, entry.transform, scale);
+    let what = format!("{mode} · 缩放 {scale}");
+    if let Some(other) = overlap_with(&shared, &id, (entry.x, entry.y, w, h)) {
+        set_status(&weak, format!("⚠ 切到 {what} 后与 {other} 重叠，未保存；先挪开再切"));
+        return;
+    }
+    let native = lock(&shared).modes.get(&id).map(|(n, _)| n.clone());
+    if let Err(e) = modify_config(&shared, |c| {
+        if let Some(h) = &entry.host {
+            c.hosts.insert(
+                id.clone(),
+                config::HostMonitor { mode: mode.clone(), scale, ..h.clone() },
+            );
+        } else if let Some(m) = model::by_slug(&id) {
+            // 原生档记 None（= preferred），与设备页的两档开关同一约定
+            let d = c.entry_or_default(m);
+            d.mode = (native.as_deref() != Some(&mode)).then(|| mode.clone());
+            d.scale = scale;
+        }
+    }) {
+        set_status(&weak, format!("⚠ 写配置失败：{e:#}"));
+        return;
+    }
+    match persist_layout(&shared, &weak) {
+        Ok(()) => set_status_transient(&weak, format!("✓ {} 已切到 {what} 并生效", entry.label)),
         Err(e) => set_status(&weak, format!("⚠ 布局生效失败：{e:#}")),
     }
 }
