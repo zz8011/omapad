@@ -6,6 +6,8 @@
 // 字阶（8pt 基）：
 //   wordmark 13 mono 800 ls3 / 标题 14 600 / 正文 12 / caption 10.5 mono / 段标 10 mono ls1.5
 
+import { ComboBox } from "std-widgets.slint";
+
 export struct DeviceCard {
     slug: string,
     name: string,
@@ -317,10 +319,8 @@ component MonitorRect inherits Rectangle {
         height: 100%;
         border-radius: 8px;
         background: root.is-ipad ? Theme.bg-callout : Theme.bg-card;
-        border-width: root.is-ipad ? (root.selected ? 2px : 1px) : 1px;
-        border-color: root.is-ipad
-            ? (root.selected ? Theme.olive : (ta.has-hover ? Theme.border-hi : Theme.border))
-            : Theme.border;
+        border-width: root.selected ? 2px : 1px;
+        border-color: root.selected ? Theme.olive : (ta.has-hover ? Theme.border-hi : Theme.border);
         animate border-color { duration: Theme.reduce-motion ? 0ms : 140ms; }
 
         VerticalLayout {
@@ -343,11 +343,9 @@ component MonitorRect inherits Rectangle {
 
     ta := TouchArea {
         moved => {
-            if (root.is-ipad) {
-                root.dragging = true;
-                root.dx = ta.mouse-x - ta.pressed-x;
-                root.dy = ta.mouse-y - ta.pressed-y;
-            }
+            root.dragging = true;
+            root.dx = ta.mouse-x - ta.pressed-x;
+            root.dy = ta.mouse-y - ta.pressed-y;
         }
         pointer-event(e) => {
             if (e.kind == PointerEventKind.down) {
@@ -408,6 +406,10 @@ export component OmapadWindow inherits Window {
     in-out property <float> canvas-span-h: 1;
     in-out property <string> selected-id: "";
     in-out property <bool> selected-is-ipad: false;
+    in-out property <[string]> selected-modes: [];
+    in-out property <int> selected-mode-index: -1;
+    in-out property <[string]> selected-scales: [];
+    in-out property <int> selected-scale-index: -1;
     in-out property <int> banner: 0;
     in-out property <int> tab: 0;
     in-out property <bool> canvas-ok: false;
@@ -418,6 +420,8 @@ export component OmapadWindow inherits Window {
     callback canvas-select(string);
     callback canvas-moved(string, float, float, float);
     callback canvas-rotate(string, float);
+    callback canvas-mode(string, string);
+    callback canvas-scale(string, string);
     callback fix-lua();
     callback fix-cancel();
     callback brightness-live(string, float);
@@ -663,6 +667,26 @@ export component OmapadWindow inherits Window {
                     spacing: Theme.sp-2;
                     SectionLabel { text: "排列 LAYOUT"; }
                     Rectangle {}
+                    if root.selected-modes.length > 1: ComboBox {
+                        model: root.selected-modes;
+                        current-index <=> root.selected-mode-index;
+                        selected(v) => {
+                            root.canvas-mode(root.selected-id, v);
+                        }
+                    }
+                    if root.selected-scales.length > 0: Text {
+                        text: "缩放";
+                        color: Theme.text-2;
+                        font-size: 10.5px;
+                        vertical-alignment: center;
+                    }
+                    if root.selected-scales.length > 0: ComboBox {
+                        model: root.selected-scales;
+                        current-index <=> root.selected-scale-index;
+                        selected(v) => {
+                            root.canvas-scale(root.selected-id, v);
+                        }
+                    }
                     if root.selected-is-ipad: Btn {
                         text: "旋转所选";
                         compact: true;
@@ -708,7 +732,7 @@ export component OmapadWindow inherits Window {
                     }
                 }
                 Text {
-                    text: "拖动摆放 · 松手生效 · 深色块为宿主屏（只读参照）";
+                    text: "拖动摆放 · 松手生效 · 深色块为宿主屏";
                     color: Theme.text-3;
                     font-size: 10px;
                     font-family: Theme.mono;

@@ -230,7 +230,13 @@ fn config_set(slug: &str, key: &str, value: &str) -> Result<()> {
             }
             d.position = value.to_owned();
         }
-        "scale" => d.scale = value.parse().context("scale 应为 1 或 2")?,
+        "scale" => {
+            let s: f64 = value.parse().context("scale 应为正数，如 1、1.5、2")?;
+            if !(s > 0.0 && s <= 4.0) {
+                bail!("scale 应在 0~4 之间");
+            }
+            d.scale = s;
+        }
         "brightness" => {
             let b: u8 = value.parse().context("brightness 应为 0~100")?;
             if b > 100 {
