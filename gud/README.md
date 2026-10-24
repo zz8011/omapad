@@ -227,8 +227,10 @@ gudd 源码来自分支 `zz8011/power-button-screen-off` 提交 `56826f4`，用 
 
 | 机型 | 基础包（实机启动过） | 新包 | 启动器 |
 |---|---|---|---|
-| A1599 | `out/a1599-gud.bundle`（`2c0374d0…`） | `out/a1599-gud-powerkey.bundle`（`7dd4ad3a…`） | `launch/alpine_dfu_wrapper.py` |
-| J86 | `out/a1599-gud-j86.bundle`（`a5e5cc93…`） | `out/a1599-gud-j86-powerkey.bundle`（`553ef564…`） | `launch/alpine_dfu_wrapper_j86.py` |
+| A1599 | `out/a1599-gud.bundle`（`34fac101…`，snak 内核） | `out/a1599-gud-snak-powerkey.bundle`（`ea2bbc51…`） | `launch/alpine_dfu_wrapper.py` |
+| J86 | `out/a1599-gud-j86.bundle`（`76366042…`，snak 内核） | `out/a1599-gud-j86-snak-powerkey.bundle`（`cf4524bc…`） | `launch/alpine_dfu_wrapper_j86.py` |
 | J207 | `Omarpad/cusk` worktree 的 `out/a1599-gud-j207-touch2.bundle`（`e4e5176a…`，snak 内核 + 触摸） | `out/a1599-gud-j207-touch2-powerkey.bundle`（`a88029db…`） | `launch/alpine_dfu_wrapper_j207.py` |
 
 注意 J207 启动器此前锁的是不带触摸的 `a1599-gud-j207.bundle`（`834d7997…`），而 Pro 实际一直从 cusk 的 touch2 包启动；现已改为 touch2 + 新 gudd。三个启动器 `--dry-run` 校验通过（离线检查）。**新包尚未经 DFU 冷启动实测**；旧包仍在 `out/`，回退只需把启动器的 BUNDLE / BUNDLE_SHA256 改回。各包的元数据在 `out/IMAGE-*powerkey.json`（`out/` 被 git 忽略）。
+
+**2026-10-24 更正**：合并 `a4c34fd` 解冲突时三个启动器被回退到不带电源键的包（当天 J207 冷启动实测上传的是 touch2 `e4e5176a…`，设备上 gudd 为旧版 `9e1720ab…`）。另外上表 A1599/J86 最初的 powerkey 包基于 pre-snak 的 `2c0374d0…`/`a5e5cc93…`，会丢掉 `dwc2.apple_out_snak` 修复，故改为在当前 snak 包上用同一 gudd（`0a9b3210…`）重打为 `*-snak-powerkey.bundle`。三个启动器已指向上表新包，`--dry-run` 校验通过（离线）；`out/IMAGE.json`、`IMAGE-j86.json`、`IMAGE-j207.json` 复制自对应的 powerkey 元数据供 ipadctl 读取。三个新包均**尚未 DFU 冷启动实测**。
